@@ -224,6 +224,84 @@ Today, the data economy is designed for humans — subscriptions, dashboards, CS
 
 x402 + Stacks makes this possible. ShadowFeed is the proof.
 
+## Market Opportunity
+
+### The AI Agent Economy is Exploding
+
+The autonomous AI agent market is projected to grow from **$5.1B (2024)** to **$47.1B by 2030** — a 44.8% CAGR. By 2027, Gartner predicts **50% of enterprise software interactions** will involve AI agents acting autonomously.
+
+These agents all need one thing: **real-time data**. And they need to pay for it without human intervention.
+
+```
+2024: 1.2M active AI agents      → $5.1B market
+2025: 3.5M active AI agents      → $9.2B market
+2026: 8M+ active AI agents       → $16B market     ← WE ARE HERE
+2028: 50M+ active AI agents      → $32B market
+2030: 200M+ active AI agents     → $47B market
+```
+
+### Why This Matters for Stacks
+
+ShadowFeed creates a **new revenue stream for the Stacks ecosystem**:
+
+| Impact | Description |
+|--------|-------------|
+| **Transaction Volume** | Every data query = 1 STX transaction. At scale, millions of micro-transactions per day flowing through Stacks |
+| **STX Demand** | AI agents need STX to buy data, creating organic buy pressure on the token |
+| **Developer Adoption** | x402 makes Stacks the easiest blockchain for machine-to-machine payments — attracting builders |
+| **Bitcoin Alignment** | Data commerce settled on Bitcoin L2 reinforces the "Bitcoin as global settlement layer" narrative |
+| **DeFi Synergy** | Agents buying DeFi data → making trades → generating more DeFi activity → a flywheel effect |
+
+### Total Addressable Market
+
+```
+Crypto data market (2026):              ~$2.5B/year
+  └─ Addressable by AI agents:         ~$800M/year
+     └─ Capturable via micropayments:   ~$200M/year
+        └─ ShadowFeed's initial niche:  ~$10M/year (whale alerts, sentiment, DeFi scores)
+```
+
+Even capturing **0.5%** of the AI agent data spend would mean **$1M+ annual revenue** — entirely on-chain, entirely on Stacks.
+
+## Roadmap
+
+### Phase 1: Foundation (Hackathon) — Completed
+
+- [x] x402-stacks payment integration with HTTP 402 flow
+- [x] 3 live data feeds (whale alerts, BTC sentiment, DeFi scores)
+- [x] Real API data sources (CoinGecko, DeFiLlama, Alternative.me, Blockchain.info)
+- [x] Smart agent with conditional buying logic
+- [x] Clarity smart contract deployed on testnet
+- [x] Dashboard with wallet connect (Leather/Xverse)
+- [x] Verified on-chain transactions on Stacks testnet
+- [x] Live deployment on Railway
+
+### Phase 2: Marketplace (Q2 2026)
+
+- [ ] Open marketplace — anyone can register as a data provider
+- [ ] Provider staking with mainnet STX (economic accountability)
+- [ ] Data quality scoring with on-chain reputation
+- [ ] 10+ data feeds: NFT analytics, gas predictions, liquidation alerts, MEV data
+- [ ] Agent SDK package (`npm install @shadowfeed/agent`) for one-line integration
+- [ ] Rate limiting and tiered pricing per provider
+
+### Phase 3: Scale (Q3 2026)
+
+- [ ] Mainnet launch on Stacks
+- [ ] Multi-chain data feeds (Bitcoin, Ethereum, Solana data available via Stacks payments)
+- [ ] AI agent marketplace — agents can discover and subscribe to feeds programmatically
+- [ ] Provider DAO governance — community votes on slashing disputes
+- [ ] Bulk query discounts via Clarity smart contract logic
+- [ ] Analytics dashboard for providers (revenue, query patterns, agent behavior)
+
+### Phase 4: Network Effects (Q4 2026+)
+
+- [ ] Agent-to-agent data reselling (agents become both buyers and sellers)
+- [ ] Prediction market feeds — agents bet on outcomes using purchased data
+- [ ] Cross-protocol data bundles (e.g., "DeFi Risk Package" = 5 feeds for discount)
+- [ ] Enterprise API with SLA guarantees backed by staked STX
+- [ ] Integration with major AI frameworks (LangChain, AutoGPT, CrewAI)
+
 ## Tech Stack
 
 | Layer | Technology |
