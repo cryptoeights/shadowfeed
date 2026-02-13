@@ -473,7 +473,7 @@ app.<span class="text-blue-400">get</span>(<span class="text-emerald-400">'/my-d
 <span class="text-purple-400">const</span> api = <span class="text-blue-400">wrapAxiosWithPayment</span>(axios.<span class="text-blue-400">create</span>(), account);
 
 <span class="text-zinc-500">// Request data — payment is automatic!</span>
-<span class="text-purple-400">const</span> { data } = <span class="text-purple-400">await</span> api.<span class="text-blue-400">get</span>(<span class="text-emerald-400">'https://YOUR_DEPLOY_URL/feeds/whale-alerts'</span>);
+<span class="text-purple-400">const</span> { data } = <span class="text-purple-400">await</span> api.<span class="text-blue-400">get</span>(<span class="text-emerald-400">'https://shadowfeed-production.up.railway.app/feeds/whale-alerts'</span>);
 console.<span class="text-blue-400">log</span>(data); <span class="text-zinc-500">// Whale alert data + tx receipt</span></pre>
         </div>
       </div>
