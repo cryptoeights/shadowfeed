@@ -26,6 +26,23 @@ const publicDir2 = path.join(__dirname, '..', '..', 'public');
 const fs = require('fs');
 app.use(express.static(fs.existsSync(publicDir) ? publicDir : publicDir2));
 
+// Agent name generator — deterministic names from addresses
+const AGENT_PREFIXES = ['Shadow', 'Cyber', 'Quantum', 'Neural', 'Alpha', 'Omega', 'Phantom', 'Nova', 'Stellar', 'Hyper', 'Crypto', 'Digital', 'Apex', 'Nexus', 'Vector', 'Sigma', 'Delta', 'Turbo', 'Nano', 'Onyx'];
+const AGENT_SUFFIXES = ['Bot', 'Agent', 'Scout', 'Miner', 'Seeker', 'Hunter', 'Walker', 'Runner', 'Pilot', 'Guard', 'Hawk', 'Wolf', 'Fox', 'Lynx', 'Viper', 'Raven', 'Spark', 'Node', 'Core', 'Byte'];
+
+function getAgentName(address: string): string {
+  if (!address) return 'Unknown';
+  // Simple hash from address to pick prefix + suffix deterministically
+  let hash = 0;
+  for (let i = 0; i < address.length; i++) {
+    hash = ((hash << 5) - hash + address.charCodeAt(i)) | 0;
+  }
+  const prefixIdx = Math.abs(hash) % AGENT_PREFIXES.length;
+  const suffixIdx = Math.abs(hash >> 8) % AGENT_SUFFIXES.length;
+  const num = Math.abs(hash >> 16) % 100;
+  return `${AGENT_PREFIXES[prefixIdx]}${AGENT_SUFFIXES[suffixIdx]}-${num}`;
+}
+
 const PROVIDER_ADDRESS = process.env.SERVER_ADDRESS!;
 const PORT = parseInt(process.env.PORT || '3000', 10);
 const NETWORK = (process.env.NETWORK || 'testnet') as 'testnet' | 'mainnet';
@@ -180,6 +197,7 @@ app.get('/activity', (req, res) => {
         id: q.id,
         feed: q.feed_id,
         agent: q.payer,
+        agent_name: getAgentName(q.payer || ''),
         agent_short: q.payer ? `${q.payer.slice(0, 8)}...${q.payer.slice(-6)}` : 'unknown',
         tx_hash: q.tx_hash,
         tx_explorer: isReal ? `https://explorer.hiro.so/txid/${q.tx_hash}?chain=${NETWORK}` : null,
@@ -231,6 +249,7 @@ app.get('/leaderboard', (_req, res) => {
     agents: agents.map((a, idx) => ({
       rank: idx + 1,
       address: a.address,
+      agent_name: getAgentName(a.address),
       address_short: `${a.address.slice(0, 8)}...${a.address.slice(-6)}`,
       total_queries: a.total_queries,
       total_spent_stx: Math.round(

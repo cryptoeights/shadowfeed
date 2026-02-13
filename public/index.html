@@ -815,8 +815,9 @@ console.<span class="text-blue-400">log</span>(data); <span class="text-zinc-500
                   ${meta.emoji} ${meta.label}
                 </span>
               </div>
-              <div class="col-span-3 font-mono text-xs">
-                <span class="text-zinc-300">${a.agent_short}</span>
+              <div class="col-span-3 text-xs">
+                <span class="text-white font-medium">${a.agent_name}</span>
+                <span class="text-zinc-600 font-mono ml-1">${a.agent_short}</span>
               </div>
               <div class="col-span-3 font-mono text-xs">
                 ${a.is_onchain
@@ -874,8 +875,8 @@ console.<span class="text-blue-400">log</span>(data); <span class="text-zinc-500
                 <span class="text-lg font-bold ${rankColor}">${a.rank}</span>
               </div>
               <div class="col-span-3">
-                <div class="font-mono text-sm text-white">${a.address_short}</div>
-                <div class="text-xs text-zinc-500 mt-0.5">Since ${new Date(a.first_seen).toLocaleTimeString()}</div>
+                <div class="text-sm text-white font-semibold">${a.agent_name}</div>
+                <div class="text-xs text-zinc-500 font-mono mt-0.5">${a.address_short}</div>
               </div>
               <div class="col-span-2 text-center">
                 <div class="text-lg font-bold text-white">${a.total_queries}</div>
