@@ -19,7 +19,12 @@ app.use(express.json({ limit: '1mb' }));
 app.use(cors());
 
 // Serve static frontend
-app.use(express.static(path.join(__dirname, '..', 'public')));
+// When compiled: __dirname = dist/src/, so go up 2 levels to project root
+// When running with tsx: __dirname = src/, so go up 1 level
+const publicDir = path.join(__dirname, '..', 'public');
+const publicDir2 = path.join(__dirname, '..', '..', 'public');
+const fs = require('fs');
+app.use(express.static(fs.existsSync(publicDir) ? publicDir : publicDir2));
 
 const PROVIDER_ADDRESS = process.env.SERVER_ADDRESS!;
 const PORT = parseInt(process.env.PORT || '3000', 10);
