@@ -1,0 +1,44 @@
+{
+  "name": "shadowfeed",
+  "version": "1.0.0",
+  "description": "Decentralized data marketplace for AI agents via x402 micropayments on Stacks",
+  "main": "src/server.ts",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/src/server.js",
+    "dev": "tsx src/server.ts",
+    "client": "tsx client/agent-demo.ts",
+    "smart-agent": "tsx client/smart-agent.ts",
+    "simulate": "tsx client/simulate-agents.ts",
+    "demo": "DEMO_MODE=true tsx src/server.ts",
+    "facilitator": "tsx src/facilitator.ts",
+    "deploy": "tsx scripts/deploy-contract.ts",
+    "keygen": "tsx -e \"const { generateKeypair } = require('x402-stacks'); const kp = generateKeypair('testnet'); console.log(JSON.stringify(kp, null, 2));\""
+  },
+  "keywords": [
+    "x402",
+    "stacks",
+    "ai-agents",
+    "data-marketplace",
+    "micropayments"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@stacks/network": "^7.3.1",
+    "@stacks/transactions": "^7.3.1",
+    "axios": "^1.13.5",
+    "better-sqlite3": "^12.6.2",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^4.22.1",
+    "x402-stacks": "^2.0.1"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.2.3",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}
