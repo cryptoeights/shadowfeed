@@ -7,59 +7,198 @@
   <title>ShadowFeed — AI Data Marketplace</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script>
     tailwind.config = {
       theme: {
         extend: {
           fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
           colors: {
-            brand: { 50: '#fff7ed', 100: '#ffedd5', 200: '#fed7aa', 300: '#fdba74', 400: '#fb923c', 500: '#f7931a', 600: '#ea580c', 700: '#c2410c' },
-            surface: { 0: '#09090b', 1: '#111113', 2: '#18181b', 3: '#1e1e22', 4: '#27272a' },
+            brand: { 50: '#fff7ed', 100: '#ffedd5', 200: '#fed7aa', 300: '#fdba74', 400: '#f97316', 500: '#f7931a', 600: '#ea580c', 700: '#c2410c' },
           }
         }
       }
     }
   </script>
   <style>
-    body { background: #09090b; }
-    .gradient-text { background: linear-gradient(135deg, #f7931a 0%, #fbbf24 50%, #f7931a 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    .card-glow:hover { box-shadow: 0 0 30px rgba(247, 147, 26, 0.08); }
+    * { scroll-behavior: smooth; }
+    body { background: #fafafa; overflow-x: hidden; }
+
+    /* ===== 3D PARTICLE CANVAS ===== */
+    #particle-canvas {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* Soft gradient overlay behind hero text */
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      z-index: 1;
+    }
+    .hero-bg::before {
+      content: '';
+      position: absolute;
+      width: 200%;
+      height: 200%;
+      top: -50%;
+      left: -50%;
+      background:
+        radial-gradient(ellipse 600px 600px at 20% 30%, rgba(247,147,26,0.08), transparent),
+        radial-gradient(ellipse 500px 500px at 70% 60%, rgba(168,85,247,0.06), transparent),
+        radial-gradient(ellipse 700px 700px at 50% 20%, rgba(59,130,246,0.05), transparent);
+      animation: meshMove 20s ease-in-out infinite;
+    }
+    @keyframes meshMove {
+      0%, 100% { transform: translate(0, 0) rotate(0deg); }
+      33% { transform: translate(30px, -30px) rotate(1deg); }
+      66% { transform: translate(-20px, 20px) rotate(-1deg); }
+    }
+
+    /* Grid pattern overlay */
+    .grid-pattern {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(rgba(0,0,0,0.02) 1px, transparent 1px),
+                         linear-gradient(90deg, rgba(0,0,0,0.02) 1px, transparent 1px);
+      background-size: 60px 60px;
+      z-index: 2;
+    }
+
+    .gradient-text { background: linear-gradient(135deg, #f7931a 0%, #ea580c 50%, #f97316 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .gradient-text-purple { background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+    .card { background: white; border: 1px solid #e5e7eb; border-radius: 16px; transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+    .card:hover { box-shadow: 0 25px 50px -12px rgba(0,0,0,0.08); border-color: #d1d5db; transform: translateY(-4px); }
+
+    .card-dark { background: #18181b; border: 1px solid #27272a; border-radius: 16px; }
+
     .pulse-dot { animation: pulse 2s ease-in-out infinite; }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
     .fade-in { animation: fadeIn 0.6s ease-out; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
     .slide-up { animation: slideUp 0.4s ease-out; }
     @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ===== SCROLL REVEAL ANIMATIONS ===== */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .reveal-left {
+      opacity: 0;
+      transform: translateX(-40px);
+      transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .reveal-left.visible {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    .reveal-right {
+      opacity: 0;
+      transform: translateX(40px);
+      transition: opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .reveal-right.visible {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    .reveal-scale {
+      opacity: 0;
+      transform: scale(0.92);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal-scale.visible {
+      opacity: 1;
+      transform: scale(1);
+    }
+    .stagger-1 { transition-delay: 0.1s; }
+    .stagger-2 { transition-delay: 0.2s; }
+    .stagger-3 { transition-delay: 0.3s; }
+    .stagger-4 { transition-delay: 0.4s; }
+
+    /* ===== HERO ENTRANCE ===== */
+    .hero-enter { animation: heroEnter 1.2s cubic-bezier(0.16, 1, 0.3, 1) both; }
+    .hero-enter-delay-1 { animation: heroEnter 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both; }
+    .hero-enter-delay-2 { animation: heroEnter 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both; }
+    .hero-enter-delay-3 { animation: heroEnter 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both; }
+    .hero-enter-delay-4 { animation: heroEnter 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.7s both; }
+    @keyframes heroEnter {
+      from { opacity: 0; transform: translateY(30px) scale(0.97); filter: blur(4px); }
+      to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+    }
+
+    /* ===== SMOOTH NAV ===== */
+    nav { transition: background 0.3s, box-shadow 0.3s, border-color 0.3s; }
+    nav.scrolled { background: rgba(255,255,255,0.95); box-shadow: 0 1px 20px rgba(0,0,0,0.06); }
+
     pre::-webkit-scrollbar { height: 6px; }
-    pre::-webkit-scrollbar-track { background: #18181b; border-radius: 3px; }
-    pre::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+    pre::-webkit-scrollbar-track { background: #f4f4f5; border-radius: 3px; }
+    pre::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 3px; }
+
     .step-line { position: absolute; left: 19px; top: 40px; bottom: -8px; width: 2px; background: linear-gradient(to bottom, #f7931a, transparent); }
+
+    /* Section divider */
+    .section-divider { height: 1px; background: linear-gradient(90deg, transparent, #e5e7eb 20%, #e5e7eb 80%, transparent); }
+
+    /* Stat counter animation */
+    .stat-card { background: white; border-radius: 16px; border: 1px solid #f4f4f5; box-shadow: 0 1px 3px rgba(0,0,0,0.04); transition: all 0.3s ease; }
+    .stat-card:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.06); transform: translateY(-2px); }
+
+    /* Smooth number counter */
+    @keyframes countUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .count-animate { animation: countUp 0.4s ease-out; }
+
+    /* Glow effect on CTA */
+    .cta-glow {
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-glow::after {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      background: linear-gradient(135deg, rgba(247,147,26,0.3), rgba(234,88,12,0.3));
+      border-radius: inherit;
+      z-index: -1;
+      filter: blur(12px);
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+    .cta-glow:hover::after { opacity: 1; }
   </style>
 </head>
-<body class="font-sans text-zinc-300 antialiased">
+<body class="font-sans text-gray-700 antialiased">
 
   <!-- Nav -->
-  <nav class="fixed top-0 w-full z-50 bg-surface-0/80 backdrop-blur-xl border-b border-zinc-800/50">
+  <nav class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100">
     <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-lg bg-brand-500/10 flex items-center justify-center">
-          <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-lg shadow-orange-500/20">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
         </div>
-        <span class="font-bold text-white text-lg">Shadow<span class="text-brand-500">Feed</span></span>
+        <span class="font-extrabold text-gray-900 text-lg tracking-tight">Shadow<span class="text-orange-500">Feed</span></span>
       </div>
       <div class="flex items-center gap-6">
-        <a href="#feeds" class="text-sm text-zinc-400 hover:text-white transition">Feeds</a>
-        <a href="#how-it-works" class="text-sm text-zinc-400 hover:text-white transition">How It Works</a>
-        <a href="#try-it" class="text-sm text-zinc-400 hover:text-white transition">Try It</a>
-        <a href="#activity" class="text-sm text-zinc-400 hover:text-white transition">Activity</a>
-        <a href="#leaderboard" class="text-sm text-zinc-400 hover:text-white transition">Leaderboard</a>
-        <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-          <div class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></div>
-          <span class="text-xs text-emerald-400 font-medium" id="network-badge">Testnet</span>
+        <a href="#feeds" class="text-sm text-gray-500 hover:text-gray-900 transition font-medium">Feeds</a>
+        <a href="#how-it-works" class="text-sm text-gray-500 hover:text-gray-900 transition font-medium">How It Works</a>
+        <a href="#try-it" class="text-sm text-gray-500 hover:text-gray-900 transition font-medium">Try It</a>
+        <a href="#activity" class="text-sm text-gray-500 hover:text-gray-900 transition font-medium">Activity</a>
+        <a href="#leaderboard" class="text-sm text-gray-500 hover:text-gray-900 transition font-medium">Leaderboard</a>
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200">
+          <div class="w-2 h-2 rounded-full bg-emerald-500 pulse-dot"></div>
+          <span class="text-xs text-emerald-600 font-semibold" id="network-badge">Testnet</span>
         </div>
-        <!-- Wallet Connect Button -->
-        <button id="wallet-btn" onclick="connectWallet()" class="flex items-center gap-2 px-4 py-1.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold transition shadow-lg shadow-brand-500/20">
+        <button id="wallet-btn" onclick="connectWallet()" class="flex items-center gap-2 px-5 py-2 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold transition shadow-lg shadow-gray-900/10">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
           <span id="wallet-btn-text">Connect Wallet</span>
         </button>
@@ -68,140 +207,151 @@
   </nav>
 
   <!-- Hero -->
-  <section class="pt-32 pb-20 px-6">
-    <div class="max-w-4xl mx-auto text-center">
-      <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-500/10 border border-brand-500/20 mb-8">
-        <svg class="w-4 h-4 text-brand-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-        <span class="text-sm text-brand-400 font-medium">Powered by x402 Protocol on Bitcoin (Stacks L2)</span>
+  <section class="relative pt-32 pb-24 px-6 overflow-hidden min-h-[90vh] flex items-center" id="hero">
+    <canvas id="particle-canvas"></canvas>
+    <div class="hero-bg"></div>
+    <div class="grid-pattern"></div>
+
+    <div class="max-w-5xl mx-auto text-center relative z-10">
+      <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-gray-200 shadow-sm mb-8 hero-enter">
+        <div class="w-2 h-2 rounded-full bg-orange-500 pulse-dot"></div>
+        <span class="text-sm text-gray-600 font-medium">Powered by x402 Protocol on Stacks (Bitcoin L2)</span>
       </div>
-      <h1 class="text-5xl md:text-6xl font-extrabold text-white leading-tight mb-6">
+      <h1 class="text-6xl md:text-7xl lg:text-8xl font-black text-gray-900 leading-[0.95] mb-8 tracking-tight hero-enter-delay-1">
         Data Marketplace<br>for <span class="gradient-text">AI Agents</span>
       </h1>
-      <p class="text-xl text-zinc-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-        AI agents need quality data. ShadowFeed lets them buy data autonomously — pay per-query, no subscriptions, no signups. All settled on Bitcoin.
+      <p class="text-xl md:text-2xl text-gray-500 max-w-2xl mx-auto mb-12 leading-relaxed font-light hero-enter-delay-2">
+        AI agents buy real-time crypto intelligence autonomously. Pay per-query with STX. No signup. No subscription. Settled on Bitcoin.
       </p>
-      <div class="flex flex-wrap justify-center gap-4 mb-16">
-        <a href="#try-it" class="px-8 py-3.5 bg-brand-500 hover:bg-brand-600 text-white font-semibold rounded-xl transition shadow-lg shadow-brand-500/20">
-          Try Now
+      <div class="flex flex-wrap justify-center gap-4 mb-20 hero-enter-delay-3">
+        <a href="#try-it" class="cta-glow px-8 py-4 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-2xl transition-all duration-300 shadow-xl shadow-gray-900/10 text-lg hover:shadow-2xl hover:scale-[1.02]">
+          Try the API
         </a>
-        <a href="#how-it-works" class="px-8 py-3.5 bg-surface-2 hover:bg-surface-3 text-zinc-300 font-semibold rounded-xl border border-zinc-700/50 transition">
-          Learn How It Works
+        <a href="#how-it-works" class="px-8 py-4 bg-white/80 backdrop-blur-sm hover:bg-white text-gray-700 font-semibold rounded-2xl border border-gray-200 transition-all duration-300 shadow-sm text-lg hover:shadow-lg hover:scale-[1.02]">
+          How It Works
         </a>
       </div>
 
       <!-- Stats bar -->
-      <div class="grid grid-cols-3 gap-6 max-w-xl mx-auto">
+      <div class="flex justify-center gap-12 hero-enter-delay-4">
         <div class="text-center">
-          <div class="text-2xl font-bold text-white" id="hero-feeds">3</div>
-          <div class="text-sm text-zinc-500">Data Feeds</div>
+          <div class="text-4xl font-black text-gray-900" id="hero-feeds">3</div>
+          <div class="text-sm text-gray-400 font-medium mt-1">Live Feeds</div>
         </div>
+        <div class="w-px bg-gray-200"></div>
         <div class="text-center">
-          <div class="text-2xl font-bold text-white" id="hero-queries">0</div>
-          <div class="text-sm text-zinc-500">Queries Served</div>
+          <div class="text-4xl font-black text-gray-900" id="hero-queries">0</div>
+          <div class="text-sm text-gray-400 font-medium mt-1">Queries Served</div>
         </div>
+        <div class="w-px bg-gray-200"></div>
         <div class="text-center">
-          <div class="text-2xl font-bold text-white">$0.003</div>
-          <div class="text-sm text-zinc-500">Starting Price</div>
+          <div class="text-4xl font-black text-orange-500">$0.003</div>
+          <div class="text-sm text-gray-400 font-medium mt-1">Starting Price</div>
         </div>
       </div>
     </div>
   </section>
 
   <!-- Problem/Solution -->
-  <section class="py-20 px-6 border-t border-zinc-800/50">
+  <section class="py-24 px-6">
     <div class="max-w-5xl mx-auto">
-      <div class="text-center mb-16">
-        <h2 class="text-3xl font-bold text-white mb-4">Why ShadowFeed?</h2>
-        <p class="text-zinc-400 max-w-2xl mx-auto">Current data providers only sell via expensive subscriptions. AI agents can't sign up or pay monthly. ShadowFeed bridges this gap.</p>
+      <div class="text-center mb-16 reveal">
+        <p class="text-sm font-semibold text-orange-500 uppercase tracking-widest mb-3">The Problem</p>
+        <h2 class="text-4xl font-extrabold text-gray-900 mb-4">Why ShadowFeed?</h2>
+        <p class="text-lg text-gray-400 max-w-2xl mx-auto">AI agents need data but can't access traditional providers.</p>
       </div>
       <div class="grid md:grid-cols-3 gap-6">
-        <div class="p-6 rounded-2xl bg-surface-1 border border-zinc-800/50">
-          <div class="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center mb-4">
-            <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <div class="card p-8 reveal stagger-1">
+          <div class="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mb-5">
+            <svg class="w-7 h-7 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           </div>
-          <h3 class="text-lg font-semibold text-white mb-2">Problem: Expensive Pricing</h3>
-          <p class="text-sm text-zinc-400">CoinGecko $129/mo, Nansen $2500/mo — yet AI agents only need a few queries. Monthly subscriptions are wasteful.</p>
+          <h3 class="text-lg font-bold text-gray-900 mb-2">Expensive Subscriptions</h3>
+          <p class="text-sm text-gray-500 leading-relaxed">CoinGecko $129/mo, Nansen $2,500/mo — AI agents only need a few queries. Monthly subscriptions are wasteful.</p>
         </div>
-        <div class="p-6 rounded-2xl bg-surface-1 border border-zinc-800/50">
-          <div class="w-12 h-12 rounded-xl bg-yellow-500/10 flex items-center justify-center mb-4">
-            <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        <div class="card p-8 reveal stagger-2">
+          <div class="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center mb-5">
+            <svg class="w-7 h-7 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
           </div>
-          <h3 class="text-lg font-semibold text-white mb-2">Problem: Agents Can't Pay</h3>
-          <p class="text-sm text-zinc-400">AI agents have no ID, can't sign up, and don't have credit cards. They need an autonomous and instant payment method.</p>
+          <h3 class="text-lg font-bold text-gray-900 mb-2">Agents Can't Sign Up</h3>
+          <p class="text-sm text-gray-500 leading-relaxed">AI agents have no identity, can't create accounts, and don't have credit cards. They need autonomous payment.</p>
         </div>
-        <div class="p-6 rounded-2xl bg-surface-1 border border-zinc-800/50">
-          <div class="w-12 h-12 rounded-xl bg-brand-500/10 flex items-center justify-center mb-4">
-            <svg class="w-6 h-6 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        <div class="card p-8 border-orange-200 bg-orange-50/30 reveal stagger-3">
+          <div class="w-14 h-14 rounded-2xl bg-orange-100 flex items-center justify-center mb-5">
+            <svg class="w-7 h-7 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
           </div>
-          <h3 class="text-lg font-semibold text-white mb-2">Solution: Pay-Per-Query</h3>
-          <p class="text-sm text-zinc-400">ShadowFeed + x402: agent hits endpoint, auto-pays per query via crypto, data delivered instantly. No signup, no subscription.</p>
+          <h3 class="text-lg font-bold text-gray-900 mb-2">Pay-Per-Query via x402</h3>
+          <p class="text-sm text-gray-500 leading-relaxed">Agent hits endpoint, auto-pays via STX micropayment, data delivered instantly. No signup, no subscription needed.</p>
         </div>
       </div>
     </div>
   </section>
+
+  <div class="section-divider"></div>
 
   <!-- Feeds -->
-  <section id="feeds" class="py-20 px-6 border-t border-zinc-800/50">
+  <section id="feeds" class="py-24 px-6">
     <div class="max-w-5xl mx-auto">
-      <div class="text-center mb-16">
-        <h2 class="text-3xl font-bold text-white mb-4">Available Data Feeds</h2>
-        <p class="text-zinc-400">Real-time crypto intelligence — pay only when you need it.</p>
+      <div class="text-center mb-16 reveal">
+        <p class="text-sm font-semibold text-orange-500 uppercase tracking-widest mb-3">Marketplace</p>
+        <h2 class="text-4xl font-extrabold text-gray-900 mb-4">Available Data Feeds</h2>
+        <p class="text-lg text-gray-400">Real-time crypto intelligence — pay only when you need it.</p>
       </div>
-      <div class="grid md:grid-cols-3 gap-6" id="feeds-grid">
-        <!-- Populated by JS -->
-      </div>
+      <div class="grid md:grid-cols-3 gap-6 reveal" id="feeds-grid"></div>
     </div>
   </section>
 
+  <div class="section-divider"></div>
+
   <!-- How It Works -->
-  <section id="how-it-works" class="py-20 px-6 border-t border-zinc-800/50">
+  <section id="how-it-works" class="py-24 px-6 bg-gray-50/50">
     <div class="max-w-4xl mx-auto">
-      <div class="text-center mb-16">
-        <h2 class="text-3xl font-bold text-white mb-4">How It Works</h2>
-        <p class="text-zinc-400">In 4 simple steps, AI agents can buy data autonomously.</p>
+      <div class="text-center mb-16 reveal">
+        <p class="text-sm font-semibold text-orange-500 uppercase tracking-widest mb-3">Protocol</p>
+        <h2 class="text-4xl font-extrabold text-gray-900 mb-4">How It Works</h2>
+        <p class="text-lg text-gray-400">4 steps. Fully autonomous. No human needed.</p>
       </div>
       <div class="space-y-8">
-        <div class="flex gap-6 relative">
-          <div class="flex-shrink-0 w-10 h-10 rounded-full bg-brand-500/20 border-2 border-brand-500 flex items-center justify-center text-brand-400 font-bold text-sm z-10">1</div>
+        <div class="flex gap-6 relative reveal-left stagger-1">
+          <div class="flex-shrink-0 w-10 h-10 rounded-full bg-orange-100 border-2 border-orange-400 flex items-center justify-center text-orange-600 font-bold text-sm z-10">1</div>
           <div class="step-line"></div>
           <div class="pb-4">
-            <h3 class="text-lg font-semibold text-white mb-2">Discover — Agent Finds Feeds</h3>
-            <p class="text-sm text-zinc-400 mb-3">Agent accesses <code class="px-2 py-0.5 bg-surface-3 rounded text-brand-400 text-xs">/registry/feeds</code> to see all available data feeds and their prices. <strong class="text-zinc-300">Free!</strong></p>
-            <div class="bg-surface-2 rounded-xl p-4 border border-zinc-800/50 font-mono text-sm">
+            <h3 class="text-lg font-bold text-gray-900 mb-2">Discover — Agent Finds Feeds</h3>
+            <p class="text-sm text-gray-500 mb-3">Agent accesses <code class="px-2 py-0.5 bg-gray-100 rounded text-orange-600 text-xs font-mono">/registry/feeds</code> to browse available data feeds and pricing. <strong class="text-emerald-600">Free!</strong></p>
+            <div class="card-dark p-4 font-mono text-sm">
               <span class="text-emerald-400">GET</span> <span class="text-blue-400">/registry/feeds</span> <span class="text-zinc-500">// List all feeds + prices</span>
             </div>
           </div>
         </div>
-        <div class="flex gap-6 relative">
-          <div class="flex-shrink-0 w-10 h-10 rounded-full bg-brand-500/20 border-2 border-brand-500 flex items-center justify-center text-brand-400 font-bold text-sm z-10">2</div>
+        <div class="flex gap-6 relative reveal-left stagger-2">
+          <div class="flex-shrink-0 w-10 h-10 rounded-full bg-orange-100 border-2 border-orange-400 flex items-center justify-center text-orange-600 font-bold text-sm z-10">2</div>
           <div class="step-line"></div>
           <div class="pb-4">
-            <h3 class="text-lg font-semibold text-white mb-2">Request — Agent Requests Data</h3>
-            <p class="text-sm text-zinc-400 mb-3">Agent requests a data feed. Server responds with <code class="px-2 py-0.5 bg-yellow-500/10 rounded text-yellow-400 text-xs font-bold">HTTP 402 Payment Required</code> — containing the payment details needed.</p>
-            <div class="bg-surface-2 rounded-xl p-4 border border-zinc-800/50 font-mono text-sm">
+            <h3 class="text-lg font-bold text-gray-900 mb-2">Request — Server Returns 402</h3>
+            <p class="text-sm text-gray-500 mb-3">Agent requests data. Server responds with <code class="px-2 py-0.5 bg-amber-50 rounded text-amber-700 text-xs font-bold font-mono">HTTP 402 Payment Required</code> — containing payment details.</p>
+            <div class="card-dark p-4 font-mono text-sm">
               <span class="text-emerald-400">GET</span> <span class="text-blue-400">/feeds/whale-alerts</span><br>
               <span class="text-yellow-400">← 402</span> <span class="text-zinc-500">{ amount: "0.005 STX", payTo: "ST3G55..." }</span>
             </div>
           </div>
         </div>
-        <div class="flex gap-6 relative">
-          <div class="flex-shrink-0 w-10 h-10 rounded-full bg-brand-500/20 border-2 border-brand-500 flex items-center justify-center text-brand-400 font-bold text-sm z-10">3</div>
+        <div class="flex gap-6 relative reveal-left stagger-3">
+          <div class="flex-shrink-0 w-10 h-10 rounded-full bg-orange-100 border-2 border-orange-400 flex items-center justify-center text-orange-600 font-bold text-sm z-10">3</div>
           <div class="step-line"></div>
           <div class="pb-4">
-            <h3 class="text-lg font-semibold text-white mb-2">Pay — Agent Auto-Pays</h3>
-            <p class="text-sm text-zinc-400 mb-3">Agent signs an STX transaction from its wallet and resends the request with payment proof. <strong class="text-zinc-300">Fully autonomous!</strong></p>
-            <div class="bg-surface-2 rounded-xl p-4 border border-zinc-800/50 font-mono text-sm">
+            <h3 class="text-lg font-bold text-gray-900 mb-2">Pay — Agent Auto-Signs TX</h3>
+            <p class="text-sm text-gray-500 mb-3">x402 SDK signs an STX transaction from the agent's wallet and re-sends the request with payment proof. <strong class="text-gray-900">Fully autonomous!</strong></p>
+            <div class="card-dark p-4 font-mono text-sm">
               <span class="text-emerald-400">GET</span> <span class="text-blue-400">/feeds/whale-alerts</span><br>
               <span class="text-zinc-500">Header:</span> <span class="text-purple-400">payment-signature: [signed-tx]</span>
             </div>
           </div>
         </div>
-        <div class="flex gap-6">
-          <div class="flex-shrink-0 w-10 h-10 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center text-emerald-400 font-bold text-sm z-10">4</div>
+        <div class="flex gap-6 reveal-left stagger-4">
+          <div class="flex-shrink-0 w-10 h-10 rounded-full bg-emerald-100 border-2 border-emerald-400 flex items-center justify-center text-emerald-600 font-bold text-sm z-10">4</div>
           <div>
-            <h3 class="text-lg font-semibold text-white mb-2">Receive — Data Delivered</h3>
-            <p class="text-sm text-zinc-400 mb-3">Payment is verified and settled on-chain on Stacks (Bitcoin L2). Data is delivered instantly to the agent. Everything recorded on blockchain.</p>
-            <div class="bg-surface-2 rounded-xl p-4 border border-zinc-800/50 font-mono text-sm">
+            <h3 class="text-lg font-bold text-gray-900 mb-2">Receive — Data Delivered</h3>
+            <p class="text-sm text-gray-500 mb-3">Payment verified and settled on Stacks (Bitcoin L2). Data returned instantly. Everything provable on-chain.</p>
+            <div class="card-dark p-4 font-mono text-sm">
               <span class="text-emerald-400">← 200 OK</span> <span class="text-zinc-500">+ whale alert data + tx receipt</span>
             </div>
           </div>
@@ -210,71 +360,70 @@
     </div>
   </section>
 
-  <!-- Try It (Interactive) -->
-  <section id="try-it" class="py-20 px-6 border-t border-zinc-800/50">
-    <div class="max-w-5xl mx-auto">
-      <div class="text-center mb-16">
-        <h2 class="text-3xl font-bold text-white mb-4">Try It Live</h2>
-        <p class="text-zinc-400">Click an endpoint below to see the API response. Free endpoints can be tested directly!</p>
-      </div>
+  <div class="section-divider"></div>
 
-      <div class="grid md:grid-cols-2 gap-6">
-        <!-- Free Endpoints -->
+  <!-- Try It -->
+  <section id="try-it" class="py-24 px-6">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-16 reveal">
+        <p class="text-sm font-semibold text-orange-500 uppercase tracking-widest mb-3">Interactive</p>
+        <h2 class="text-4xl font-extrabold text-gray-900 mb-4">Try It Live</h2>
+        <p class="text-lg text-gray-400">Click an endpoint to see the API response in real-time.</p>
+      </div>
+      <div class="grid md:grid-cols-2 gap-8 reveal-scale">
         <div>
-          <h3 class="text-sm font-semibold text-emerald-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <div class="w-2 h-2 rounded-full bg-emerald-400"></div> Free Endpoints
+          <h3 class="text-sm font-bold text-emerald-600 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full bg-emerald-500"></div> Free Endpoints
           </h3>
           <div class="space-y-3">
-            <button onclick="tryEndpoint('/registry/feeds')" class="w-full text-left p-4 rounded-xl bg-surface-1 border border-zinc-800/50 hover:border-emerald-500/30 transition group">
+            <button onclick="tryEndpoint('/registry/feeds')" class="w-full text-left p-4 card group">
               <div class="flex items-center justify-between mb-1">
-                <div class="font-mono text-sm"><span class="text-emerald-400">GET</span> <span class="text-white">/registry/feeds</span></div>
-                <svg class="w-4 h-4 text-zinc-500 group-hover:text-emerald-400 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                <div class="font-mono text-sm"><span class="text-emerald-600">GET</span> <span class="text-gray-900 font-semibold">/registry/feeds</span></div>
+                <svg class="w-4 h-4 text-gray-300 group-hover:text-orange-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
               </div>
-              <p class="text-xs text-zinc-500">View all available data feeds</p>
+              <p class="text-xs text-gray-400">View all available data feeds</p>
             </button>
-            <button onclick="tryEndpoint('/stats')" class="w-full text-left p-4 rounded-xl bg-surface-1 border border-zinc-800/50 hover:border-emerald-500/30 transition group">
+            <button onclick="tryEndpoint('/stats')" class="w-full text-left p-4 card group">
               <div class="flex items-center justify-between mb-1">
-                <div class="font-mono text-sm"><span class="text-emerald-400">GET</span> <span class="text-white">/stats</span></div>
-                <svg class="w-4 h-4 text-zinc-500 group-hover:text-emerald-400 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                <div class="font-mono text-sm"><span class="text-emerald-600">GET</span> <span class="text-gray-900 font-semibold">/stats</span></div>
+                <svg class="w-4 h-4 text-gray-300 group-hover:text-orange-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
               </div>
-              <p class="text-xs text-zinc-500">Provider statistics and reputation</p>
+              <p class="text-xs text-gray-400">Provider statistics and reputation</p>
             </button>
-            <button onclick="tryEndpoint('/health')" class="w-full text-left p-4 rounded-xl bg-surface-1 border border-zinc-800/50 hover:border-emerald-500/30 transition group">
+            <button onclick="tryEndpoint('/health')" class="w-full text-left p-4 card group">
               <div class="flex items-center justify-between mb-1">
-                <div class="font-mono text-sm"><span class="text-emerald-400">GET</span> <span class="text-white">/health</span></div>
-                <svg class="w-4 h-4 text-zinc-500 group-hover:text-emerald-400 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                <div class="font-mono text-sm"><span class="text-emerald-600">GET</span> <span class="text-gray-900 font-semibold">/health</span></div>
+                <svg class="w-4 h-4 text-gray-300 group-hover:text-orange-500 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
               </div>
-              <p class="text-xs text-zinc-500">Check server status</p>
+              <p class="text-xs text-gray-400">Check server status</p>
             </button>
           </div>
         </div>
-
-        <!-- Paid Endpoints -->
         <div>
-          <h3 class="text-sm font-semibold text-brand-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <div class="w-2 h-2 rounded-full bg-brand-400"></div> Paid Endpoints (x402)
+          <h3 class="text-sm font-bold text-orange-600 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full bg-orange-500"></div> Paid Endpoints (x402)
           </h3>
           <div class="space-y-3">
-            <button onclick="tryEndpoint('/feeds/whale-alerts')" class="w-full text-left p-4 rounded-xl bg-surface-1 border border-zinc-800/50 hover:border-brand-500/30 transition group">
+            <button onclick="tryEndpoint('/feeds/whale-alerts')" class="w-full text-left p-4 card group">
               <div class="flex items-center justify-between mb-1">
-                <div class="font-mono text-sm"><span class="text-emerald-400">GET</span> <span class="text-white">/feeds/whale-alerts</span></div>
-                <span class="text-xs font-semibold text-brand-400 bg-brand-500/10 px-2 py-0.5 rounded-full">0.005 STX</span>
+                <div class="font-mono text-sm"><span class="text-emerald-600">GET</span> <span class="text-gray-900 font-semibold">/feeds/whale-alerts</span></div>
+                <span class="text-xs font-bold text-orange-600 bg-orange-50 px-2.5 py-1 rounded-full">0.005 STX</span>
               </div>
-              <p class="text-xs text-zinc-500">Whale movements — returns 402 Payment Required</p>
+              <p class="text-xs text-gray-400">Whale movements — returns 402 Payment Required</p>
             </button>
-            <button onclick="tryEndpoint('/feeds/btc-sentiment')" class="w-full text-left p-4 rounded-xl bg-surface-1 border border-zinc-800/50 hover:border-brand-500/30 transition group">
+            <button onclick="tryEndpoint('/feeds/btc-sentiment')" class="w-full text-left p-4 card group">
               <div class="flex items-center justify-between mb-1">
-                <div class="font-mono text-sm"><span class="text-emerald-400">GET</span> <span class="text-white">/feeds/btc-sentiment</span></div>
-                <span class="text-xs font-semibold text-brand-400 bg-brand-500/10 px-2 py-0.5 rounded-full">0.003 STX</span>
+                <div class="font-mono text-sm"><span class="text-emerald-600">GET</span> <span class="text-gray-900 font-semibold">/feeds/btc-sentiment</span></div>
+                <span class="text-xs font-bold text-orange-600 bg-orange-50 px-2.5 py-1 rounded-full">0.003 STX</span>
               </div>
-              <p class="text-xs text-zinc-500">BTC sentiment — returns 402 Payment Required</p>
+              <p class="text-xs text-gray-400">BTC sentiment — returns 402 Payment Required</p>
             </button>
-            <button onclick="tryEndpoint('/feeds/defi-scores')" class="w-full text-left p-4 rounded-xl bg-surface-1 border border-zinc-800/50 hover:border-brand-500/30 transition group">
+            <button onclick="tryEndpoint('/feeds/defi-scores')" class="w-full text-left p-4 card group">
               <div class="flex items-center justify-between mb-1">
-                <div class="font-mono text-sm"><span class="text-emerald-400">GET</span> <span class="text-white">/feeds/defi-scores</span></div>
-                <span class="text-xs font-semibold text-brand-400 bg-brand-500/10 px-2 py-0.5 rounded-full">0.01 STX</span>
+                <div class="font-mono text-sm"><span class="text-emerald-600">GET</span> <span class="text-gray-900 font-semibold">/feeds/defi-scores</span></div>
+                <span class="text-xs font-bold text-orange-600 bg-orange-50 px-2.5 py-1 rounded-full">0.01 STX</span>
               </div>
-              <p class="text-xs text-zinc-500">DeFi scores — returns 402 Payment Required</p>
+              <p class="text-xs text-gray-400">DeFi scores — returns 402 Payment Required</p>
             </button>
           </div>
         </div>
@@ -282,29 +431,33 @@
 
       <!-- Response Panel -->
       <div id="response-panel" class="mt-8 hidden">
-        <div class="rounded-2xl bg-surface-1 border border-zinc-800/50 overflow-hidden">
-          <div class="flex items-center justify-between px-5 py-3 bg-surface-2 border-b border-zinc-800/50">
+        <div class="rounded-2xl bg-gray-900 overflow-hidden shadow-2xl">
+          <div class="flex items-center justify-between px-5 py-3 bg-gray-800 border-b border-gray-700">
             <div class="flex items-center gap-3">
+              <div class="flex gap-1.5">
+                <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
+                <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
+              </div>
               <span id="response-method" class="text-sm font-mono font-bold text-emerald-400">GET</span>
-              <span id="response-url" class="text-sm font-mono text-zinc-400">/health</span>
+              <span id="response-url" class="text-sm font-mono text-gray-400">/health</span>
             </div>
             <div class="flex items-center gap-3">
               <span id="response-status" class="text-xs font-bold px-2.5 py-1 rounded-full">200</span>
-              <span id="response-time" class="text-xs text-zinc-500">0ms</span>
+              <span id="response-time" class="text-xs text-gray-500">0ms</span>
             </div>
           </div>
           <div class="p-5 max-h-96 overflow-auto">
-            <pre id="response-body" class="text-sm font-mono text-zinc-300 whitespace-pre-wrap"></pre>
+            <pre id="response-body" class="text-sm font-mono text-gray-300 whitespace-pre-wrap"></pre>
           </div>
-          <!-- 402 Explanation -->
-          <div id="payment-explainer" class="hidden px-5 py-4 bg-brand-500/5 border-t border-brand-500/20">
+          <div id="payment-explainer" class="hidden px-5 py-4 bg-orange-500/10 border-t border-orange-500/20">
             <div class="flex items-start gap-3">
-              <div class="w-8 h-8 rounded-lg bg-brand-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <svg class="w-5 h-5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               </div>
               <div>
-                <p class="text-sm font-semibold text-brand-400 mb-1">HTTP 402 — Payment Required</p>
-                <p class="text-xs text-zinc-400">This is not an error! This is an x402 protocol response. AI agents receiving this response will automatically read the payment requirements, sign an STX transaction from their wallet, and resend the request with payment proof. Data is delivered after on-chain payment verification.</p>
+                <p class="text-sm font-semibold text-orange-400 mb-1">HTTP 402 — Payment Required</p>
+                <p class="text-xs text-gray-400">This is the x402 protocol response. AI agents automatically read the payment requirements, sign an STX transaction, and resend the request. Data is delivered after on-chain verification.</p>
               </div>
             </div>
           </div>
@@ -313,79 +466,77 @@
     </div>
   </section>
 
-  <!-- Live Stats -->
-  <section id="stats" class="py-20 px-6 border-t border-zinc-800/50">
-    <div class="max-w-5xl mx-auto">
-      <div class="text-center mb-16">
-        <h2 class="text-3xl font-bold text-white mb-4">Provider Stats</h2>
-        <p class="text-zinc-400">Real-time statistics from this data provider.</p>
-      </div>
-      <div class="grid md:grid-cols-4 gap-6 mb-10" id="stats-grid">
-        <div class="p-6 rounded-2xl bg-surface-1 border border-zinc-800/50 text-center">
-          <div class="text-3xl font-bold text-white mb-1" id="stat-queries">-</div>
-          <div class="text-sm text-zinc-500">Total Queries</div>
-        </div>
-        <div class="p-6 rounded-2xl bg-surface-1 border border-zinc-800/50 text-center">
-          <div class="text-3xl font-bold text-white mb-1" id="stat-reputation">-</div>
-          <div class="text-sm text-zinc-500">Reputation Score</div>
-        </div>
-        <div class="p-6 rounded-2xl bg-surface-1 border border-zinc-800/50 text-center">
-          <div class="text-3xl font-bold text-white mb-1" id="stat-tier">-</div>
-          <div class="text-sm text-zinc-500">Provider Tier</div>
-        </div>
-        <div class="p-6 rounded-2xl bg-surface-1 border border-zinc-800/50 text-center">
-          <div class="text-3xl font-bold text-white mb-1" id="stat-uptime">-</div>
-          <div class="text-sm text-zinc-500">Uptime</div>
-        </div>
-      </div>
+  <div class="section-divider"></div>
 
-      <!-- Feed breakdown -->
-      <div class="rounded-2xl bg-surface-1 border border-zinc-800/50 overflow-hidden">
-        <div class="px-6 py-4 border-b border-zinc-800/50">
-          <h3 class="font-semibold text-white">Feed Performance</h3>
+  <!-- Provider Stats -->
+  <section id="stats" class="py-24 px-6 bg-gray-50/50">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-16 reveal">
+        <p class="text-sm font-semibold text-orange-500 uppercase tracking-widest mb-3">Analytics</p>
+        <h2 class="text-4xl font-extrabold text-gray-900 mb-4">Provider Stats</h2>
+      </div>
+      <div class="grid md:grid-cols-4 gap-4 mb-10 reveal">
+        <div class="stat-card p-6 text-center">
+          <div class="text-3xl font-black text-gray-900 mb-1" id="stat-queries">-</div>
+          <div class="text-sm text-gray-400">Total Queries</div>
         </div>
-        <div class="divide-y divide-zinc-800/50" id="feed-breakdown">
-          <!-- Populated by JS -->
+        <div class="stat-card p-6 text-center">
+          <div class="text-3xl font-black text-gray-900 mb-1" id="stat-reputation">-</div>
+          <div class="text-sm text-gray-400">Reputation Score</div>
         </div>
+        <div class="stat-card p-6 text-center">
+          <div class="text-3xl font-black text-gray-900 mb-1" id="stat-tier">-</div>
+          <div class="text-sm text-gray-400">Provider Tier</div>
+        </div>
+        <div class="stat-card p-6 text-center">
+          <div class="text-3xl font-black text-gray-900 mb-1" id="stat-uptime">-</div>
+          <div class="text-sm text-gray-400">Uptime</div>
+        </div>
+      </div>
+      <div class="card overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100">
+          <h3 class="font-bold text-gray-900">Feed Performance</h3>
+        </div>
+        <div class="divide-y divide-gray-100" id="feed-breakdown"></div>
       </div>
     </div>
   </section>
 
-  <!-- Live Activity Feed -->
-  <section id="activity" class="py-20 px-6 border-t border-zinc-800/50">
+  <div class="section-divider"></div>
+
+  <!-- Activity -->
+  <section id="activity" class="py-24 px-6">
     <div class="max-w-5xl mx-auto">
-      <div class="flex items-center justify-between mb-10">
+      <div class="flex items-center justify-between mb-10 reveal">
         <div>
-          <h2 class="text-3xl font-bold text-white mb-2">Live Activity</h2>
-          <p class="text-zinc-400">Real-time data requests from AI agents — each row is 1 micropayment.</p>
+          <p class="text-sm font-semibold text-orange-500 uppercase tracking-widest mb-2">Real-Time</p>
+          <h2 class="text-4xl font-extrabold text-gray-900 mb-2">Live Activity</h2>
+          <p class="text-gray-400">Every row is a real micropayment from an AI agent.</p>
         </div>
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-6">
           <div class="text-right">
-            <div class="text-2xl font-bold text-brand-400" id="activity-revenue">0</div>
-            <div class="text-xs text-zinc-500">Total Revenue (STX)</div>
+            <div class="text-2xl font-black text-orange-500" id="activity-revenue">0</div>
+            <div class="text-xs text-gray-400">Total Revenue (STX)</div>
           </div>
           <div class="text-right">
-            <div class="text-2xl font-bold text-white" id="activity-agents">0</div>
-            <div class="text-xs text-zinc-500">Unique Agents</div>
+            <div class="text-2xl font-black text-gray-900" id="activity-agents">0</div>
+            <div class="text-xs text-gray-400">Unique Agents</div>
           </div>
         </div>
       </div>
 
-      <!-- Activity Table -->
-      <div class="rounded-2xl bg-surface-1 border border-zinc-800/50 overflow-hidden">
-        <div class="px-6 py-3 bg-surface-2 border-b border-zinc-800/50 flex items-center justify-between">
+      <div class="card overflow-hidden">
+        <div class="px-6 py-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
           <div class="flex items-center gap-2">
-            <div class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></div>
-            <span class="text-sm font-medium text-zinc-300">Recent Transactions</span>
+            <div class="w-2 h-2 rounded-full bg-emerald-500 pulse-dot"></div>
+            <span class="text-sm font-semibold text-gray-600">Recent Transactions</span>
           </div>
-          <button onclick="loadActivity()" class="text-xs text-zinc-500 hover:text-brand-400 transition flex items-center gap-1">
+          <button onclick="loadActivity()" class="text-xs text-gray-400 hover:text-orange-500 transition flex items-center gap-1 font-medium">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
             Refresh
           </button>
         </div>
-
-        <!-- Table Header -->
-        <div class="hidden md:grid grid-cols-12 gap-2 px-6 py-2.5 text-xs font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800/30 bg-surface-2/50">
+        <div class="hidden md:grid grid-cols-12 gap-2 px-6 py-2.5 text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100 bg-gray-50/50">
           <div class="col-span-1">Time</div>
           <div class="col-span-2">Feed</div>
           <div class="col-span-3">Agent</div>
@@ -394,70 +545,73 @@
           <div class="col-span-1 text-right">Speed</div>
           <div class="col-span-1 text-right">Status</div>
         </div>
-
-        <!-- Activity Rows -->
-        <div id="activity-rows" class="divide-y divide-zinc-800/30 max-h-[500px] overflow-y-auto">
-          <div class="px-6 py-8 text-center text-zinc-500 text-sm">Loading activity...</div>
+        <div id="activity-rows" class="divide-y divide-gray-50 max-h-[500px] overflow-y-auto">
+          <div class="px-6 py-8 text-center text-gray-400 text-sm">Loading activity...</div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Agent Leaderboard -->
-  <section id="leaderboard" class="py-20 px-6 border-t border-zinc-800/50">
-    <div class="max-w-5xl mx-auto">
-      <div class="text-center mb-10">
-        <h2 class="text-3xl font-bold text-white mb-2">Agent Leaderboard</h2>
-        <p class="text-zinc-400">Top AI agents ranked by total data queries.</p>
-      </div>
+  <div class="section-divider"></div>
 
-      <div class="rounded-2xl bg-surface-1 border border-zinc-800/50 overflow-hidden">
-        <div class="hidden md:grid grid-cols-12 gap-2 px-6 py-3 text-xs font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800/50 bg-surface-2">
+  <!-- Leaderboard -->
+  <section id="leaderboard" class="py-24 px-6 bg-gray-50/50">
+    <div class="max-w-5xl mx-auto">
+      <div class="text-center mb-10 reveal">
+        <p class="text-sm font-semibold text-orange-500 uppercase tracking-widest mb-2">Rankings</p>
+        <h2 class="text-4xl font-extrabold text-gray-900 mb-2">Agent Leaderboard</h2>
+        <p class="text-gray-400">Top AI agents ranked by total data queries.</p>
+      </div>
+      <div class="card overflow-hidden">
+        <div class="hidden md:grid grid-cols-12 gap-2 px-6 py-3 text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100 bg-gray-50">
           <div class="col-span-1">#</div>
-          <div class="col-span-3">Agent Address</div>
+          <div class="col-span-3">Agent</div>
           <div class="col-span-2 text-center">Total Queries</div>
           <div class="col-span-2 text-center">Spent (STX)</div>
           <div class="col-span-3 text-center">Feed Breakdown</div>
           <div class="col-span-1 text-right">Avg Speed</div>
         </div>
-        <div id="leaderboard-rows" class="divide-y divide-zinc-800/30">
-          <div class="px-6 py-8 text-center text-zinc-500 text-sm">Loading leaderboard...</div>
+        <div id="leaderboard-rows" class="divide-y divide-gray-50">
+          <div class="px-6 py-8 text-center text-gray-400 text-sm">Loading leaderboard...</div>
         </div>
       </div>
     </div>
   </section>
 
+  <div class="section-divider"></div>
+
   <!-- For Developers -->
-  <section class="py-20 px-6 border-t border-zinc-800/50">
+  <section class="py-24 px-6">
     <div class="max-w-4xl mx-auto">
-      <div class="text-center mb-16">
-        <h2 class="text-3xl font-bold text-white mb-4">For Developers</h2>
-        <p class="text-zinc-400">Integrate your AI agent with ShadowFeed in minutes.</p>
+      <div class="text-center mb-16 reveal">
+        <p class="text-sm font-semibold text-orange-500 uppercase tracking-widest mb-3">Integration</p>
+        <h2 class="text-4xl font-extrabold text-gray-900 mb-4">For Developers</h2>
+        <p class="text-lg text-gray-400">Integrate your AI agent with ShadowFeed in 4 lines of code.</p>
       </div>
-      <div class="rounded-2xl bg-surface-1 border border-zinc-800/50 overflow-hidden">
-        <div class="flex border-b border-zinc-800/50">
-          <button onclick="showTab('install')" id="tab-install" class="px-6 py-3 text-sm font-medium text-brand-400 border-b-2 border-brand-500 transition">Install</button>
-          <button onclick="showTab('server')" id="tab-server" class="px-6 py-3 text-sm font-medium text-zinc-500 hover:text-zinc-300 border-b-2 border-transparent transition">Server (Sell Data)</button>
-          <button onclick="showTab('client')" id="tab-client" class="px-6 py-3 text-sm font-medium text-zinc-500 hover:text-zinc-300 border-b-2 border-transparent transition">Client (Buy Data)</button>
+      <div class="rounded-2xl bg-gray-900 overflow-hidden shadow-2xl reveal-scale">
+        <div class="flex border-b border-gray-700">
+          <button onclick="showTab('install')" id="tab-install" class="px-6 py-3 text-sm font-semibold text-orange-400 border-b-2 border-orange-500 transition">Install</button>
+          <button onclick="showTab('server')" id="tab-server" class="px-6 py-3 text-sm font-semibold text-gray-500 hover:text-gray-300 border-b-2 border-transparent transition">Server (Sell Data)</button>
+          <button onclick="showTab('client')" id="tab-client" class="px-6 py-3 text-sm font-semibold text-gray-500 hover:text-gray-300 border-b-2 border-transparent transition">Client (Buy Data)</button>
         </div>
         <div id="code-install" class="p-6">
-          <pre class="text-sm font-mono text-zinc-300 overflow-x-auto"><span class="text-zinc-500"># Install x402-stacks SDK</span>
+          <pre class="text-sm font-mono text-gray-300 overflow-x-auto"><span class="text-gray-500"># Install x402-stacks SDK</span>
 <span class="text-emerald-400">npm</span> install x402-stacks express
 
-<span class="text-zinc-500"># Generate testnet wallet</span>
+<span class="text-gray-500"># Generate testnet wallet</span>
 <span class="text-emerald-400">npx</span> tsx -e "const {generateKeypair}=require('x402-stacks'); console.log(generateKeypair('testnet'))"
 
-<span class="text-zinc-500"># Fund wallet from faucet</span>
-<span class="text-zinc-500"># https://explorer.stacks.co/sandbox/faucet?chain=testnet</span></pre>
+<span class="text-gray-500"># Fund wallet from faucet</span>
+<span class="text-gray-500"># https://explorer.stacks.co/sandbox/faucet?chain=testnet</span></pre>
         </div>
         <div id="code-server" class="p-6 hidden">
-          <pre class="text-sm font-mono text-zinc-300 overflow-x-auto"><span class="text-zinc-500">// Protect endpoint with x402 payment</span>
+          <pre class="text-sm font-mono text-gray-300 overflow-x-auto"><span class="text-gray-500">// Protect endpoint with x402 payment</span>
 <span class="text-purple-400">import</span> { paymentMiddleware, STXtoMicroSTX } <span class="text-purple-400">from</span> <span class="text-emerald-400">'x402-stacks'</span>;
 
 app.<span class="text-blue-400">get</span>(<span class="text-emerald-400">'/my-data-feed'</span>,
   <span class="text-blue-400">paymentMiddleware</span>({
-    amount: <span class="text-blue-400">STXtoMicroSTX</span>(<span class="text-brand-400">0.005</span>),  <span class="text-zinc-500">// Price per query</span>
-    payTo: <span class="text-emerald-400">'ST_YOUR_ADDRESS'</span>,     <span class="text-zinc-500">// Your wallet</span>
+    amount: <span class="text-blue-400">STXtoMicroSTX</span>(<span class="text-orange-400">0.005</span>),
+    payTo: <span class="text-emerald-400">'ST_YOUR_ADDRESS'</span>,
     network: <span class="text-emerald-400">'testnet'</span>,
     asset: <span class="text-emerald-400">'STX'</span>,
   }),
@@ -467,148 +621,132 @@ app.<span class="text-blue-400">get</span>(<span class="text-emerald-400">'/my-d
 );</pre>
         </div>
         <div id="code-client" class="p-6 hidden">
-          <pre class="text-sm font-mono text-zinc-300 overflow-x-auto"><span class="text-zinc-500">// AI agent auto-pays when accessing data</span>
+          <pre class="text-sm font-mono text-gray-300 overflow-x-auto"><span class="text-gray-500">// AI agent auto-pays when accessing data</span>
 <span class="text-purple-400">import</span> { wrapAxiosWithPayment, privateKeyToAccount } <span class="text-purple-400">from</span> <span class="text-emerald-400">'x402-stacks'</span>;
 
 <span class="text-purple-400">const</span> account = <span class="text-blue-400">privateKeyToAccount</span>(PRIVATE_KEY, <span class="text-emerald-400">'testnet'</span>);
 <span class="text-purple-400">const</span> api = <span class="text-blue-400">wrapAxiosWithPayment</span>(axios.<span class="text-blue-400">create</span>(), account);
 
-<span class="text-zinc-500">// Request data — payment is automatic!</span>
+<span class="text-gray-500">// Request data — payment is automatic!</span>
 <span class="text-purple-400">const</span> { data } = <span class="text-purple-400">await</span> api.<span class="text-blue-400">get</span>(<span class="text-emerald-400">'https://shadowfeed-production.up.railway.app/feeds/whale-alerts'</span>);
-console.<span class="text-blue-400">log</span>(data); <span class="text-zinc-500">// Whale alert data + tx receipt</span></pre>
+console.<span class="text-blue-400">log</span>(data);</pre>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Comparison -->
-  <section class="py-20 px-6 border-t border-zinc-800/50">
+  <div class="section-divider"></div>
+
+  <!-- Cost Comparison -->
+  <section class="py-24 px-6 bg-gray-50/50">
     <div class="max-w-4xl mx-auto">
-      <div class="text-center mb-16">
-        <h2 class="text-3xl font-bold text-white mb-4">Cost Comparison</h2>
-        <p class="text-zinc-400">See how much you save with pay-per-query.</p>
+      <div class="text-center mb-16 reveal">
+        <p class="text-sm font-semibold text-orange-500 uppercase tracking-widest mb-3">Pricing</p>
+        <h2 class="text-4xl font-extrabold text-gray-900 mb-4">Cost Comparison</h2>
+        <p class="text-lg text-gray-400">Pay-per-query vs monthly subscriptions.</p>
       </div>
-      <div class="rounded-2xl bg-surface-1 border border-zinc-800/50 overflow-hidden">
+      <div class="card overflow-hidden reveal-scale">
         <table class="w-full text-sm">
           <thead>
-            <tr class="border-b border-zinc-800/50 text-zinc-400">
-              <th class="text-left px-6 py-4 font-medium">Provider</th>
-              <th class="text-left px-6 py-4 font-medium">Model</th>
-              <th class="text-left px-6 py-4 font-medium">Price</th>
-              <th class="text-left px-6 py-4 font-medium">10 Queries</th>
+            <tr class="border-b border-gray-100 text-gray-400 bg-gray-50">
+              <th class="text-left px-6 py-4 font-bold">Provider</th>
+              <th class="text-left px-6 py-4 font-bold">Model</th>
+              <th class="text-left px-6 py-4 font-bold">Price</th>
+              <th class="text-left px-6 py-4 font-bold">10 Queries Cost</th>
             </tr>
           </thead>
-          <tbody class="text-zinc-300">
-            <tr class="border-b border-zinc-800/30">
-              <td class="px-6 py-4">CoinGecko Pro</td>
-              <td class="px-6 py-4"><span class="text-red-400 text-xs font-semibold bg-red-500/10 px-2 py-0.5 rounded-full">Subscription</span></td>
+          <tbody class="text-gray-600">
+            <tr class="border-b border-gray-50">
+              <td class="px-6 py-4 font-medium text-gray-900">CoinGecko Pro</td>
+              <td class="px-6 py-4"><span class="text-red-600 text-xs font-bold bg-red-50 px-2.5 py-1 rounded-full">Subscription</span></td>
               <td class="px-6 py-4">$129/mo</td>
-              <td class="px-6 py-4 text-red-400">$129.00</td>
+              <td class="px-6 py-4 text-red-600 font-bold">$129.00</td>
             </tr>
-            <tr class="border-b border-zinc-800/30">
-              <td class="px-6 py-4">Nansen</td>
-              <td class="px-6 py-4"><span class="text-red-400 text-xs font-semibold bg-red-500/10 px-2 py-0.5 rounded-full">Subscription</span></td>
+            <tr class="border-b border-gray-50">
+              <td class="px-6 py-4 font-medium text-gray-900">Nansen</td>
+              <td class="px-6 py-4"><span class="text-red-600 text-xs font-bold bg-red-50 px-2.5 py-1 rounded-full">Subscription</span></td>
               <td class="px-6 py-4">$150/mo</td>
-              <td class="px-6 py-4 text-red-400">$150.00</td>
+              <td class="px-6 py-4 text-red-600 font-bold">$150.00</td>
             </tr>
-            <tr class="border-b border-zinc-800/30">
-              <td class="px-6 py-4">Arkham Intel</td>
-              <td class="px-6 py-4"><span class="text-red-400 text-xs font-semibold bg-red-500/10 px-2 py-0.5 rounded-full">Subscription</span></td>
+            <tr class="border-b border-gray-50">
+              <td class="px-6 py-4 font-medium text-gray-900">Arkham Intel</td>
+              <td class="px-6 py-4"><span class="text-red-600 text-xs font-bold bg-red-50 px-2.5 py-1 rounded-full">Subscription</span></td>
               <td class="px-6 py-4">$300/mo</td>
-              <td class="px-6 py-4 text-red-400">$300.00</td>
+              <td class="px-6 py-4 text-red-600 font-bold">$300.00</td>
             </tr>
-            <tr class="bg-brand-500/5">
-              <td class="px-6 py-4 font-semibold text-white">ShadowFeed</td>
-              <td class="px-6 py-4"><span class="text-brand-400 text-xs font-semibold bg-brand-500/10 px-2 py-0.5 rounded-full">Pay-Per-Query</span></td>
-              <td class="px-6 py-4 text-brand-400">~$0.003-0.01/query</td>
-              <td class="px-6 py-4 text-brand-400 font-bold">~$0.06</td>
+            <tr class="bg-orange-50/50">
+              <td class="px-6 py-4 font-bold text-gray-900">ShadowFeed</td>
+              <td class="px-6 py-4"><span class="text-orange-600 text-xs font-bold bg-orange-100 px-2.5 py-1 rounded-full">Pay-Per-Query</span></td>
+              <td class="px-6 py-4 text-orange-600 font-semibold">~$0.003-0.01/query</td>
+              <td class="px-6 py-4 text-orange-600 font-black text-lg">~$0.06</td>
             </tr>
           </tbody>
         </table>
       </div>
-      <p class="text-center text-sm text-zinc-500 mt-4">* Prices based on STX ~ $1.00. Actual costs vary with STX price.</p>
+      <p class="text-center text-sm text-gray-400 mt-4">* Prices based on STX ~ $1.00. Actual costs vary with STX price.</p>
     </div>
   </section>
 
   <!-- Data Detail Modal -->
   <div id="data-modal" class="fixed inset-0 z-[100] hidden">
-    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeDataModal()"></div>
-    <div class="absolute inset-4 md:inset-y-8 md:inset-x-[15%] bg-surface-1 border border-zinc-800/50 rounded-2xl overflow-hidden flex flex-col">
-      <!-- Modal Header -->
-      <div class="flex items-center justify-between px-6 py-4 bg-surface-2 border-b border-zinc-800/50">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeDataModal()"></div>
+    <div class="absolute inset-4 md:inset-y-8 md:inset-x-[15%] bg-white border border-gray-200 rounded-2xl overflow-hidden flex flex-col shadow-2xl">
+      <div class="flex items-center justify-between px-6 py-4 bg-gray-50 border-b border-gray-100">
         <div class="flex items-center gap-4">
-          <span id="modal-feed-badge" class="px-3 py-1 rounded-full text-xs font-semibold"></span>
+          <span id="modal-feed-badge" class="px-3 py-1 rounded-full text-xs font-bold"></span>
           <div>
-            <span id="modal-title" class="text-white font-semibold text-sm"></span>
-            <span id="modal-time" class="text-zinc-500 text-xs ml-3"></span>
+            <span id="modal-title" class="text-gray-900 font-bold text-sm"></span>
+            <span id="modal-time" class="text-gray-400 text-xs ml-3"></span>
           </div>
         </div>
         <div class="flex items-center gap-3">
-          <span id="modal-source-badge" class="text-xs px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-400"></span>
-          <button onclick="closeDataModal()" class="w-8 h-8 rounded-lg bg-surface-3 hover:bg-surface-4 flex items-center justify-center text-zinc-400 hover:text-white transition">
+          <span id="modal-source-badge" class="text-xs px-2 py-1 rounded-full"></span>
+          <button onclick="closeDataModal()" class="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-600 transition">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
         </div>
       </div>
-
-      <!-- Modal Meta -->
-      <div class="px-6 py-3 bg-surface-2/50 border-b border-zinc-800/30 flex items-center gap-6 text-xs">
-        <div class="flex items-center gap-2">
-          <span class="text-zinc-500">Agent:</span>
-          <span id="modal-agent" class="text-zinc-300 font-mono"></span>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-zinc-500">TX:</span>
-          <span id="modal-tx" class="text-brand-400 font-mono"></span>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-zinc-500">Price:</span>
-          <span id="modal-price" class="text-brand-400 font-semibold"></span>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-zinc-500">Speed:</span>
-          <span id="modal-speed" class="text-zinc-300"></span>
-        </div>
+      <div class="px-6 py-3 bg-gray-50/50 border-b border-gray-100 flex items-center gap-6 text-xs">
+        <div class="flex items-center gap-2"><span class="text-gray-400">Agent:</span><span id="modal-agent" class="text-gray-700 font-mono"></span></div>
+        <div class="flex items-center gap-2"><span class="text-gray-400">TX:</span><span id="modal-tx" class="text-orange-600 font-mono"></span></div>
+        <div class="flex items-center gap-2"><span class="text-gray-400">Price:</span><span id="modal-price" class="text-orange-600 font-bold"></span></div>
+        <div class="flex items-center gap-2"><span class="text-gray-400">Speed:</span><span id="modal-speed" class="text-gray-700"></span></div>
       </div>
-
-      <!-- Modal Body: Visual + Raw JSON -->
       <div class="flex-1 overflow-hidden flex flex-col md:flex-row">
-        <!-- Visual Summary -->
-        <div id="modal-visual" class="md:w-1/2 p-6 overflow-y-auto border-r border-zinc-800/30">
-          <h3 class="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-4">Data Summary</h3>
+        <div id="modal-visual" class="md:w-1/2 p-6 overflow-y-auto border-r border-gray-100">
+          <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Data Summary</h3>
           <div id="modal-visual-content"></div>
         </div>
-        <!-- Raw JSON -->
-        <div class="md:w-1/2 p-6 overflow-y-auto bg-surface-0/50">
+        <div class="md:w-1/2 p-6 overflow-y-auto bg-gray-50/50">
           <div class="flex items-center justify-between mb-4">
-            <h3 class="text-sm font-semibold text-zinc-400 uppercase tracking-wider">Raw Response</h3>
-            <button onclick="copyJson()" class="text-xs text-zinc-500 hover:text-brand-400 transition flex items-center gap-1">
+            <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider">Raw Response</h3>
+            <button onclick="copyJson()" class="text-xs text-gray-400 hover:text-orange-500 transition flex items-center gap-1 font-medium">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
               Copy JSON
             </button>
           </div>
-          <pre id="modal-json" class="text-xs font-mono text-zinc-400 whitespace-pre-wrap bg-surface-2 p-4 rounded-xl border border-zinc-800/30 max-h-[60vh] overflow-auto"></pre>
+          <pre id="modal-json" class="text-xs font-mono text-gray-600 whitespace-pre-wrap bg-white p-4 rounded-xl border border-gray-200 max-h-[60vh] overflow-auto"></pre>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Footer -->
-  <footer class="py-12 px-6 border-t border-zinc-800/50">
+  <footer class="py-12 px-6 border-t border-gray-100 bg-white">
     <div class="max-w-5xl mx-auto">
       <div class="flex flex-col md:flex-row items-center justify-between gap-6">
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-lg bg-brand-500/10 flex items-center justify-center">
-            <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-lg shadow-orange-500/20">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
           </div>
-          <span class="font-bold text-white">Shadow<span class="text-brand-500">Feed</span></span>
+          <span class="font-extrabold text-gray-900">Shadow<span class="text-orange-500">Feed</span></span>
         </div>
-        <div class="flex items-center gap-6 text-sm text-zinc-500">
-          <span>Built on <a href="https://www.stacks.co" target="_blank" class="text-zinc-400 hover:text-white transition">Stacks</a></span>
-          <span>Powered by <a href="https://www.stacksx402.com" target="_blank" class="text-zinc-400 hover:text-white transition">x402</a></span>
-          <span>Settled on <span class="text-brand-400">Bitcoin</span></span>
+        <div class="flex items-center gap-6 text-sm text-gray-400">
+          <span>Built on <a href="https://www.stacks.co" target="_blank" class="text-gray-600 hover:text-gray-900 transition font-medium">Stacks</a></span>
+          <span>Powered by <a href="https://www.stacksx402.com" target="_blank" class="text-gray-600 hover:text-gray-900 transition font-medium">x402</a></span>
+          <span>Settled on <span class="text-orange-500 font-semibold">Bitcoin</span></span>
         </div>
-        <div class="text-sm text-zinc-600" id="footer-provider"></div>
+        <div class="text-sm text-gray-300" id="footer-provider"></div>
       </div>
     </div>
   </footer>
@@ -616,19 +754,17 @@ console.<span class="text-blue-400">log</span>(data); <span class="text-zinc-500
   <script>
     const API = window.location.origin;
 
-    // Tab switching
     function showTab(tab) {
       ['install', 'server', 'client'].forEach(t => {
         document.getElementById('code-' + t).classList.toggle('hidden', t !== tab);
         const btn = document.getElementById('tab-' + t);
-        btn.classList.toggle('text-brand-400', t === tab);
-        btn.classList.toggle('border-brand-500', t === tab);
-        btn.classList.toggle('text-zinc-500', t !== tab);
+        btn.classList.toggle('text-orange-400', t === tab);
+        btn.classList.toggle('border-orange-500', t === tab);
+        btn.classList.toggle('text-gray-500', t !== tab);
         btn.classList.toggle('border-transparent', t !== tab);
       });
     }
 
-    // Try endpoint
     async function tryEndpoint(path) {
       const panel = document.getElementById('response-panel');
       const body = document.getElementById('response-body');
@@ -642,7 +778,7 @@ console.<span class="text-blue-400">log</span>(data); <span class="text-zinc-500
       url.textContent = path;
       body.textContent = 'Loading...';
       status.textContent = '...';
-      status.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-zinc-700 text-zinc-300';
+      status.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-gray-700 text-gray-300';
       explainer.classList.add('hidden');
 
       const start = performance.now();
@@ -658,30 +794,17 @@ console.<span class="text-blue-400">log</span>(data); <span class="text-zinc-500
           body.textContent = JSON.stringify(data, null, 2);
         } else {
           data = await res.text();
-          // Try to parse as JSON anyway
-          try {
-            const parsed = JSON.parse(data);
-            body.textContent = JSON.stringify(parsed, null, 2);
-          } catch {
-            body.textContent = data;
-          }
+          try { body.textContent = JSON.stringify(JSON.parse(data), null, 2); } catch { body.textContent = data; }
         }
 
         status.textContent = res.status;
         if (res.status === 200) {
           status.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400';
         } else if (res.status === 402) {
-          status.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-brand-500/20 text-brand-400';
+          status.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-orange-500/20 text-orange-400';
           explainer.classList.remove('hidden');
-
-          // Try to decode payment-required header
           const paymentHeader = res.headers.get('payment-required');
-          if (paymentHeader) {
-            try {
-              const decoded = JSON.parse(atob(paymentHeader));
-              body.textContent = JSON.stringify(decoded, null, 2);
-            } catch {}
-          }
+          if (paymentHeader) { try { body.textContent = JSON.stringify(JSON.parse(atob(paymentHeader)), null, 2); } catch {} }
         } else {
           status.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-red-500/20 text-red-400';
         }
@@ -691,221 +814,158 @@ console.<span class="text-blue-400">log</span>(data); <span class="text-zinc-500
         status.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-red-500/20 text-red-400';
         time.textContent = '-';
       }
-
       panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
-    // Feed card icons
     const feedIcons = {
       'whale-alerts': { icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>', color: 'blue' },
       'btc-sentiment': { icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>', color: 'purple' },
       'defi-scores': { icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>', color: 'emerald' },
     };
 
-    // Load feeds
     async function loadFeeds() {
       try {
         const res = await fetch(API + '/registry/feeds');
         const data = await res.json();
         const grid = document.getElementById('feeds-grid');
-
         grid.innerHTML = data.feeds.map(feed => {
           const fi = feedIcons[feed.id] || feedIcons['whale-alerts'];
           return `
-            <div class="p-6 rounded-2xl bg-surface-1 border border-zinc-800/50 card-glow transition-all hover:border-zinc-700" id="feed-card-${feed.id}">
-              <div class="flex items-center justify-between mb-4">
-                <div class="w-12 h-12 rounded-xl bg-${fi.color}-500/10 flex items-center justify-center">
-                  <svg class="w-6 h-6 text-${fi.color}-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">${fi.icon}</svg>
+            <div class="card p-8" id="feed-card-${feed.id}">
+              <div class="flex items-center justify-between mb-5">
+                <div class="w-14 h-14 rounded-2xl bg-${fi.color}-50 flex items-center justify-center">
+                  <svg class="w-7 h-7 text-${fi.color}-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">${fi.icon}</svg>
                 </div>
-                <span class="text-lg font-bold text-brand-400">${feed.price_display}</span>
+                <span class="text-2xl font-black text-orange-500">${feed.price_display}</span>
               </div>
-              <h3 class="text-lg font-semibold text-white mb-2">${feed.id.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</h3>
-              <p class="text-sm text-zinc-400 mb-4">${feed.description}</p>
-              <div class="flex items-center justify-between text-xs text-zinc-500">
-                <span class="px-2 py-1 bg-surface-3 rounded">${feed.category}</span>
+              <h3 class="text-lg font-bold text-gray-900 mb-2">${feed.id.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</h3>
+              <p class="text-sm text-gray-500 mb-5 leading-relaxed">${feed.description}</p>
+              <div class="flex items-center justify-between text-xs text-gray-400">
+                <span class="px-2.5 py-1 bg-gray-100 rounded-full font-medium">${feed.category}</span>
                 <span>${feed.update_frequency}</span>
               </div>
-              <div class="mt-4 pt-4 border-t border-zinc-800/50 flex items-center justify-between text-xs text-zinc-500">
+              <div class="mt-5 pt-5 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400">
                 <span>${feed.stats.total_queries} queries served</span>
                 <span>${feed.stats.avg_response_ms}ms avg</span>
               </div>
-              <!-- Buy Data Button (visible when wallet connected) -->
               <button onclick="buyFeedData('${feed.id}', ${feed.price_microstx})"
-                class="wallet-buy-btn hidden w-full mt-4 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold transition shadow-lg shadow-brand-500/20 flex items-center justify-center gap-2"
+                class="wallet-buy-btn hidden w-full mt-4 py-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-bold transition shadow-lg flex items-center justify-center gap-2"
                 id="buy-btn-${feed.id}">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                 Buy Data — ${feed.price_display}
               </button>
-            </div>
-          `;
+            </div>`;
         }).join('');
-
         document.getElementById('hero-feeds').textContent = data.feeds.length;
         document.getElementById('footer-provider').textContent = data.provider.slice(0, 10) + '...' + data.provider.slice(-6);
       } catch {}
     }
 
-    // Load stats
     async function loadStats() {
       try {
         const res = await fetch(API + '/stats');
         const data = await res.json();
-
         document.getElementById('stat-queries').textContent = data.total_queries_served;
         document.getElementById('stat-reputation').textContent = data.reputation_score + '/100';
         document.getElementById('stat-tier').textContent = data.tier.charAt(0).toUpperCase() + data.tier.slice(1);
         document.getElementById('stat-uptime').textContent = data.uptime_percent.toFixed(1) + '%';
         document.getElementById('hero-queries').textContent = data.total_queries_served;
-
         const breakdown = document.getElementById('feed-breakdown');
         breakdown.innerHTML = data.feed_breakdown.map(f => `
           <div class="px-6 py-4 flex items-center justify-between">
-            <div>
-              <span class="text-sm font-medium text-white">${f.feed_id}</span>
-            </div>
+            <span class="text-sm font-semibold text-gray-900">${f.feed_id}</span>
             <div class="flex items-center gap-8 text-sm">
-              <div class="text-center">
-                <div class="font-semibold text-white">${f.queries}</div>
-                <div class="text-xs text-zinc-500">Queries</div>
-              </div>
-              <div class="text-center">
-                <div class="font-semibold text-white">${f.avg_response_ms}ms</div>
-                <div class="text-xs text-zinc-500">Avg Response</div>
-              </div>
-              <div class="text-center">
-                <div class="font-semibold ${f.error_rate === 0 ? 'text-emerald-400' : 'text-red-400'}">${(f.error_rate * 100).toFixed(1)}%</div>
-                <div class="text-xs text-zinc-500">Error Rate</div>
-              </div>
+              <div class="text-center"><div class="font-bold text-gray-900">${f.queries}</div><div class="text-xs text-gray-400">Queries</div></div>
+              <div class="text-center"><div class="font-bold text-gray-900">${f.avg_response_ms}ms</div><div class="text-xs text-gray-400">Avg Response</div></div>
+              <div class="text-center"><div class="font-bold ${f.error_rate === 0 ? 'text-emerald-600' : 'text-red-600'}">${(f.error_rate * 100).toFixed(1)}%</div><div class="text-xs text-gray-400">Error Rate</div></div>
             </div>
-          </div>
-        `).join('');
+          </div>`).join('');
       } catch {}
     }
 
-    // Feed colors/icons for activity
     const feedMeta = {
       'whale-alerts': { label: 'Whale Alerts', color: 'blue', emoji: '' },
       'btc-sentiment': { label: 'BTC Sentiment', color: 'purple', emoji: '' },
       'defi-scores': { label: 'DeFi Scores', color: 'emerald', emoji: '' },
     };
 
-    // Load activity feed
     async function loadActivity() {
       try {
         const res = await fetch(API + '/activity?limit=50');
         const data = await res.json();
-
         document.getElementById('activity-revenue').textContent = data.total_revenue_stx.toFixed(3);
         document.getElementById('activity-agents').textContent = data.unique_agents;
-
         const rows = document.getElementById('activity-rows');
         if (data.activity.length === 0) {
-          rows.innerHTML = '<div class="px-6 py-12 text-center text-zinc-500 text-sm">No activity yet. Run <code class="px-2 py-0.5 bg-surface-3 rounded text-brand-400 text-xs">npm run simulate</code> to simulate 10 AI agents.</div>';
+          rows.innerHTML = '<div class="px-6 py-12 text-center text-gray-400 text-sm">No activity yet.</div>';
           return;
         }
-
         rows.innerHTML = data.activity.map((a, i) => {
           const meta = feedMeta[a.feed] || { label: a.feed, color: 'zinc', emoji: '' };
-          const bgColor = i % 2 === 0 ? '' : 'bg-surface-2/30';
           return `
-            <div class="grid grid-cols-12 gap-2 px-6 py-3 text-sm items-center hover:bg-surface-3/50 transition cursor-pointer ${bgColor}" onclick="viewQueryData(${a.id})" title="Click to view data">
-              <div class="col-span-1 text-xs text-zinc-500 font-mono">${a.time_ago}</div>
-              <div class="col-span-2">
-                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-${meta.color}-500/10 text-${meta.color}-400">
-                  ${meta.emoji} ${meta.label}
-                </span>
-              </div>
+            <div class="grid grid-cols-12 gap-2 px-6 py-3 text-sm items-center hover:bg-gray-50 transition cursor-pointer ${i % 2 === 1 ? 'bg-gray-50/50' : ''}" onclick="viewQueryData(${a.id})">
+              <div class="col-span-1 text-xs text-gray-400 font-mono">${a.time_ago}</div>
+              <div class="col-span-2"><span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-${meta.color}-50 text-${meta.color}-600">${meta.label}</span></div>
               <div class="col-span-3 text-xs">
-                <span class="text-white font-medium">${a.agent_name}</span>
-                <span class="text-zinc-600 font-mono ml-1">${a.agent_short}</span>
+                <span class="text-gray-900 font-semibold">${a.agent_name}</span>
+                <span class="text-gray-300 font-mono ml-1 text-[10px]">${a.agent_short}</span>
               </div>
               <div class="col-span-3 font-mono text-xs">
                 ${a.is_onchain
-                  ? `<a href="${a.tx_explorer}" target="_blank" class="text-brand-400 hover:text-brand-300 transition inline-flex items-center gap-1">
+                  ? `<a href="${a.tx_explorer}" target="_blank" class="text-orange-600 hover:text-orange-500 transition inline-flex items-center gap-1">
                       <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                      ${a.tx_hash.slice(0, 10)}...${a.tx_hash.slice(-6)}
-                    </a>`
-                  : a.is_demo
-                    ? '<span class="text-zinc-500 italic">simulated</span>'
-                    : '<span class="text-zinc-600">-</span>'
-                }
+                      ${a.tx_hash.slice(0, 10)}...${a.tx_hash.slice(-6)}</a>`
+                  : a.is_demo ? '<span class="text-gray-300 italic">simulated</span>' : '<span class="text-gray-200">-</span>'}
               </div>
-              <div class="col-span-1 text-right">
-                <span class="text-brand-400 font-medium text-xs">${a.price_stx} STX</span>
-              </div>
-              <div class="col-span-1 text-right text-xs text-zinc-500">${a.response_ms}ms</div>
+              <div class="col-span-1 text-right"><span class="text-orange-600 font-semibold text-xs">${a.price_stx} STX</span></div>
+              <div class="col-span-1 text-right text-xs text-gray-400">${a.response_ms}ms</div>
               <div class="col-span-1 text-right">
                 ${a.is_onchain
-                  ? `<span class="inline-flex items-center gap-1 text-xs text-emerald-400">
+                  ? `<span class="inline-flex items-center gap-1 text-xs text-emerald-600 font-semibold">
                       <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                      On-chain
-                    </span>`
-                  : `<span class="inline-flex items-center gap-1 text-xs text-zinc-500">
-                      <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                      Demo
-                    </span>`
-                }
+                      On-chain</span>`
+                  : `<span class="inline-flex items-center gap-1 text-xs text-gray-300">Demo</span>`}
               </div>
-            </div>
-          `;
+            </div>`;
         }).join('');
       } catch {}
     }
 
-    // Load leaderboard
     async function loadLeaderboard() {
       try {
         const res = await fetch(API + '/leaderboard');
         const data = await res.json();
-
         const rows = document.getElementById('leaderboard-rows');
-        if (data.agents.length === 0) {
-          rows.innerHTML = '<div class="px-6 py-12 text-center text-zinc-500 text-sm">No agents yet. Run the simulation first.</div>';
-          return;
-        }
-
+        if (data.agents.length === 0) { rows.innerHTML = '<div class="px-6 py-12 text-center text-gray-400 text-sm">No agents yet.</div>'; return; }
         rows.innerHTML = data.agents.map((a, i) => {
-          const rankColors = ['text-brand-400', 'text-zinc-300', 'text-amber-600'];
-          const rankColor = i < 3 ? rankColors[i] : 'text-zinc-500';
+          const rankColors = ['text-orange-500', 'text-gray-400', 'text-amber-600'];
+          const rankColor = i < 3 ? rankColors[i] : 'text-gray-300';
           const barMax = data.agents[0].total_queries;
-
           return `
-            <div class="grid grid-cols-12 gap-2 px-6 py-4 items-center hover:bg-surface-3/50 transition ${i % 2 === 1 ? 'bg-surface-2/30' : ''}">
-              <div class="col-span-1">
-                <span class="text-lg font-bold ${rankColor}">${a.rank}</span>
-              </div>
+            <div class="grid grid-cols-12 gap-2 px-6 py-4 items-center hover:bg-gray-50 transition ${i % 2 === 1 ? 'bg-gray-50/50' : ''}">
+              <div class="col-span-1"><span class="text-lg font-black ${rankColor}">${a.rank}</span></div>
               <div class="col-span-3">
-                <div class="text-sm text-white font-semibold">${a.agent_name}</div>
-                <div class="text-xs text-zinc-500 font-mono mt-0.5">${a.address_short}</div>
+                <div class="text-sm text-gray-900 font-bold">${a.agent_name}</div>
+                <div class="text-xs text-gray-300 font-mono mt-0.5">${a.address_short}</div>
               </div>
               <div class="col-span-2 text-center">
-                <div class="text-lg font-bold text-white">${a.total_queries}</div>
-                <div class="w-full bg-surface-3 rounded-full h-1.5 mt-1">
-                  <div class="bg-brand-500 h-1.5 rounded-full" style="width: ${(a.total_queries / barMax * 100)}%"></div>
-                </div>
+                <div class="text-lg font-black text-gray-900">${a.total_queries}</div>
+                <div class="w-full bg-gray-100 rounded-full h-1.5 mt-1"><div class="bg-orange-500 h-1.5 rounded-full" style="width: ${(a.total_queries / barMax * 100)}%"></div></div>
               </div>
-              <div class="col-span-2 text-center">
-                <span class="text-brand-400 font-semibold">${a.total_spent_stx.toFixed(3)}</span>
-              </div>
+              <div class="col-span-2 text-center"><span class="text-orange-600 font-bold">${a.total_spent_stx.toFixed(3)}</span></div>
               <div class="col-span-3 flex items-center justify-center gap-2">
-                ${a.feeds.whale_alerts > 0 ? `<span class="px-1.5 py-0.5 rounded text-xs bg-blue-500/10 text-blue-400" title="Whale Alerts">${a.feeds.whale_alerts}</span>` : ''}
-                ${a.feeds.btc_sentiment > 0 ? `<span class="px-1.5 py-0.5 rounded text-xs bg-purple-500/10 text-purple-400" title="BTC Sentiment">${a.feeds.btc_sentiment}</span>` : ''}
-                ${a.feeds.defi_scores > 0 ? `<span class="px-1.5 py-0.5 rounded text-xs bg-emerald-500/10 text-emerald-400" title="DeFi Scores">${a.feeds.defi_scores}</span>` : ''}
+                ${a.feeds.whale_alerts > 0 ? `<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-600">${a.feeds.whale_alerts}</span>` : ''}
+                ${a.feeds.btc_sentiment > 0 ? `<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-50 text-purple-600">${a.feeds.btc_sentiment}</span>` : ''}
+                ${a.feeds.defi_scores > 0 ? `<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600">${a.feeds.defi_scores}</span>` : ''}
               </div>
-              <div class="col-span-1 text-right text-sm text-zinc-400">${a.avg_response_ms}ms</div>
-            </div>
-          `;
+              <div class="col-span-1 text-right text-sm text-gray-400">${a.avg_response_ms}ms</div>
+            </div>`;
         }).join('');
       } catch {}
     }
 
-    // ===== DATA DETAIL MODAL =====
     let currentModalJson = '';
-
-    function closeDataModal() {
-      document.getElementById('data-modal').classList.add('hidden');
-    }
-
+    function closeDataModal() { document.getElementById('data-modal').classList.add('hidden'); }
     function copyJson() {
       navigator.clipboard.writeText(currentModalJson);
       const btn = event.target.closest('button');
@@ -919,202 +979,108 @@ console.<span class="text-blue-400">log</span>(data); <span class="text-zinc-500
         const res = await fetch(`${API}/activity/${queryId}/data`);
         if (!res.ok) throw new Error('Query not found');
         const q = await res.json();
-
         const modal = document.getElementById('data-modal');
         const meta = feedMeta[q.feed] || { label: q.feed, color: 'zinc' };
-
-        // Header
-        document.getElementById('modal-feed-badge').className = `px-3 py-1 rounded-full text-xs font-semibold bg-${meta.color}-500/10 text-${meta.color}-400`;
+        document.getElementById('modal-feed-badge').className = `px-3 py-1 rounded-full text-xs font-bold bg-${meta.color}-50 text-${meta.color}-600`;
         document.getElementById('modal-feed-badge').textContent = meta.label;
         document.getElementById('modal-title').textContent = `Query #${q.id}`;
         document.getElementById('modal-time').textContent = new Date(q.timestamp).toLocaleString();
-
-        // Source badge
         const srcBadge = document.getElementById('modal-source-badge');
         const dataSource = q.data?.data_source || q.data?.btc_price_usd ? 'Live API Data' : 'Simulated';
         const hasRealData = dataSource.includes('CoinGecko') || dataSource.includes('DeFiLlama') || dataSource.includes('Alternative.me') || dataSource.includes('Blockchain.info') || dataSource === 'Live API Data';
         srcBadge.textContent = q.data?.data_source || (q.data ? 'Data Available' : 'No Data Stored');
-        srcBadge.className = `text-xs px-2 py-1 rounded-full ${hasRealData ? 'bg-emerald-500/10 text-emerald-400' : 'bg-zinc-500/10 text-zinc-400'}`;
-
-        // Meta bar
+        srcBadge.className = `text-xs px-2 py-1 rounded-full ${hasRealData ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-gray-400'}`;
         document.getElementById('modal-agent').textContent = q.agent || 'unknown';
         const txEl = document.getElementById('modal-tx');
-        if (q.is_onchain && q.tx_hash) {
-          txEl.innerHTML = `<a href="https://explorer.hiro.so/txid/${q.tx_hash}?chain=testnet" target="_blank" class="text-brand-400 hover:underline">${q.tx_hash.slice(0,12)}...</a>`;
-        } else if (q.is_demo) {
-          txEl.innerHTML = '<span class="text-zinc-500 italic">simulated</span>';
-        } else {
-          txEl.textContent = '-';
-        }
+        if (q.is_onchain && q.tx_hash) { txEl.innerHTML = `<a href="https://explorer.hiro.so/txid/${q.tx_hash}?chain=testnet" target="_blank" class="text-orange-600 hover:underline">${q.tx_hash.slice(0,12)}...</a>`; }
+        else if (q.is_demo) { txEl.innerHTML = '<span class="text-gray-300 italic">simulated</span>'; }
+        else { txEl.textContent = '-'; }
         document.getElementById('modal-price').textContent = q.price_stx + ' STX';
         document.getElementById('modal-speed').textContent = q.response_ms + 'ms';
-
-        // Raw JSON
         currentModalJson = JSON.stringify(q.data, null, 2);
-        document.getElementById('modal-json').textContent = currentModalJson || 'No data stored for this query';
-
-        // Visual summary
+        document.getElementById('modal-json').textContent = currentModalJson || 'No data stored';
         const visual = document.getElementById('modal-visual-content');
-        if (!q.data) {
-          visual.innerHTML = '<p class="text-zinc-500 text-sm">Data not stored for this query. New queries will have their data saved.</p>';
-        } else {
-          visual.innerHTML = renderVisualData(q.feed, q.data);
-        }
-
+        if (!q.data) { visual.innerHTML = '<p class="text-gray-400 text-sm">Data not stored for this query.</p>'; }
+        else { visual.innerHTML = renderVisualData(q.feed, q.data); }
         modal.classList.remove('hidden');
-      } catch (err) {
-        console.error('Failed to load query data:', err);
-      }
+      } catch (err) { console.error('Failed to load:', err); }
     }
 
     function renderVisualData(feed, data) {
       if (feed === 'whale-alerts') return renderWhaleAlerts(data);
       if (feed === 'btc-sentiment') return renderSentiment(data);
       if (feed === 'defi-scores') return renderDeFiScores(data);
-      return '<pre class="text-xs text-zinc-400">' + JSON.stringify(data, null, 2) + '</pre>';
+      return '<pre class="text-xs text-gray-500">' + JSON.stringify(data, null, 2) + '</pre>';
     }
 
     function renderWhaleAlerts(data) {
-      const alerts = data.alerts || [];
-      const summary = data.summary || {};
-      return `
-        <div class="space-y-4">
-          ${data.btc_price_usd ? `<div class="flex items-center gap-2 mb-2"><span class="text-zinc-500 text-xs">BTC Price:</span><span class="text-white font-bold text-lg">$${data.btc_price_usd.toLocaleString()}</span></div>` : ''}
-          <div class="grid grid-cols-3 gap-3 mb-4">
-            <div class="p-3 rounded-xl bg-surface-2 border border-zinc-800/30 text-center">
-              <div class="text-xl font-bold text-white">${summary.alert_count || alerts.length}</div>
-              <div class="text-xs text-zinc-500">Alerts</div>
-            </div>
-            <div class="p-3 rounded-xl bg-surface-2 border border-zinc-800/30 text-center">
-              <div class="text-xl font-bold text-brand-400">${(summary.total_volume_btc || 0).toLocaleString()}</div>
-              <div class="text-xs text-zinc-500">BTC Volume</div>
-            </div>
-            <div class="p-3 rounded-xl bg-surface-2 border border-zinc-800/30 text-center">
-              <div class="text-sm font-semibold text-white">${summary.most_active || 'N/A'}</div>
-              <div class="text-xs text-zinc-500">Most Active</div>
-            </div>
-          </div>
-          <div class="space-y-2">
-            ${alerts.map(a => {
-              const sigColor = a.significance === 'extreme' ? 'text-red-400 bg-red-500/10' : a.significance === 'critical' ? 'text-yellow-400 bg-yellow-500/10' : 'text-blue-400 bg-blue-500/10';
-              return `
-                <div class="p-3 rounded-xl bg-surface-2 border border-zinc-800/30">
-                  <div class="flex items-center justify-between mb-2">
-                    <span class="text-xs font-mono px-2 py-0.5 rounded ${sigColor}">${a.significance.toUpperCase()}</span>
-                    <span class="text-brand-400 font-bold">${a.amount_btc} BTC</span>
-                  </div>
-                  <div class="text-xs text-zinc-400">
-                    <span class="text-zinc-300">${a.from?.label || 'Unknown'}</span>
-                    <span class="mx-2 text-zinc-600">&rarr;</span>
-                    <span class="text-zinc-300">${a.to?.label || 'Unknown'}</span>
-                  </div>
-                  <div class="text-xs text-zinc-500 mt-1">$${(a.amount_usd || 0).toLocaleString()} | ${a.type.replace(/_/g, ' ')}</div>
-                </div>`;
-            }).join('')}
-          </div>
-        </div>`;
+      const alerts = data.alerts || []; const summary = data.summary || {};
+      return `<div class="space-y-4">
+        ${data.btc_price_usd ? `<div class="flex items-center gap-2 mb-2"><span class="text-gray-400 text-xs">BTC Price:</span><span class="text-gray-900 font-black text-lg">$${data.btc_price_usd.toLocaleString()}</span></div>` : ''}
+        <div class="grid grid-cols-3 gap-3 mb-4">
+          <div class="p-3 rounded-xl bg-gray-50 border border-gray-100 text-center"><div class="text-xl font-black text-gray-900">${summary.alert_count || alerts.length}</div><div class="text-xs text-gray-400">Alerts</div></div>
+          <div class="p-3 rounded-xl bg-gray-50 border border-gray-100 text-center"><div class="text-xl font-black text-orange-500">${(summary.total_volume_btc || 0).toLocaleString()}</div><div class="text-xs text-gray-400">BTC Volume</div></div>
+          <div class="p-3 rounded-xl bg-gray-50 border border-gray-100 text-center"><div class="text-sm font-bold text-gray-900">${summary.most_active || 'N/A'}</div><div class="text-xs text-gray-400">Most Active</div></div>
+        </div>
+        <div class="space-y-2">${alerts.map(a => {
+          const sigColor = a.significance === 'extreme' ? 'text-red-600 bg-red-50' : a.significance === 'critical' ? 'text-amber-600 bg-amber-50' : 'text-blue-600 bg-blue-50';
+          return `<div class="p-3 rounded-xl bg-gray-50 border border-gray-100">
+            <div class="flex items-center justify-between mb-2"><span class="text-xs font-mono px-2 py-0.5 rounded-full ${sigColor} font-bold">${a.significance.toUpperCase()}</span><span class="text-orange-600 font-black">${a.amount_btc} BTC</span></div>
+            <div class="text-xs text-gray-500"><span class="text-gray-700">${a.from?.label || 'Unknown'}</span><span class="mx-2">&rarr;</span><span class="text-gray-700">${a.to?.label || 'Unknown'}</span></div>
+            <div class="text-xs text-gray-400 mt-1">$${(a.amount_usd || 0).toLocaleString()} | ${a.type.replace(/_/g, ' ')}</div></div>`;
+        }).join('')}</div></div>`;
     }
 
     function renderSentiment(data) {
       const fgValue = data.fear_greed_index || 50;
-      const fgColor = fgValue >= 70 ? 'text-emerald-400' : fgValue >= 40 ? 'text-yellow-400' : 'text-red-400';
-      const fgBg = fgValue >= 70 ? 'bg-emerald-500' : fgValue >= 40 ? 'bg-yellow-500' : 'bg-red-500';
-      return `
-        <div class="space-y-4">
-          ${data.btc_price_usd ? `
-            <div class="flex items-center gap-4 mb-2">
-              <div><span class="text-zinc-500 text-xs">BTC Price</span><div class="text-white font-bold text-lg">$${data.btc_price_usd.toLocaleString()}</div></div>
-              ${data.btc_24h_change !== undefined ? `<div><span class="text-zinc-500 text-xs">24h Change</span><div class="font-bold text-lg ${data.btc_24h_change >= 0 ? 'text-emerald-400' : 'text-red-400'}">${data.btc_24h_change >= 0 ? '+' : ''}${data.btc_24h_change}%</div></div>` : ''}
-            </div>` : ''}
-          <div class="p-4 rounded-xl bg-surface-2 border border-zinc-800/30 text-center">
-            <div class="text-xs text-zinc-500 mb-2">Fear & Greed Index</div>
-            <div class="text-4xl font-bold ${fgColor} mb-2">${fgValue}</div>
-            <div class="w-full bg-surface-3 rounded-full h-3 mb-2">
-              <div class="${fgBg} h-3 rounded-full transition-all" style="width: ${fgValue}%"></div>
-            </div>
-            <div class="text-sm font-semibold text-white">${(data.overall_label || 'neutral').replace(/_/g, ' ').toUpperCase()}</div>
-          </div>
-          <div class="grid grid-cols-2 gap-3">
-            <div class="p-3 rounded-xl bg-surface-2 border border-zinc-800/30 text-center">
-              <div class="text-xs text-zinc-500">Market Trend</div>
-              <div class="text-sm font-bold ${data.market_trend === 'bullish' ? 'text-emerald-400' : data.market_trend === 'bearish' ? 'text-red-400' : 'text-yellow-400'}">${(data.market_trend || 'N/A').toUpperCase()}</div>
-            </div>
-            <div class="p-3 rounded-xl bg-surface-2 border border-zinc-800/30 text-center">
-              <div class="text-xs text-zinc-500">BTC Dominance</div>
-              <div class="text-sm font-bold text-white">${data.btc_dominance || 'N/A'}%</div>
-            </div>
-          </div>
-          <div class="space-y-2">
-            <h4 class="text-xs font-semibold text-zinc-400 uppercase">Source Scores</h4>
-            ${['twitter', 'reddit', 'news'].map(s => {
-              const src = data.sources?.[s];
-              if (!src) return '';
-              return `<div class="p-3 rounded-xl bg-surface-2 border border-zinc-800/30 flex items-center justify-between">
-                <span class="text-sm text-white capitalize">${s}</span>
-                <span class="text-sm font-bold ${src.score > 0 ? 'text-emerald-400' : src.score < 0 ? 'text-red-400' : 'text-zinc-400'}">${src.score > 0 ? '+' : ''}${src.score}</span>
-              </div>`;
-            }).join('')}
-          </div>
-          ${data.sources?.news?.headlines ? `
-            <div class="space-y-1">
-              <h4 class="text-xs font-semibold text-zinc-400 uppercase">Headlines</h4>
-              ${data.sources.news.headlines.map(h => `<p class="text-xs text-zinc-400 pl-3 border-l-2 border-zinc-700">${h}</p>`).join('')}
-            </div>` : ''}
-        </div>`;
+      const fgColor = fgValue >= 70 ? 'text-emerald-600' : fgValue >= 40 ? 'text-amber-600' : 'text-red-600';
+      const fgBg = fgValue >= 70 ? 'bg-emerald-500' : fgValue >= 40 ? 'bg-amber-500' : 'bg-red-500';
+      return `<div class="space-y-4">
+        ${data.btc_price_usd ? `<div class="flex items-center gap-4 mb-2">
+          <div><span class="text-gray-400 text-xs">BTC Price</span><div class="text-gray-900 font-black text-lg">$${data.btc_price_usd.toLocaleString()}</div></div>
+          ${data.btc_24h_change !== undefined ? `<div><span class="text-gray-400 text-xs">24h</span><div class="font-black text-lg ${data.btc_24h_change >= 0 ? 'text-emerald-600' : 'text-red-600'}">${data.btc_24h_change >= 0 ? '+' : ''}${data.btc_24h_change}%</div></div>` : ''}</div>` : ''}
+        <div class="p-4 rounded-xl bg-gray-50 border border-gray-100 text-center">
+          <div class="text-xs text-gray-400 mb-2">Fear & Greed Index</div>
+          <div class="text-4xl font-black ${fgColor} mb-2">${fgValue}</div>
+          <div class="w-full bg-gray-200 rounded-full h-3 mb-2"><div class="${fgBg} h-3 rounded-full" style="width: ${fgValue}%"></div></div>
+          <div class="text-sm font-bold text-gray-900">${(data.overall_label || 'neutral').replace(/_/g, ' ').toUpperCase()}</div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="p-3 rounded-xl bg-gray-50 border border-gray-100 text-center"><div class="text-xs text-gray-400">Market Trend</div><div class="text-sm font-bold ${data.market_trend === 'bullish' ? 'text-emerald-600' : data.market_trend === 'bearish' ? 'text-red-600' : 'text-amber-600'}">${(data.market_trend || 'N/A').toUpperCase()}</div></div>
+          <div class="p-3 rounded-xl bg-gray-50 border border-gray-100 text-center"><div class="text-xs text-gray-400">BTC Dominance</div><div class="text-sm font-bold text-gray-900">${data.btc_dominance || 'N/A'}%</div></div>
+        </div>
+        <div class="space-y-2"><h4 class="text-xs font-bold text-gray-400 uppercase">Source Scores</h4>
+          ${['twitter', 'reddit', 'news'].map(s => { const src = data.sources?.[s]; if (!src) return '';
+            return `<div class="p-3 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-between"><span class="text-sm text-gray-700 capitalize font-medium">${s}</span><span class="text-sm font-bold ${src.score > 0 ? 'text-emerald-600' : src.score < 0 ? 'text-red-600' : 'text-gray-400'}">${src.score > 0 ? '+' : ''}${src.score}</span></div>`;
+          }).join('')}</div>
+        ${data.sources?.news?.headlines ? `<div class="space-y-1"><h4 class="text-xs font-bold text-gray-400 uppercase">Headlines</h4>${data.sources.news.headlines.map(h => `<p class="text-xs text-gray-500 pl-3 border-l-2 border-gray-200">${h}</p>`).join('')}</div>` : ''}
+      </div>`;
     }
 
     function renderDeFiScores(data) {
       const protocols = data.protocols || [];
-      return `
-        <div class="space-y-3">
-          ${protocols.map((p, i) => {
-            const recColor = { strong_buy: 'text-emerald-400 bg-emerald-500/10', favorable: 'text-green-400 bg-green-500/10', neutral: 'text-yellow-400 bg-yellow-500/10', caution: 'text-orange-400 bg-orange-500/10', strong_avoid: 'text-red-400 bg-red-500/10' };
-            const rc = recColor[p.recommendation] || 'text-zinc-400 bg-zinc-500/10';
-            return `
-              <div class="p-3 rounded-xl bg-surface-2 border border-zinc-800/30">
-                <div class="flex items-center justify-between mb-2">
-                  <div>
-                    <span class="text-sm font-semibold text-white">${p.protocol}</span>
-                    <span class="text-xs text-zinc-500 ml-2">${p.chain}</span>
-                  </div>
-                  <span class="text-xs font-mono px-2 py-0.5 rounded ${rc}">${(p.recommendation || '').replace(/_/g, ' ')}</span>
-                </div>
-                <div class="grid grid-cols-4 gap-2 text-center text-xs">
-                  <div>
-                    <div class="font-semibold text-white">${p.tvl_usd >= 1e9 ? (p.tvl_usd / 1e9).toFixed(1) + 'B' : p.tvl_usd >= 1e6 ? (p.tvl_usd / 1e6).toFixed(0) + 'M' : p.tvl_usd.toLocaleString()}</div>
-                    <div class="text-zinc-500">TVL</div>
-                  </div>
-                  <div>
-                    <div class="font-semibold ${p.tvl_change_24h >= 0 ? 'text-emerald-400' : 'text-red-400'}">${p.tvl_change_24h >= 0 ? '+' : ''}${p.tvl_change_24h}%</div>
-                    <div class="text-zinc-500">24h</div>
-                  </div>
-                  <div>
-                    <div class="font-semibold text-brand-400">${p.composite_score}/100</div>
-                    <div class="text-zinc-500">Score</div>
-                  </div>
-                  <div>
-                    <div class="font-semibold text-white">${p.metrics?.audit_count || 0}</div>
-                    <div class="text-zinc-500">Audits</div>
-                  </div>
-                </div>
-              </div>`;
-          }).join('')}
-        </div>`;
+      return `<div class="space-y-3">${protocols.map(p => {
+        const recColor = { strong_buy: 'text-emerald-600 bg-emerald-50', favorable: 'text-green-600 bg-green-50', neutral: 'text-amber-600 bg-amber-50', caution: 'text-orange-600 bg-orange-50', strong_avoid: 'text-red-600 bg-red-50' };
+        const rc = recColor[p.recommendation] || 'text-gray-400 bg-gray-50';
+        return `<div class="p-3 rounded-xl bg-gray-50 border border-gray-100">
+          <div class="flex items-center justify-between mb-2"><div><span class="text-sm font-bold text-gray-900">${p.protocol}</span><span class="text-xs text-gray-400 ml-2">${p.chain}</span></div><span class="text-xs font-mono px-2 py-0.5 rounded-full ${rc} font-bold">${(p.recommendation || '').replace(/_/g, ' ')}</span></div>
+          <div class="grid grid-cols-4 gap-2 text-center text-xs">
+            <div><div class="font-bold text-gray-900">${p.tvl_usd >= 1e9 ? (p.tvl_usd / 1e9).toFixed(1) + 'B' : p.tvl_usd >= 1e6 ? (p.tvl_usd / 1e6).toFixed(0) + 'M' : p.tvl_usd.toLocaleString()}</div><div class="text-gray-400">TVL</div></div>
+            <div><div class="font-bold ${p.tvl_change_24h >= 0 ? 'text-emerald-600' : 'text-red-600'}">${p.tvl_change_24h >= 0 ? '+' : ''}${p.tvl_change_24h}%</div><div class="text-gray-400">24h</div></div>
+            <div><div class="font-bold text-orange-600">${p.composite_score}/100</div><div class="text-gray-400">Score</div></div>
+            <div><div class="font-bold text-gray-900">${p.metrics?.audit_count || 0}</div><div class="text-gray-400">Audits</div></div>
+          </div></div>`;
+      }).join('')}</div>`;
     }
 
-    // Close modal on Escape
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeDataModal();
-    });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDataModal(); });
 
     // ===== WALLET CONNECT =====
     let walletAddress = null;
     let walletProvider = null;
 
     function getWalletProvider() {
-      // Leather wallet (newer API)
       if (window.LeatherProvider) return { provider: window.LeatherProvider, name: 'Leather' };
-      // Leather wallet (legacy) / Xverse (both expose StacksProvider)
       if (window.StacksProvider) return { provider: window.StacksProvider, name: 'Stacks Wallet' };
       return null;
     }
@@ -1122,70 +1088,35 @@ console.<span class="text-blue-400">log</span>(data); <span class="text-zinc-500
     async function connectWallet() {
       const btn = document.getElementById('wallet-btn');
       const btnText = document.getElementById('wallet-btn-text');
-
-      // If already connected, disconnect
       if (walletAddress) {
-        walletAddress = null;
-        walletProvider = null;
+        walletAddress = null; walletProvider = null;
         btnText.textContent = 'Connect Wallet';
-        btn.classList.remove('bg-surface-3', 'border', 'border-zinc-700');
-        btn.classList.add('bg-brand-500', 'hover:bg-brand-600', 'shadow-lg', 'shadow-brand-500/20');
+        btn.className = 'flex items-center gap-2 px-5 py-2 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold transition shadow-lg shadow-gray-900/10';
         document.querySelectorAll('.wallet-buy-btn').forEach(b => b.classList.add('hidden'));
         return;
       }
-
       const wp = getWalletProvider();
-      if (!wp) {
-        showWalletModal();
-        return;
-      }
-
+      if (!wp) { showWalletModal(); return; }
       btnText.textContent = 'Connecting...';
-
       try {
         let addresses;
-
-        // Try Leather-style request first
         if (wp.provider.request) {
           const resp = await wp.provider.request('getAddresses');
-          // Leather returns { result: { addresses: [...] } }
           addresses = resp?.result?.addresses || resp?.addresses || [];
         } else if (wp.provider.connect) {
-          // Fallback for older API
           const resp = await wp.provider.connect();
           addresses = resp?.addresses || [];
         }
-
-        // Find STX testnet address (starts with ST)
-        const stxAddr = addresses.find(a =>
-          (a.symbol === 'STX' || a.type === 'stacks') && a.address?.startsWith('ST')
-        ) || addresses.find(a =>
-          a.address?.startsWith('ST')
-        ) || addresses[0];
-
-        if (!stxAddr?.address) {
-          btnText.textContent = 'Connect Wallet';
-          alert('Could not get STX address. Make sure you are on Stacks Testnet.');
-          return;
-        }
-
+        const stxAddr = addresses.find(a => (a.symbol === 'STX' || a.type === 'stacks') && a.address?.startsWith('ST')) || addresses.find(a => a.address?.startsWith('ST')) || addresses[0];
+        if (!stxAddr?.address) { btnText.textContent = 'Connect Wallet'; alert('Could not get STX address.'); return; }
         walletAddress = stxAddr.address;
         walletProvider = wp;
-
-        // Update button to show connected state
         btnText.textContent = walletAddress.slice(0, 6) + '...' + walletAddress.slice(-4);
-        btn.classList.remove('bg-brand-500', 'hover:bg-brand-600', 'shadow-lg', 'shadow-brand-500/20');
-        btn.classList.add('bg-surface-3', 'border', 'border-zinc-700');
-
-        // Show buy buttons on feed cards
+        btn.className = 'flex items-center gap-2 px-5 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold transition border border-gray-200';
         document.querySelectorAll('.wallet-buy-btn').forEach(b => b.classList.remove('hidden'));
-
       } catch (err) {
-        console.error('Wallet connect error:', err);
         btnText.textContent = 'Connect Wallet';
-        if (err.code === 4001 || err.message?.includes('denied') || err.message?.includes('cancel')) {
-          // User rejected — do nothing
-        } else {
+        if (!(err.code === 4001 || err.message?.includes('denied') || err.message?.includes('cancel'))) {
           alert('Wallet connection failed: ' + (err.message || 'Unknown error'));
         }
       }
@@ -1196,115 +1127,55 @@ console.<span class="text-blue-400">log</span>(data); <span class="text-zinc-500
       modal.id = 'wallet-install-modal';
       modal.className = 'fixed inset-0 z-[200] flex items-center justify-center';
       modal.innerHTML = `
-        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="this.parentElement.remove()"></div>
-        <div class="relative bg-surface-1 border border-zinc-800/50 rounded-2xl p-8 max-w-md mx-4 slide-up">
-          <h3 class="text-xl font-bold text-white mb-2">Wallet Required</h3>
-          <p class="text-sm text-zinc-400 mb-6">Install a Stacks wallet to buy data directly from this dashboard.</p>
+        <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="this.parentElement.remove()"></div>
+        <div class="relative bg-white border border-gray-200 rounded-2xl p-8 max-w-md mx-4 slide-up shadow-2xl">
+          <h3 class="text-xl font-extrabold text-gray-900 mb-2">Wallet Required</h3>
+          <p class="text-sm text-gray-500 mb-6">Install a Stacks wallet to buy data from the dashboard.</p>
           <div class="space-y-3">
-            <a href="https://leather.io/install-extension" target="_blank" class="flex items-center gap-4 p-4 rounded-xl bg-surface-2 border border-zinc-800/50 hover:border-brand-500/30 transition group">
-              <div class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-xl">L</div>
-              <div class="flex-1">
-                <div class="text-sm font-semibold text-white group-hover:text-brand-400 transition">Leather Wallet</div>
-                <div class="text-xs text-zinc-500">Recommended for Stacks</div>
-              </div>
-              <svg class="w-4 h-4 text-zinc-500 group-hover:text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            <a href="https://leather.io/install-extension" target="_blank" class="flex items-center gap-4 p-4 rounded-xl bg-gray-50 border border-gray-200 hover:border-orange-300 transition group">
+              <div class="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-xl font-black text-orange-500">L</div>
+              <div class="flex-1"><div class="text-sm font-bold text-gray-900 group-hover:text-orange-600 transition">Leather Wallet</div><div class="text-xs text-gray-400">Recommended for Stacks</div></div>
+              <svg class="w-4 h-4 text-gray-300 group-hover:text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
             </a>
-            <a href="https://www.xverse.app/download" target="_blank" class="flex items-center gap-4 p-4 rounded-xl bg-surface-2 border border-zinc-800/50 hover:border-brand-500/30 transition group">
-              <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-xl">X</div>
-              <div class="flex-1">
-                <div class="text-sm font-semibold text-white group-hover:text-brand-400 transition">Xverse Wallet</div>
-                <div class="text-xs text-zinc-500">Bitcoin + Stacks wallet</div>
-              </div>
-              <svg class="w-4 h-4 text-zinc-500 group-hover:text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            <a href="https://www.xverse.app/download" target="_blank" class="flex items-center gap-4 p-4 rounded-xl bg-gray-50 border border-gray-200 hover:border-purple-300 transition group">
+              <div class="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-xl font-black text-purple-500">X</div>
+              <div class="flex-1"><div class="text-sm font-bold text-gray-900 group-hover:text-purple-600 transition">Xverse Wallet</div><div class="text-xs text-gray-400">Bitcoin + Stacks wallet</div></div>
+              <svg class="w-4 h-4 text-gray-300 group-hover:text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
             </a>
           </div>
-          <button onclick="this.parentElement.parentElement.remove()" class="mt-6 w-full py-2.5 rounded-xl bg-surface-3 hover:bg-surface-4 text-zinc-400 text-sm transition">Cancel</button>
-        </div>
-      `;
+          <button onclick="this.parentElement.parentElement.remove()" class="mt-6 w-full py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-500 text-sm font-medium transition">Cancel</button>
+        </div>`;
       document.body.appendChild(modal);
     }
 
-    // Feed prices in microSTX for wallet transfers
-    const feedPricesMap = {
-      'whale-alerts': { micro: 5000, stx: 0.005 },
-      'btc-sentiment': { micro: 3000, stx: 0.003 },
-      'defi-scores': { micro: 10000, stx: 0.01 },
-    };
+    const feedPricesMap = { 'whale-alerts': { micro: 5000, stx: 0.005 }, 'btc-sentiment': { micro: 3000, stx: 0.003 }, 'defi-scores': { micro: 10000, stx: 0.01 } };
 
     async function buyFeedData(feedId, priceMicro) {
-      if (!walletAddress || !walletProvider) {
-        alert('Please connect your wallet first.');
-        return;
-      }
-
+      if (!walletAddress || !walletProvider) { alert('Please connect your wallet first.'); return; }
       const btn = document.getElementById('buy-btn-' + feedId);
       const origText = btn.innerHTML;
-      btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Sending payment...';
+      btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Sending...';
       btn.disabled = true;
-
       try {
-        // Get server address to pay
         const healthRes = await fetch(API + '/health');
         const health = await healthRes.json();
         const recipient = health.provider;
-
-        // Request STX transfer via wallet
         const price = feedPricesMap[feedId] || { micro: priceMicro, stx: priceMicro / 1000000 };
-
         let txId;
-
         if (walletProvider.provider.request) {
-          // Leather-style API
-          const resp = await walletProvider.provider.request('stx_transferStx', {
-            recipient: recipient,
-            amount: String(price.micro),
-            network: 'testnet',
-            memo: 'ShadowFeed: ' + feedId,
-          });
+          const resp = await walletProvider.provider.request('stx_transferStx', { recipient, amount: String(price.micro), network: 'testnet', memo: 'ShadowFeed: ' + feedId });
           txId = resp?.result?.txid || resp?.result?.txId || resp?.txid;
-        } else {
-          throw new Error('Wallet API not supported');
-        }
-
-        if (!txId) {
-          throw new Error('No transaction ID returned from wallet');
-        }
-
+        } else { throw new Error('Wallet API not supported'); }
+        if (!txId) throw new Error('No txId returned');
         btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Fetching data...';
-
-        // Send txId to server to get feed data
-        const buyRes = await fetch(API + '/wallet/buy', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ feedId, txId, senderAddress: walletAddress }),
-        });
-
-        if (!buyRes.ok) {
-          const errData = await buyRes.json();
-          throw new Error(errData.error || 'Server error');
-        }
-
+        const buyRes = await fetch(API + '/wallet/buy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ feedId, txId, senderAddress: walletAddress }) });
+        if (!buyRes.ok) { const errData = await buyRes.json(); throw new Error(errData.error || 'Server error'); }
         const result = await buyRes.json();
-
-        // Show the data in modal
         showWalletPurchaseResult(feedId, result, txId);
-
-        // Refresh activity
-        loadActivity();
-        loadStats();
-        loadLeaderboard();
-
+        loadActivity(); loadStats(); loadLeaderboard();
       } catch (err) {
-        console.error('Buy feed error:', err);
-        if (err.code === 4001 || err.message?.includes('denied') || err.message?.includes('cancel')) {
-          // User rejected — silent
-        } else {
-          alert('Purchase failed: ' + (err.message || 'Unknown error'));
-        }
-      } finally {
-        btn.innerHTML = origText;
-        btn.disabled = false;
-      }
+        if (!(err.code === 4001 || err.message?.includes('denied') || err.message?.includes('cancel'))) { alert('Purchase failed: ' + (err.message || 'Unknown error')); }
+      } finally { btn.innerHTML = origText; btn.disabled = false; }
     }
 
     function showWalletPurchaseResult(feedId, result, txId) {
@@ -1313,82 +1184,229 @@ console.<span class="text-blue-400">log</span>(data); <span class="text-zinc-500
       modal.id = 'purchase-result-modal';
       modal.className = 'fixed inset-0 z-[200]';
       modal.innerHTML = `
-        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="this.parentElement.remove()"></div>
-        <div class="absolute inset-4 md:inset-y-8 md:inset-x-[15%] bg-surface-1 border border-zinc-800/50 rounded-2xl overflow-hidden flex flex-col slide-up">
-          <!-- Header -->
-          <div class="flex items-center justify-between px-6 py-4 bg-surface-2 border-b border-zinc-800/50">
+        <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" onclick="this.parentElement.remove()"></div>
+        <div class="absolute inset-4 md:inset-y-8 md:inset-x-[15%] bg-white border border-gray-200 rounded-2xl overflow-hidden flex flex-col slide-up shadow-2xl">
+          <div class="flex items-center justify-between px-6 py-4 bg-emerald-50 border-b border-emerald-100">
             <div class="flex items-center gap-4">
-              <div class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-              </div>
-              <div>
-                <span class="text-white font-semibold text-sm">Purchase Successful!</span>
-                <span class="text-zinc-500 text-xs ml-3">${meta.label}</span>
-              </div>
+              <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center"><svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div>
+              <div><span class="text-gray-900 font-bold text-sm">Purchase Successful!</span><span class="text-gray-400 text-xs ml-3">${meta.label}</span></div>
             </div>
-            <button onclick="this.closest('#purchase-result-modal').remove()" class="w-8 h-8 rounded-lg bg-surface-3 hover:bg-surface-4 flex items-center justify-center text-zinc-400 hover:text-white transition">
+            <button onclick="this.closest('#purchase-result-modal').remove()" class="w-8 h-8 rounded-lg bg-white/80 hover:bg-white flex items-center justify-center text-gray-400 hover:text-gray-600 transition">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
           </div>
-          <!-- TX Info -->
-          <div class="px-6 py-3 bg-emerald-500/5 border-b border-emerald-500/10 flex items-center gap-6 text-xs">
-            <div class="flex items-center gap-2">
-              <span class="text-zinc-500">Paid:</span>
-              <span class="text-brand-400 font-bold">${result.price}</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="text-zinc-500">TX:</span>
-              <a href="${result.tx_explorer}" target="_blank" class="text-brand-400 hover:underline font-mono">${txId.slice(0,12)}...</a>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="text-zinc-500">From:</span>
-              <span class="text-zinc-300 font-mono">${walletAddress.slice(0,8)}...${walletAddress.slice(-4)}</span>
-            </div>
+          <div class="px-6 py-3 bg-gray-50 border-b border-gray-100 flex items-center gap-6 text-xs">
+            <div class="flex items-center gap-2"><span class="text-gray-400">Paid:</span><span class="text-orange-600 font-bold">${result.price}</span></div>
+            <div class="flex items-center gap-2"><span class="text-gray-400">TX:</span><a href="${result.tx_explorer}" target="_blank" class="text-orange-600 hover:underline font-mono">${txId.slice(0,12)}...</a></div>
+            <div class="flex items-center gap-2"><span class="text-gray-400">From:</span><span class="text-gray-600 font-mono">${walletAddress.slice(0,8)}...${walletAddress.slice(-4)}</span></div>
           </div>
-          <!-- Data -->
           <div class="flex-1 overflow-hidden flex flex-col md:flex-row">
-            <div class="md:w-1/2 p-6 overflow-y-auto border-r border-zinc-800/30">
-              <h3 class="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-4">Data Summary</h3>
-              <div>${renderVisualData(feedId, result.data)}</div>
-            </div>
-            <div class="md:w-1/2 p-6 overflow-y-auto bg-surface-0/50">
-              <div class="flex items-center justify-between mb-4">
-                <h3 class="text-sm font-semibold text-zinc-400 uppercase tracking-wider">Raw Response</h3>
-                <button id="purchase-copy-btn" class="text-xs text-zinc-500 hover:text-brand-400 transition">Copy JSON</button>
-              </div>
-              <pre id="purchase-json" class="text-xs font-mono text-zinc-400 whitespace-pre-wrap bg-surface-2 p-4 rounded-xl border border-zinc-800/30 max-h-[60vh] overflow-auto"></pre>
+            <div class="md:w-1/2 p-6 overflow-y-auto border-r border-gray-100"><h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Data Summary</h3><div>${renderVisualData(feedId, result.data)}</div></div>
+            <div class="md:w-1/2 p-6 overflow-y-auto bg-gray-50/50">
+              <div class="flex items-center justify-between mb-4"><h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider">Raw Response</h3><button id="purchase-copy-btn" class="text-xs text-gray-400 hover:text-orange-500 transition font-medium">Copy JSON</button></div>
+              <pre id="purchase-json" class="text-xs font-mono text-gray-600 whitespace-pre-wrap bg-white p-4 rounded-xl border border-gray-200 max-h-[60vh] overflow-auto"></pre>
             </div>
           </div>
-        </div>
-      `;
+        </div>`;
       document.body.appendChild(modal);
-
-      // Set JSON content safely
       const jsonStr = JSON.stringify(result.data, null, 2);
       document.getElementById('purchase-json').textContent = jsonStr;
       document.getElementById('purchase-copy-btn').onclick = () => {
         navigator.clipboard.writeText(jsonStr);
-        const b = document.getElementById('purchase-copy-btn');
-        b.textContent = 'Copied!';
-        setTimeout(() => b.textContent = 'Copy JSON', 1500);
+        document.getElementById('purchase-copy-btn').textContent = 'Copied!';
+        setTimeout(() => document.getElementById('purchase-copy-btn').textContent = 'Copy JSON', 1500);
       };
-
-      // Close on Escape
-      const handler = (e) => {
-        if (e.key === 'Escape') {
-          modal.remove();
-          document.removeEventListener('keydown', handler);
-        }
-      };
+      const handler = (e) => { if (e.key === 'Escape') { modal.remove(); document.removeEventListener('keydown', handler); } };
       document.addEventListener('keydown', handler);
     }
 
-    // Init
-    loadFeeds();
-    loadStats();
-    loadActivity();
-    loadLeaderboard();
+    loadFeeds(); loadStats(); loadActivity(); loadLeaderboard();
     setInterval(() => { loadStats(); loadActivity(); loadLeaderboard(); }, 5000);
+
+    // ===== SCROLL REVEAL OBSERVER =====
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+    document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale').forEach(el => {
+      revealObserver.observe(el);
+    });
+
+    // ===== SMOOTH NAV SCROLL EFFECT =====
+    const nav = document.querySelector('nav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 20);
+    }, { passive: true });
+
+    // ===== 3D PARTICLE SYSTEM =====
+    (function() {
+      const canvas = document.getElementById('particle-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let width, height, particles, mouse, animId;
+      const PARTICLE_COUNT = 80;
+      const CONNECTION_DIST = 150;
+      const MOUSE_RADIUS = 200;
+
+      mouse = { x: -999, y: -999 };
+
+      function resize() {
+        const hero = document.getElementById('hero');
+        if (!hero) return;
+        width = canvas.width = hero.offsetWidth;
+        height = canvas.height = hero.offsetHeight;
+      }
+
+      function createParticle() {
+        return {
+          x: Math.random() * width,
+          y: Math.random() * height,
+          z: Math.random() * 200 + 50,
+          vx: (Math.random() - 0.5) * 0.4,
+          vy: (Math.random() - 0.5) * 0.4,
+          vz: (Math.random() - 0.5) * 0.15,
+          baseSize: Math.random() * 2 + 1,
+        };
+      }
+
+      function init() {
+        resize();
+        particles = [];
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+          particles.push(createParticle());
+        }
+      }
+
+      function project(p) {
+        const perspective = 600;
+        const scale = perspective / (perspective + p.z);
+        return {
+          x: (p.x - width / 2) * scale + width / 2,
+          y: (p.y - height / 2) * scale + height / 2,
+          size: p.baseSize * scale,
+          alpha: Math.max(0.15, Math.min(0.7, scale)),
+          scale: scale
+        };
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, width, height);
+
+        // Update particles
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.z += p.vz;
+
+          // Mouse repulsion
+          const proj = project(p);
+          const dx = proj.x - mouse.x;
+          const dy = proj.y - mouse.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < MOUSE_RADIUS && dist > 0) {
+            const force = (MOUSE_RADIUS - dist) / MOUSE_RADIUS * 0.02;
+            p.vx += dx / dist * force;
+            p.vy += dy / dist * force;
+          }
+
+          // Dampen velocity
+          p.vx *= 0.998;
+          p.vy *= 0.998;
+          p.vz *= 0.998;
+
+          // Wrap around
+          if (p.x < -50) p.x = width + 50;
+          if (p.x > width + 50) p.x = -50;
+          if (p.y < -50) p.y = height + 50;
+          if (p.y > height + 50) p.y = -50;
+          if (p.z < 10) p.z = 250;
+          if (p.z > 250) p.z = 10;
+        }
+
+        // Sort by z for proper depth rendering
+        const sorted = particles.map((p, i) => ({ ...p, idx: i, proj: project(p) }));
+        sorted.sort((a, b) => b.z - a.z);
+
+        // Draw connections
+        for (let i = 0; i < sorted.length; i++) {
+          for (let j = i + 1; j < sorted.length; j++) {
+            const a = sorted[i].proj;
+            const b = sorted[j].proj;
+            const dx = a.x - b.x;
+            const dy = a.y - b.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < CONNECTION_DIST) {
+              const alpha = (1 - dist / CONNECTION_DIST) * 0.12 * Math.min(a.alpha, b.alpha);
+              ctx.beginPath();
+              ctx.moveTo(a.x, a.y);
+              ctx.lineTo(b.x, b.y);
+              ctx.strokeStyle = `rgba(247, 147, 26, ${alpha})`;
+              ctx.lineWidth = 0.6;
+              ctx.stroke();
+            }
+          }
+        }
+
+        // Draw particles
+        for (let i = 0; i < sorted.length; i++) {
+          const p = sorted[i];
+          const pr = p.proj;
+
+          // Outer glow
+          ctx.beginPath();
+          ctx.arc(pr.x, pr.y, pr.size * 3, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(247, 147, 26, ${pr.alpha * 0.08})`;
+          ctx.fill();
+
+          // Core
+          ctx.beginPath();
+          ctx.arc(pr.x, pr.y, pr.size, 0, Math.PI * 2);
+          const gradient = ctx.createRadialGradient(pr.x, pr.y, 0, pr.x, pr.y, pr.size);
+          gradient.addColorStop(0, `rgba(247, 147, 26, ${pr.alpha * 0.9})`);
+          gradient.addColorStop(0.5, `rgba(234, 88, 12, ${pr.alpha * 0.5})`);
+          gradient.addColorStop(1, `rgba(247, 147, 26, 0)`);
+          ctx.fillStyle = gradient;
+          ctx.fill();
+        }
+
+        animId = requestAnimationFrame(draw);
+      }
+
+      // Mouse tracking on hero
+      const heroSection = document.getElementById('hero');
+      heroSection.addEventListener('mousemove', (e) => {
+        const rect = heroSection.getBoundingClientRect();
+        mouse.x = e.clientX - rect.left;
+        mouse.y = e.clientY - rect.top;
+      }, { passive: true });
+      heroSection.addEventListener('mouseleave', () => {
+        mouse.x = -999;
+        mouse.y = -999;
+      }, { passive: true });
+
+      window.addEventListener('resize', () => {
+        resize();
+      }, { passive: true });
+
+      init();
+      draw();
+
+      // Pause when not visible
+      const particleObserver = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) {
+          if (!animId) draw();
+        } else {
+          cancelAnimationFrame(animId);
+          animId = null;
+        }
+      }, { threshold: 0.05 });
+      particleObserver.observe(heroSection);
+    })();
   </script>
 </body>
 </html>

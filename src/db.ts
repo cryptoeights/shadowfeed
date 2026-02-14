@@ -1,7 +1,8 @@
 import Database from 'better-sqlite3';
 import path from 'path';
 
-const DB_PATH = path.join(__dirname, '..', 'shadowfeed.db');
+// Use persistent volume path on Railway, fallback to local for dev
+const DB_PATH = process.env.DATABASE_PATH || path.join(__dirname, '..', 'shadowfeed.db');
 const db: InstanceType<typeof Database> = new Database(DB_PATH);
 
 // Enable WAL mode for better concurrent reads
