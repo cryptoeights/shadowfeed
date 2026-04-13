@@ -197,7 +197,7 @@
         <a href="#leaderboard" class="text-sm text-gray-500 hover:text-gray-900 transition font-medium">Leaderboard</a>
         <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200">
           <div class="w-2 h-2 rounded-full bg-emerald-500 pulse-dot"></div>
-          <span class="text-xs text-emerald-600 font-semibold" id="network-badge">Testnet</span>
+          <span class="text-xs text-emerald-600 font-semibold" id="network-badge">Mainnet</span>
         </div>
         <button id="wallet-btn" onclick="connectWallet()" class="flex items-center gap-2 px-5 py-2 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold transition shadow-lg shadow-gray-900/10">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
@@ -404,7 +404,7 @@
           <h3 class="text-sm font-bold text-orange-600 uppercase tracking-wider mb-4 flex items-center gap-2">
             <div class="w-2 h-2 rounded-full bg-orange-500"></div> Paid Endpoints (x402)
           </h3>
-          <div class="space-y-3">
+          <div class="space-y-3" style="max-height: 520px; overflow-y: auto;">
             <button onclick="tryEndpoint('/feeds/whale-alerts')" class="w-full text-left p-4 card group">
               <div class="flex items-center justify-between mb-1">
                 <div class="font-mono text-sm"><span class="text-emerald-600">GET</span> <span class="text-gray-900 font-semibold">/feeds/whale-alerts</span></div>
@@ -425,6 +425,76 @@
                 <span class="text-xs font-bold text-orange-600 bg-orange-50 px-2.5 py-1 rounded-full">0.01 STX</span>
               </div>
               <p class="text-xs text-gray-400">DeFi scores — returns 402 Payment Required</p>
+            </button>
+            <button onclick="tryEndpoint('/feeds/smart-money-flows')" class="w-full text-left p-4 card group">
+              <div class="flex items-center justify-between mb-1">
+                <div class="font-mono text-sm"><span class="text-emerald-600">GET</span> <span class="text-gray-900 font-semibold">/feeds/smart-money-flows</span></div>
+                <span class="text-xs font-bold text-yellow-600 bg-yellow-50 px-2.5 py-1 rounded-full">0.08 STX</span>
+              </div>
+              <p class="text-xs text-gray-400">Nansen smart money net flows — premium</p>
+            </button>
+            <button onclick="tryEndpoint('/feeds/token-intel')" class="w-full text-left p-4 card group">
+              <div class="flex items-center justify-between mb-1">
+                <div class="font-mono text-sm"><span class="text-emerald-600">GET</span> <span class="text-gray-900 font-semibold">/feeds/token-intel</span></div>
+                <span class="text-xs font-bold text-yellow-600 bg-yellow-50 px-2.5 py-1 rounded-full">0.05 STX</span>
+              </div>
+              <p class="text-xs text-gray-400">Token intelligence via Nansen TGM — premium</p>
+            </button>
+            <button onclick="tryEndpoint('/feeds/wallet-profiler')" class="w-full text-left p-4 card group">
+              <div class="flex items-center justify-between mb-1">
+                <div class="font-mono text-sm"><span class="text-emerald-600">GET</span> <span class="text-gray-900 font-semibold">/feeds/wallet-profiler</span></div>
+                <span class="text-xs font-bold text-yellow-600 bg-yellow-50 px-2.5 py-1 rounded-full">0.05 STX</span>
+              </div>
+              <p class="text-xs text-gray-400">Wallet portfolio profiler — premium</p>
+            </button>
+            <button onclick="tryEndpoint('/feeds/dex-trades')" class="w-full text-left p-4 card group">
+              <div class="flex items-center justify-between mb-1">
+                <div class="font-mono text-sm"><span class="text-emerald-600">GET</span> <span class="text-gray-900 font-semibold">/feeds/dex-trades</span></div>
+                <span class="text-xs font-bold text-yellow-600 bg-yellow-50 px-2.5 py-1 rounded-full">0.08 STX</span>
+              </div>
+              <p class="text-xs text-gray-400">DEX + perp trading intel — premium</p>
+            </button>
+            <button onclick="tryEndpoint('/feeds/liquidation-alerts')" class="w-full text-left p-4 card group">
+              <div class="flex items-center justify-between mb-1">
+                <div class="font-mono text-sm"><span class="text-emerald-600">GET</span> <span class="text-gray-900 font-semibold">/feeds/liquidation-alerts</span></div>
+                <span class="text-xs font-bold text-orange-600 bg-orange-50 px-2.5 py-1 rounded-full">0.008 STX</span>
+              </div>
+              <p class="text-xs text-gray-400">Futures liquidation alerts</p>
+            </button>
+            <button onclick="tryEndpoint('/feeds/gas-prediction')" class="w-full text-left p-4 card group">
+              <div class="flex items-center justify-between mb-1">
+                <div class="font-mono text-sm"><span class="text-emerald-600">GET</span> <span class="text-gray-900 font-semibold">/feeds/gas-prediction</span></div>
+                <span class="text-xs font-bold text-orange-600 bg-orange-50 px-2.5 py-1 rounded-full">0.003 STX</span>
+              </div>
+              <p class="text-xs text-gray-400">ETH gas + BTC fee predictions</p>
+            </button>
+            <button onclick="tryEndpoint('/feeds/token-launches')" class="w-full text-left p-4 card group">
+              <div class="flex items-center justify-between mb-1">
+                <div class="font-mono text-sm"><span class="text-emerald-600">GET</span> <span class="text-gray-900 font-semibold">/feeds/token-launches</span></div>
+                <span class="text-xs font-bold text-orange-600 bg-orange-50 px-2.5 py-1 rounded-full">0.005 STX</span>
+              </div>
+              <p class="text-xs text-gray-400">New token launches from DEXScreener</p>
+            </button>
+            <button onclick="tryEndpoint('/feeds/governance')" class="w-full text-left p-4 card group">
+              <div class="flex items-center justify-between mb-1">
+                <div class="font-mono text-sm"><span class="text-emerald-600">GET</span> <span class="text-gray-900 font-semibold">/feeds/governance</span></div>
+                <span class="text-xs font-bold text-orange-600 bg-orange-50 px-2.5 py-1 rounded-full">0.005 STX</span>
+              </div>
+              <p class="text-xs text-gray-400">DAO governance proposals from Snapshot</p>
+            </button>
+            <button onclick="tryEndpoint('/feeds/security-alerts')" class="w-full text-left p-4 card group">
+              <div class="flex items-center justify-between mb-1">
+                <div class="font-mono text-sm"><span class="text-emerald-600">GET</span> <span class="text-gray-900 font-semibold">/feeds/security-alerts</span></div>
+                <span class="text-xs font-bold text-orange-600 bg-orange-50 px-2.5 py-1 rounded-full">0.005 STX</span>
+              </div>
+              <p class="text-xs text-gray-400">DeFi security alerts and hack monitoring</p>
+            </button>
+            <button onclick="tryEndpoint('/feeds/bridge-flows')" class="w-full text-left p-4 card group">
+              <div class="flex items-center justify-between mb-1">
+                <div class="font-mono text-sm"><span class="text-emerald-600">GET</span> <span class="text-gray-900 font-semibold">/feeds/bridge-flows</span></div>
+                <span class="text-xs font-bold text-orange-600 bg-orange-50 px-2.5 py-1 rounded-full">0.005 STX</span>
+              </div>
+              <p class="text-xs text-gray-400">Cross-chain bridge volume and flows</p>
             </button>
           </div>
         </div>
@@ -599,11 +669,11 @@
           <pre class="text-sm font-mono text-gray-300 overflow-x-auto"><span class="text-gray-500"># Install x402-stacks SDK</span>
 <span class="text-emerald-400">npm</span> install x402-stacks express
 
-<span class="text-gray-500"># Generate testnet wallet</span>
-<span class="text-emerald-400">npx</span> tsx -e "const {generateKeypair}=require('x402-stacks'); console.log(generateKeypair('testnet'))"
+<span class="text-gray-500"># Generate mainnet wallet</span>
+<span class="text-emerald-400">npx</span> tsx -e "const {generateKeypair}=require('x402-stacks'); console.log(generateKeypair('mainnet'))"
 
-<span class="text-gray-500"># Fund wallet from faucet</span>
-<span class="text-gray-500"># https://explorer.stacks.co/sandbox/faucet?chain=testnet</span></pre>
+<span class="text-gray-500"># Fund wallet with STX from any exchange</span>
+<span class="text-gray-500"># Send STX to your generated SP... address</span></pre>
         </div>
         <div id="code-server" class="p-6 hidden">
           <pre class="text-sm font-mono text-gray-300 overflow-x-auto"><span class="text-gray-500">// Protect endpoint with x402 payment</span>
@@ -612,8 +682,8 @@
 app.<span class="text-blue-400">get</span>(<span class="text-emerald-400">'/my-data-feed'</span>,
   <span class="text-blue-400">paymentMiddleware</span>({
     amount: <span class="text-blue-400">STXtoMicroSTX</span>(<span class="text-orange-400">0.005</span>),
-    payTo: <span class="text-emerald-400">'ST_YOUR_ADDRESS'</span>,
-    network: <span class="text-emerald-400">'testnet'</span>,
+    payTo: <span class="text-emerald-400">'SP_YOUR_ADDRESS'</span>,
+    network: <span class="text-emerald-400">'mainnet'</span>,
     asset: <span class="text-emerald-400">'STX'</span>,
   }),
   (req, res) => {
@@ -625,11 +695,11 @@ app.<span class="text-blue-400">get</span>(<span class="text-emerald-400">'/my-d
           <pre class="text-sm font-mono text-gray-300 overflow-x-auto"><span class="text-gray-500">// AI agent auto-pays when accessing data</span>
 <span class="text-purple-400">import</span> { wrapAxiosWithPayment, privateKeyToAccount } <span class="text-purple-400">from</span> <span class="text-emerald-400">'x402-stacks'</span>;
 
-<span class="text-purple-400">const</span> account = <span class="text-blue-400">privateKeyToAccount</span>(PRIVATE_KEY, <span class="text-emerald-400">'testnet'</span>);
+<span class="text-purple-400">const</span> account = <span class="text-blue-400">privateKeyToAccount</span>(PRIVATE_KEY, <span class="text-emerald-400">'mainnet'</span>);
 <span class="text-purple-400">const</span> api = <span class="text-blue-400">wrapAxiosWithPayment</span>(axios.<span class="text-blue-400">create</span>(), account);
 
 <span class="text-gray-500">// Request data — payment is automatic!</span>
-<span class="text-purple-400">const</span> { data } = <span class="text-purple-400">await</span> api.<span class="text-blue-400">get</span>(<span class="text-emerald-400">'https://shadowfeed-production.up.railway.app/feeds/whale-alerts'</span>);
+<span class="text-purple-400">const</span> { data } = <span class="text-purple-400">await</span> api.<span class="text-blue-400">get</span>(<span class="text-emerald-400">'https://api.shadowfeed.app/feeds/whale-alerts'</span>);
 console.<span class="text-blue-400">log</span>(data);</pre>
         </div>
       </div>
@@ -753,7 +823,9 @@ console.<span class="text-blue-400">log</span>(data);</pre>
   </footer>
 
   <script>
-    const API = window.location.origin;
+    const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      ? window.location.origin
+      : 'https://api.shadowfeed.app';
 
     function showTab(tab) {
       ['install', 'server', 'client'].forEach(t => {
@@ -822,6 +894,19 @@ console.<span class="text-blue-400">log</span>(data);</pre>
       'whale-alerts': { icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/>', color: 'blue' },
       'btc-sentiment': { icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>', color: 'purple' },
       'defi-scores': { icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>', color: 'emerald' },
+      'smart-money-flows': { icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>', color: 'yellow' },
+      'token-intel': { icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>', color: 'cyan' },
+      'wallet-profiler': { icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>', color: 'indigo' },
+      'smart-money-holdings': { icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>', color: 'amber' },
+      'dex-trades': { icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>', color: 'rose' },
+      'liquidation-alerts': { icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>', color: 'red' },
+      'gas-prediction': { icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/>', color: 'orange' },
+      'token-launches': { icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/>', color: 'pink' },
+      'governance': { icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/>', color: 'violet' },
+      'stablecoin-flows': { icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>', color: 'teal' },
+      'security-alerts': { icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>', color: 'red' },
+      'dev-activity': { icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>', color: 'sky' },
+      'bridge-flows': { icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>', color: 'lime' },
     };
 
     async function loadFeeds() {
@@ -888,6 +973,19 @@ console.<span class="text-blue-400">log</span>(data);</pre>
       'whale-alerts': { label: 'Whale Alerts', color: 'blue', emoji: '' },
       'btc-sentiment': { label: 'BTC Sentiment', color: 'purple', emoji: '' },
       'defi-scores': { label: 'DeFi Scores', color: 'emerald', emoji: '' },
+      'smart-money-flows': { label: 'Smart Money Flows', color: 'yellow', emoji: '' },
+      'token-intel': { label: 'Token Intel', color: 'cyan', emoji: '' },
+      'wallet-profiler': { label: 'Wallet Profiler', color: 'indigo', emoji: '' },
+      'smart-money-holdings': { label: 'SM Holdings', color: 'amber', emoji: '' },
+      'dex-trades': { label: 'DEX Trades', color: 'rose', emoji: '' },
+      'liquidation-alerts': { label: 'Liquidations', color: 'red', emoji: '' },
+      'gas-prediction': { label: 'Gas Prediction', color: 'orange', emoji: '' },
+      'token-launches': { label: 'Token Launches', color: 'pink', emoji: '' },
+      'governance': { label: 'Governance', color: 'violet', emoji: '' },
+      'stablecoin-flows': { label: 'Stablecoin Flows', color: 'teal', emoji: '' },
+      'security-alerts': { label: 'Security Alerts', color: 'red', emoji: '' },
+      'dev-activity': { label: 'Dev Activity', color: 'sky', emoji: '' },
+      'bridge-flows': { label: 'Bridge Flows', color: 'lime', emoji: '' },
     };
 
     async function loadActivity() {
@@ -993,7 +1091,7 @@ console.<span class="text-blue-400">log</span>(data);</pre>
         srcBadge.className = `text-xs px-2 py-1 rounded-full ${hasRealData ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-gray-400'}`;
         document.getElementById('modal-agent').textContent = q.agent || 'unknown';
         const txEl = document.getElementById('modal-tx');
-        if (q.is_onchain && q.tx_hash) { txEl.innerHTML = `<a href="https://explorer.hiro.so/txid/${q.tx_hash}?chain=testnet" target="_blank" class="text-orange-600 hover:underline">${q.tx_hash.slice(0,12)}...</a>`; }
+        if (q.is_onchain && q.tx_hash) { txEl.innerHTML = `<a href="https://explorer.hiro.so/txid/${q.tx_hash}?chain=mainnet" target="_blank" class="text-orange-600 hover:underline">${q.tx_hash.slice(0,12)}...</a>`; }
         else if (q.is_demo) { txEl.innerHTML = '<span class="text-gray-300 italic">simulated</span>'; }
         else { txEl.textContent = '-'; }
         document.getElementById('modal-price').textContent = q.price_stx + ' STX';
@@ -1011,7 +1109,20 @@ console.<span class="text-blue-400">log</span>(data);</pre>
       if (feed === 'whale-alerts') return renderWhaleAlerts(data);
       if (feed === 'btc-sentiment') return renderSentiment(data);
       if (feed === 'defi-scores') return renderDeFiScores(data);
-      return '<pre class="text-xs text-gray-500">' + JSON.stringify(data, null, 2) + '</pre>';
+      if (feed === 'smart-money-flows') return renderSmartMoneyFlows(data);
+      if (feed === 'token-intel') return renderTokenIntel(data);
+      if (feed === 'wallet-profiler') return renderWalletProfiler(data);
+      if (feed === 'smart-money-holdings') return renderSmartMoneyHoldings(data);
+      if (feed === 'dex-trades') return renderDexTrades(data);
+      if (feed === 'liquidation-alerts') return renderLiquidationAlerts(data);
+      if (feed === 'gas-prediction') return renderGasPrediction(data);
+      if (feed === 'token-launches') return renderTokenLaunches(data);
+      if (feed === 'governance') return renderGovernance(data);
+      if (feed === 'stablecoin-flows') return renderStablecoinFlows(data);
+      if (feed === 'security-alerts') return renderSecurityAlerts(data);
+      if (feed === 'dev-activity') return renderDevActivity(data);
+      if (feed === 'bridge-flows') return renderBridgeFlows(data);
+      return '<pre class="text-xs text-gray-500 whitespace-pre-wrap">' + JSON.stringify(data, null, 2) + '</pre>';
     }
 
     function renderWhaleAlerts(data) {
@@ -1072,6 +1183,199 @@ console.<span class="text-blue-400">log</span>(data);</pre>
             <div><div class="font-bold text-gray-900">${p.metrics?.audit_count || 0}</div><div class="text-gray-400">Audits</div></div>
           </div></div>`;
       }).join('')}</div>`;
+    }
+
+    function renderSmartMoneyFlows(data) {
+      const signal = data.signal || 'neutral';
+      const sigColor = signal.includes('BULL') ? 'text-emerald-600 bg-emerald-50' : signal.includes('BEAR') ? 'text-red-600 bg-red-50' : 'text-amber-600 bg-amber-50';
+      const inflows = data.top_inflows || []; const outflows = data.top_outflows || [];
+      return `<div class="space-y-4">
+        <div class="p-4 rounded-xl bg-gray-50 border border-gray-100 text-center">
+          <div class="text-xs text-gray-400 mb-2">Smart Money Signal</div>
+          <div class="text-lg font-black px-3 py-1 rounded-full inline-block ${sigColor}">${signal}</div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-100 text-center"><div class="text-xs text-gray-400">Net Inflow</div><div class="text-lg font-black text-emerald-600">$${((data.net_inflow_usd || 0) / 1e6).toFixed(1)}M</div></div>
+          <div class="p-3 rounded-xl bg-red-50 border border-red-100 text-center"><div class="text-xs text-gray-400">Net Outflow</div><div class="text-lg font-black text-red-600">$${((data.net_outflow_usd || 0) / 1e6).toFixed(1)}M</div></div>
+        </div>
+        ${inflows.length ? `<div><h4 class="text-xs font-bold text-gray-400 uppercase mb-2">Top Inflows</h4>${inflows.slice(0, 5).map(t => `<div class="flex justify-between text-xs py-1"><span class="text-gray-700 font-medium">${t.token || t.symbol || 'Unknown'}</span><span class="text-emerald-600 font-bold">$${((t.amount_usd || t.value || 0) / 1e6).toFixed(2)}M</span></div>`).join('')}</div>` : ''}
+        ${outflows.length ? `<div><h4 class="text-xs font-bold text-gray-400 uppercase mb-2">Top Outflows</h4>${outflows.slice(0, 5).map(t => `<div class="flex justify-between text-xs py-1"><span class="text-gray-700 font-medium">${t.token || t.symbol || 'Unknown'}</span><span class="text-red-600 font-bold">$${((t.amount_usd || t.value || 0) / 1e6).toFixed(2)}M</span></div>`).join('')}</div>` : ''}
+      </div>`;
+    }
+
+    function renderTokenIntel(data) {
+      const signal = data.signal || 'NEUTRAL';
+      const sigColor = signal.includes('BUY') ? 'text-emerald-600 bg-emerald-50' : signal.includes('SELL') ? 'text-red-600 bg-red-50' : 'text-amber-600 bg-amber-50';
+      return `<div class="space-y-4">
+        <div class="p-4 rounded-xl bg-gray-50 border border-gray-100 text-center">
+          <div class="text-xs text-gray-400 mb-1">${data.token || data.symbol || 'Token'}</div>
+          <div class="text-lg font-black px-3 py-1 rounded-full inline-block ${sigColor}">${signal}</div>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <div class="p-3 rounded-xl bg-gray-50 border border-gray-100 text-center"><div class="text-xs text-gray-400">Market Cap</div><div class="text-sm font-bold text-gray-900">$${((data.market_cap || 0) / 1e9).toFixed(2)}B</div></div>
+          <div class="p-3 rounded-xl bg-gray-50 border border-gray-100 text-center"><div class="text-xs text-gray-400">Buy/Sell Ratio</div><div class="text-sm font-bold ${(data.buy_sell_ratio || 1) > 1 ? 'text-emerald-600' : 'text-red-600'}">${(data.buy_sell_ratio || 0).toFixed(2)}</div></div>
+          <div class="p-3 rounded-xl bg-gray-50 border border-gray-100 text-center"><div class="text-xs text-gray-400">Volume 24h</div><div class="text-sm font-bold text-gray-900">$${((data.volume_24h || 0) / 1e6).toFixed(1)}M</div></div>
+        </div>
+      </div>`;
+    }
+
+    function renderWalletProfiler(data) {
+      const holdings = data.top_holdings || data.holdings || [];
+      return `<div class="space-y-4">
+        <div class="p-4 rounded-xl bg-gray-50 border border-gray-100">
+          <div class="text-xs text-gray-400 mb-1">Wallet</div>
+          <div class="text-xs font-mono text-gray-700 break-all">${data.address || 'N/A'}</div>
+          ${data.total_value_usd ? `<div class="text-lg font-black text-gray-900 mt-2">$${(data.total_value_usd / 1e6).toFixed(2)}M</div>` : ''}
+        </div>
+        ${holdings.length ? `<div><h4 class="text-xs font-bold text-gray-400 uppercase mb-2">Top Holdings</h4>${holdings.slice(0, 8).map(h => `<div class="flex justify-between text-xs py-1.5 border-b border-gray-50"><span class="text-gray-700 font-medium">${h.token || h.symbol || 'Unknown'}</span><span class="text-gray-900 font-bold">${h.percentage ? h.percentage.toFixed(1) + '%' : '$' + ((h.value_usd || 0) / 1e3).toFixed(1) + 'K'}</span></div>`).join('')}</div>` : ''}
+      </div>`;
+    }
+
+    function renderSmartMoneyHoldings(data) {
+      const holdings = data.holdings || data.top_holdings || [];
+      return `<div class="space-y-4">
+        <div class="grid grid-cols-2 gap-3">
+          <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-100 text-center"><div class="text-xs text-gray-400">Accumulating</div><div class="text-lg font-black text-emerald-600">${holdings.filter(h => (h.signal || '').includes('ACCUM')).length}</div></div>
+          <div class="p-3 rounded-xl bg-red-50 border border-red-100 text-center"><div class="text-xs text-gray-400">Distributing</div><div class="text-lg font-black text-red-600">${holdings.filter(h => (h.signal || '').includes('DIST')).length}</div></div>
+        </div>
+        ${holdings.length ? `<div class="space-y-2">${holdings.slice(0, 10).map(h => {
+          const sig = h.signal || 'HOLDING';
+          const sc = sig.includes('ACCUM') ? 'text-emerald-600 bg-emerald-50' : sig.includes('DIST') ? 'text-red-600 bg-red-50' : 'text-amber-600 bg-amber-50';
+          return `<div class="flex items-center justify-between text-xs py-1.5"><span class="text-gray-700 font-medium">${h.token || h.symbol || 'Unknown'}</span><span class="px-2 py-0.5 rounded-full font-bold ${sc}">${sig}</span></div>`;
+        }).join('')}</div>` : ''}
+      </div>`;
+    }
+
+    function renderDexTrades(data) {
+      const trades = data.recent_trades || data.trades || [];
+      const bought = data.most_bought || []; const sold = data.most_sold || [];
+      return `<div class="space-y-4">
+        <div class="grid grid-cols-2 gap-3">
+          ${bought.length ? `<div><h4 class="text-xs font-bold text-emerald-600 uppercase mb-2">Most Bought</h4>${bought.slice(0, 5).map(t => `<div class="text-xs py-1 text-gray-700">${t.token || t.symbol || 'Unknown'}</div>`).join('')}</div>` : ''}
+          ${sold.length ? `<div><h4 class="text-xs font-bold text-red-600 uppercase mb-2">Most Sold</h4>${sold.slice(0, 5).map(t => `<div class="text-xs py-1 text-gray-700">${t.token || t.symbol || 'Unknown'}</div>`).join('')}</div>` : ''}
+        </div>
+        ${trades.length ? `<div><h4 class="text-xs font-bold text-gray-400 uppercase mb-2">Recent Trades</h4>${trades.slice(0, 8).map(t => {
+          const isBuy = (t.side || t.type || '').toLowerCase().includes('buy');
+          return `<div class="flex items-center justify-between text-xs py-1.5 border-b border-gray-50"><span class="text-gray-700">${t.token || t.symbol || 'Unknown'}</span><span class="font-bold ${isBuy ? 'text-emerald-600' : 'text-red-600'}">${isBuy ? 'BUY' : 'SELL'}</span></div>`;
+        }).join('')}</div>` : ''}
+      </div>`;
+    }
+
+    function renderLiquidationAlerts(data) {
+      const pairs = data.pairs || data.liquidations || [];
+      return `<div class="space-y-4">
+        ${data.total_liquidations_24h ? `<div class="p-4 rounded-xl bg-red-50 border border-red-100 text-center"><div class="text-xs text-gray-400">24h Liquidations</div><div class="text-2xl font-black text-red-600">$${(data.total_liquidations_24h / 1e6).toFixed(1)}M</div></div>` : ''}
+        <div class="grid grid-cols-2 gap-3">
+          ${data.long_liquidations ? `<div class="p-3 rounded-xl bg-emerald-50 border border-emerald-100 text-center"><div class="text-xs text-gray-400">Longs Liq'd</div><div class="text-sm font-bold text-emerald-600">$${(data.long_liquidations / 1e6).toFixed(1)}M</div></div>` : ''}
+          ${data.short_liquidations ? `<div class="p-3 rounded-xl bg-red-50 border border-red-100 text-center"><div class="text-xs text-gray-400">Shorts Liq'd</div><div class="text-sm font-bold text-red-600">$${(data.short_liquidations / 1e6).toFixed(1)}M</div></div>` : ''}
+        </div>
+        ${pairs.length ? `<div class="space-y-1">${pairs.slice(0, 8).map(p => `<div class="flex justify-between text-xs py-1.5"><span class="text-gray-700 font-medium">${p.pair || p.symbol || 'Unknown'}</span><span class="text-gray-500">${p.long_short_ratio ? 'L/S: ' + p.long_short_ratio.toFixed(2) : ''}</span></div>`).join('')}</div>` : ''}
+      </div>`;
+    }
+
+    function renderGasPrediction(data) {
+      const eth = data.ethereum || data.eth || {};
+      const btc = data.bitcoin || data.btc || {};
+      return `<div class="space-y-4">
+        <div class="p-4 rounded-xl bg-gray-50 border border-gray-100">
+          <h4 class="text-xs font-bold text-gray-400 uppercase mb-3">Ethereum Gas</h4>
+          <div class="grid grid-cols-3 gap-3 text-center">
+            <div><div class="text-xs text-gray-400">Slow</div><div class="text-sm font-bold text-emerald-600">${eth.slow || eth.safe_low || '-'} gwei</div></div>
+            <div><div class="text-xs text-gray-400">Standard</div><div class="text-sm font-bold text-amber-600">${eth.standard || eth.average || '-'} gwei</div></div>
+            <div><div class="text-xs text-gray-400">Fast</div><div class="text-sm font-bold text-red-600">${eth.fast || '-'} gwei</div></div>
+          </div>
+        </div>
+        <div class="p-4 rounded-xl bg-gray-50 border border-gray-100">
+          <h4 class="text-xs font-bold text-gray-400 uppercase mb-3">Bitcoin Fees</h4>
+          <div class="grid grid-cols-3 gap-3 text-center">
+            <div><div class="text-xs text-gray-400">Economy</div><div class="text-sm font-bold text-emerald-600">${btc.economy || btc.low || '-'} sat/vB</div></div>
+            <div><div class="text-xs text-gray-400">Normal</div><div class="text-sm font-bold text-amber-600">${btc.normal || btc.medium || '-'} sat/vB</div></div>
+            <div><div class="text-xs text-gray-400">Priority</div><div class="text-sm font-bold text-red-600">${btc.priority || btc.high || '-'} sat/vB</div></div>
+          </div>
+        </div>
+      </div>`;
+    }
+
+    function renderTokenLaunches(data) {
+      const tokens = data.tokens || data.launches || data.trending || [];
+      return `<div class="space-y-3">
+        ${tokens.slice(0, 10).map(t => `<div class="p-3 rounded-xl bg-gray-50 border border-gray-100">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-sm font-bold text-gray-900">${t.name || t.symbol || 'Unknown'}</span>
+            ${t.chain ? `<span class="text-xs text-gray-400">${t.chain}</span>` : ''}
+          </div>
+          ${t.price_usd ? `<div class="text-xs text-gray-500">Price: $${t.price_usd}</div>` : ''}
+          ${t.volume_24h ? `<div class="text-xs text-gray-500">Vol: $${(t.volume_24h / 1e3).toFixed(1)}K</div>` : ''}
+        </div>`).join('')}
+      </div>`;
+    }
+
+    function renderGovernance(data) {
+      const proposals = data.proposals || data.active_proposals || [];
+      return `<div class="space-y-3">
+        ${data.total_active ? `<div class="p-3 rounded-xl bg-violet-50 border border-violet-100 text-center"><div class="text-xs text-gray-400">Active Proposals</div><div class="text-2xl font-black text-violet-600">${data.total_active}</div></div>` : ''}
+        ${proposals.slice(0, 8).map(p => `<div class="p-3 rounded-xl bg-gray-50 border border-gray-100">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs font-bold text-violet-600">${p.dao || p.space || 'DAO'}</span>
+            <span class="text-xs text-gray-400">${p.state || p.status || ''}</span>
+          </div>
+          <div class="text-sm text-gray-700 font-medium">${(p.title || '').slice(0, 80)}${(p.title || '').length > 80 ? '...' : ''}</div>
+        </div>`).join('')}
+      </div>`;
+    }
+
+    function renderStablecoinFlows(data) {
+      const stables = data.stablecoins || data.top_stablecoins || [];
+      return `<div class="space-y-4">
+        ${data.total_market_cap ? `<div class="p-4 rounded-xl bg-teal-50 border border-teal-100 text-center"><div class="text-xs text-gray-400">Total Stablecoin Market Cap</div><div class="text-2xl font-black text-teal-600">$${(data.total_market_cap / 1e9).toFixed(1)}B</div></div>` : ''}
+        ${stables.length ? `<div class="space-y-2">${stables.slice(0, 8).map(s => `<div class="flex items-center justify-between text-xs py-1.5 border-b border-gray-50">
+          <span class="text-gray-700 font-medium">${s.name || s.symbol || 'Unknown'}</span>
+          <div class="flex gap-3">
+            <span class="text-gray-500">$${((s.market_cap || s.circulating || 0) / 1e9).toFixed(2)}B</span>
+            ${s.change_7d !== undefined ? `<span class="${s.change_7d >= 0 ? 'text-emerald-600' : 'text-red-600'} font-bold">${s.change_7d >= 0 ? '+' : ''}${s.change_7d.toFixed(2)}%</span>` : ''}
+          </div>
+        </div>`).join('')}</div>` : ''}
+      </div>`;
+    }
+
+    function renderSecurityAlerts(data) {
+      const alerts = data.alerts || data.protocols || [];
+      return `<div class="space-y-3">
+        ${data.high_risk_count !== undefined ? `<div class="p-3 rounded-xl bg-red-50 border border-red-100 text-center"><div class="text-xs text-gray-400">High Risk Protocols</div><div class="text-2xl font-black text-red-600">${data.high_risk_count}</div></div>` : ''}
+        ${alerts.slice(0, 8).map(a => {
+          const risk = (a.risk_level || a.severity || 'medium').toLowerCase();
+          const rc = risk === 'high' || risk === 'critical' ? 'text-red-600 bg-red-50' : risk === 'medium' ? 'text-amber-600 bg-amber-50' : 'text-emerald-600 bg-emerald-50';
+          return `<div class="p-3 rounded-xl bg-gray-50 border border-gray-100">
+            <div class="flex items-center justify-between"><span class="text-sm font-bold text-gray-900">${a.name || a.protocol || 'Unknown'}</span><span class="text-xs font-bold px-2 py-0.5 rounded-full ${rc}">${risk.toUpperCase()}</span></div>
+            ${a.description || a.issue ? `<div class="text-xs text-gray-500 mt-1">${(a.description || a.issue || '').slice(0, 100)}</div>` : ''}
+          </div>`;
+        }).join('')}
+      </div>`;
+    }
+
+    function renderDevActivity(data) {
+      const repos = data.repos || data.ecosystems || data.projects || [];
+      return `<div class="space-y-3">
+        ${data.total_commits_24h ? `<div class="p-3 rounded-xl bg-sky-50 border border-sky-100 text-center"><div class="text-xs text-gray-400">Commits (24h)</div><div class="text-2xl font-black text-sky-600">${data.total_commits_24h}</div></div>` : ''}
+        ${repos.slice(0, 8).map(r => `<div class="p-3 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-between">
+          <div><div class="text-sm font-bold text-gray-900">${r.name || r.repo || 'Unknown'}</div>${r.ecosystem ? `<div class="text-xs text-gray-400">${r.ecosystem}</div>` : ''}</div>
+          <div class="text-right"><div class="text-sm font-bold text-sky-600">${r.commits || r.commit_count || 0}</div><div class="text-xs text-gray-400">commits</div></div>
+        </div>`).join('')}
+      </div>`;
+    }
+
+    function renderBridgeFlows(data) {
+      const chains = data.chains || data.top_chains || [];
+      return `<div class="space-y-4">
+        ${data.total_tvl ? `<div class="p-4 rounded-xl bg-lime-50 border border-lime-100 text-center"><div class="text-xs text-gray-400">Total Bridge TVL</div><div class="text-2xl font-black text-lime-600">$${(data.total_tvl / 1e9).toFixed(2)}B</div></div>` : ''}
+        ${chains.length ? `<div class="space-y-2">${chains.slice(0, 10).map(c => `<div class="flex items-center justify-between text-xs py-1.5 border-b border-gray-50">
+          <span class="text-gray-700 font-medium">${c.name || c.chain || 'Unknown'}</span>
+          <div class="flex gap-3">
+            <span class="text-gray-500">$${((c.tvl || 0) / 1e9).toFixed(2)}B</span>
+            ${c.change_24h !== undefined ? `<span class="${c.change_24h >= 0 ? 'text-emerald-600' : 'text-red-600'} font-bold">${c.change_24h >= 0 ? '+' : ''}${c.change_24h.toFixed(2)}%</span>` : ''}
+          </div>
+        </div>`).join('')}</div>` : ''}
+      </div>`;
     }
 
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDataModal(); });
@@ -1149,7 +1453,14 @@ console.<span class="text-blue-400">log</span>(data);</pre>
       document.body.appendChild(modal);
     }
 
-    const feedPricesMap = { 'whale-alerts': { micro: 5000, stx: 0.005 }, 'btc-sentiment': { micro: 3000, stx: 0.003 }, 'defi-scores': { micro: 10000, stx: 0.01 } };
+    const feedPricesMap = {
+      'whale-alerts': { micro: 5000, stx: 0.005 }, 'btc-sentiment': { micro: 3000, stx: 0.003 }, 'defi-scores': { micro: 10000, stx: 0.01 },
+      'smart-money-flows': { micro: 80000, stx: 0.08 }, 'token-intel': { micro: 50000, stx: 0.05 }, 'wallet-profiler': { micro: 50000, stx: 0.05 },
+      'smart-money-holdings': { micro: 50000, stx: 0.05 }, 'dex-trades': { micro: 80000, stx: 0.08 },
+      'liquidation-alerts': { micro: 8000, stx: 0.008 }, 'gas-prediction': { micro: 3000, stx: 0.003 }, 'token-launches': { micro: 5000, stx: 0.005 },
+      'governance': { micro: 5000, stx: 0.005 }, 'stablecoin-flows': { micro: 5000, stx: 0.005 }, 'security-alerts': { micro: 5000, stx: 0.005 },
+      'dev-activity': { micro: 3000, stx: 0.003 }, 'bridge-flows': { micro: 5000, stx: 0.005 },
+    };
 
     async function buyFeedData(feedId, priceMicro) {
       if (!walletAddress || !walletProvider) { alert('Please connect your wallet first.'); return; }
@@ -1164,7 +1475,7 @@ console.<span class="text-blue-400">log</span>(data);</pre>
         const price = feedPricesMap[feedId] || { micro: priceMicro, stx: priceMicro / 1000000 };
         let txId;
         if (walletProvider.provider.request) {
-          const resp = await walletProvider.provider.request('stx_transferStx', { recipient, amount: String(price.micro), network: 'testnet', memo: 'ShadowFeed: ' + feedId });
+          const resp = await walletProvider.provider.request('stx_transferStx', { recipient, amount: String(price.micro), network: 'mainnet', memo: 'ShadowFeed: ' + feedId });
           txId = resp?.result?.txid || resp?.result?.txId || resp?.txid;
         } else { throw new Error('Wallet API not supported'); }
         if (!txId) throw new Error('No txId returned');
