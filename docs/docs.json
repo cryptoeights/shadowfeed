@@ -1,0 +1,124 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "ShadowFeed",
+  "colors": {
+    "primary": "#F97316",
+    "light": "#FB923C",
+    "dark": "#EA580C"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "getting-started/quickstart",
+              "getting-started/how-it-works",
+              "getting-started/supported-networks"
+            ]
+          },
+          {
+            "group": "Agent SDK",
+            "pages": [
+              "sdk/installation",
+              "sdk/configuration",
+              "sdk/buying-feeds",
+              "sdk/chaining-feeds",
+              "sdk/discovery"
+            ]
+          },
+          {
+            "group": "Examples",
+            "pages": [
+              "examples/basic-agent",
+              "examples/smart-agent",
+              "examples/research-agent"
+            ]
+          },
+          {
+            "group": "Architecture",
+            "pages": [
+              "architecture/overview",
+              "architecture/x402-protocol",
+              "architecture/facilitator"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "API Reference",
+            "pages": [
+              "api/overview",
+              "api/free-endpoints",
+              "api/paid-endpoints"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Data Feeds",
+        "groups": [
+          {
+            "group": "Data Feeds",
+            "pages": [
+              "feeds/overview",
+              "feeds/original-feeds",
+              "feeds/nansen-premium",
+              "feeds/free-api-feeds"
+            ]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "GitHub",
+          "href": "https://github.com/pebriansyah/shadowfeed",
+          "icon": "github"
+        },
+        {
+          "anchor": "npm Package",
+          "href": "https://www.npmjs.com/package/shadowfeed-agent",
+          "icon": "npm"
+        },
+        {
+          "anchor": "Explorer",
+          "href": "https://explorer.hiro.so/address/SP1DV3T4ST2A89ZZ07M73B2N4AR5XFMDCNPGKK6CS?chain=mainnet",
+          "icon": "bitcoin"
+        }
+      ]
+    }
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Dashboard",
+        "href": "https://shadowfeed.app"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Get API Access",
+      "href": "https://shadowfeed.app"
+    }
+  },
+  "footer": {
+    "socials": {
+      "x": "https://x.com/shadowfeed_app",
+      "github": "https://github.com/pebriansyah/shadowfeed"
+    }
+  }
+}
