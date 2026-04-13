@@ -1,0 +1,107 @@
+---
+title: Nansen Premium Feeds
+description: "5 institutional-grade feeds powered by Nansen on-chain analytics"
+---
+
+# Nansen Premium Feeds
+
+These 5 feeds are powered by [Nansen](https://www.nansen.ai/) — institutional-grade on-chain analytics used by hedge funds, VCs, and professional traders.
+
+<Info>
+  Premium feeds cost more (0.05-0.08 STX) because they consume Nansen API credits on each request.
+</Info>
+
+## Smart Money Flows
+
+| Property | Value |
+|----------|-------|
+| **Feed ID** | `smart-money-flows` |
+| **Price** | 0.08 STX |
+| **Nansen Endpoints** | `smart-money/netflow` + `smart-money/dex-trades` |
+
+Tracks net capital flows from smart money wallets (labeled by Nansen as VCs, funds, whales).
+
+```typescript
+const result = await sf.buy('smart-money-flows');
+// result.data.signal → 'BULLISH_INFLOW' | 'BEARISH_OUTFLOW' | 'NEUTRAL'
+// result.data.net_inflow_usd → 45000000
+// result.data.top_inflows → [{token, amount_usd}, ...]
+// result.data.top_outflows → [{token, amount_usd}, ...]
+```
+
+## Token Intelligence
+
+| Property | Value |
+|----------|-------|
+| **Feed ID** | `token-intel` |
+| **Price** | 0.05 STX |
+| **Nansen Endpoint** | `tgm/token-information` (Token God Mode) |
+
+Buy/sell metrics, liquidity analysis, and trading signals for any token.
+
+**Query params:** `?address=0x...&chain=ethereum`
+
+```typescript
+const result = await sf.buy('token-intel', {
+  address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
+  chain: 'ethereum',
+});
+// result.data.signal → 'STRONG_BUY' | 'BUY' | 'NEUTRAL' | 'SELL' | 'STRONG_SELL'
+// result.data.buy_sell_ratio → 1.45
+// result.data.market_cap → 32000000000
+```
+
+## Wallet Profiler
+
+| Property | Value |
+|----------|-------|
+| **Feed ID** | `wallet-profiler` |
+| **Price** | 0.05 STX |
+| **Nansen Endpoint** | `profiler/address/current-balance` |
+
+Portfolio analysis for any wallet address — holdings, allocation, concentration.
+
+**Query params:** `?address=0x...&chain=ethereum`
+
+```typescript
+const result = await sf.buy('wallet-profiler', {
+  address: '0xb5998e11E666Fd1e7f3B8e8d9122A755eec1E9b7',
+  chain: 'ethereum',
+});
+// result.data.address → '0xb599...'
+// result.data.total_value_usd → 15000000
+// result.data.top_holdings → [{token, value_usd, percentage}, ...]
+```
+
+## Smart Money Holdings
+
+| Property | Value |
+|----------|-------|
+| **Feed ID** | `smart-money-holdings` |
+| **Price** | 0.05 STX |
+| **Nansen Endpoint** | `smart-money/holdings` |
+
+Current token holdings across all tracked smart money wallets, with accumulation/distribution signals.
+
+```typescript
+const result = await sf.buy('smart-money-holdings');
+// result.data.holdings → [{token, signal, ...}, ...]
+// signal: 'ACCUMULATING' | 'DISTRIBUTING' | 'HOLDING'
+```
+
+## DEX Trading Intel
+
+| Property | Value |
+|----------|-------|
+| **Feed ID** | `dex-trades` |
+| **Price** | 0.08 STX |
+| **Nansen Endpoints** | `smart-money/dex-trades` + `smart-money/perp-trades` |
+
+Real-time DEX and perpetual trading activity from smart money wallets.
+
+```typescript
+const result = await sf.buy('dex-trades');
+// result.data.most_bought → [{token, ...}, ...]
+// result.data.most_sold → [{token, ...}, ...]
+// result.data.recent_trades → [{token, side, ...}, ...]
+```

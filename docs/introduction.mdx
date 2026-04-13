@@ -1,0 +1,82 @@
+---
+title: Introduction
+description: "Decentralized data marketplace where AI agents pay for real-time crypto intelligence via x402 micropayments"
+---
+
+# Welcome to ShadowFeed
+
+ShadowFeed is a **decentralized data marketplace** built on Stacks (Bitcoin L2) where AI agents autonomously discover and purchase real-time crypto intelligence using the [x402 payment protocol](https://www.x402.org/).
+
+## How It Works
+
+<CardGroup cols={2}>
+  <Card title="AI Agent Discovers Feeds" icon="magnifying-glass">
+    Agent calls `/registry/feeds` to browse 16+ data feeds with pricing, categories, and availability.
+  </Card>
+  <Card title="Agent Requests Data" icon="arrow-right">
+    Agent sends `GET /feeds/whale-alerts`. Server returns `HTTP 402 Payment Required` with payment details.
+  </Card>
+  <Card title="Automatic Payment" icon="bitcoin">
+    SDK auto-signs a STX transaction and includes it in the retry request. Payment is verified and settled on-chain.
+  </Card>
+  <Card title="Data Delivered" icon="check">
+    Agent receives real-time crypto intelligence. Transaction is verifiable on Hiro Explorer.
+  </Card>
+</CardGroup>
+
+## Quick Example
+
+```typescript
+import { ShadowFeed } from 'shadowfeed-agent';
+
+const sf = new ShadowFeed({
+  privateKey: process.env.AGENT_PRIVATE_KEY,
+  network: 'mainnet',
+  agentName: 'My Agent',
+});
+
+// Discover all available feeds
+const feeds = await sf.discover();
+
+// Buy data — payment is automatic
+const result = await sf.buy('whale-alerts');
+console.log(result.data);
+```
+
+## Key Features
+
+<CardGroup cols={3}>
+  <Card title="16 Data Feeds" icon="database">
+    On-chain analytics, sentiment, DeFi scores, Nansen premium data, and more.
+  </Card>
+  <Card title="Real STX Payments" icon="coins">
+    Every purchase is a real on-chain Stacks transaction, verifiable on Bitcoin L2.
+  </Card>
+  <Card title="x402 Protocol" icon="lock">
+    Machine-to-machine payments using HTTP 402 — no API keys, no subscriptions, just pay-per-use.
+  </Card>
+</CardGroup>
+
+## Products
+
+<CardGroup cols={2}>
+  <Card title="Agent SDK" icon="code" href="/sdk/installation">
+    `npm install shadowfeed-agent` — TypeScript SDK for AI agents to discover and purchase data feeds.
+  </Card>
+  <Card title="Data Marketplace API" icon="server" href="/api/overview">
+    16 real-time data feeds protected by x402 micropayments at `api.shadowfeed.app`.
+  </Card>
+  <Card title="Live Dashboard" icon="chart-line" href="https://shadowfeed.app">
+    Real-time activity feed, agent leaderboard, and feed analytics at `shadowfeed.app`.
+  </Card>
+  <Card title="Facilitator" icon="handshake" href="/architecture/facilitator">
+    Payment verification and settlement service at `facilitator.shadowfeed.app`.
+  </Card>
+</CardGroup>
+
+## Links
+
+- **Dashboard:** [shadowfeed.app](https://shadowfeed.app)
+- **API:** [api.shadowfeed.app](https://api.shadowfeed.app)
+- **npm:** [shadowfeed-agent](https://www.npmjs.com/package/shadowfeed-agent)
+- **Contract:** [SP1DV3T4ST2A89ZZ07M73B2N4AR5XFMDCNPGKK6CS](https://explorer.hiro.so/address/SP1DV3T4ST2A89ZZ07M73B2N4AR5XFMDCNPGKK6CS?chain=mainnet)

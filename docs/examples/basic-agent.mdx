@@ -1,0 +1,76 @@
+---
+title: Basic Agent
+description: "Simple agent that discovers feeds and buys one"
+---
+
+# Basic Agent
+
+The simplest ShadowFeed agent — discovers available feeds and purchases whale alerts data.
+
+## Full Code
+
+```typescript
+import { ShadowFeed } from 'shadowfeed-agent';
+
+async function main() {
+  const sf = new ShadowFeed({
+    privateKey: process.env.AGENT_PRIVATE_KEY!,
+    network: 'mainnet',
+    agentName: 'Basic Agent',
+  });
+
+  console.log(`Wallet: ${sf.address}`);
+
+  // 1. Discover all feeds
+  const feeds = await sf.discover();
+  console.log(`Available feeds: ${feeds.length}`);
+  feeds.forEach((f) =>
+    console.log(`  - ${f.id} (${f.price_display})`)
+  );
+
+  // 2. Buy whale-alerts
+  console.log('\nBuying whale-alerts...');
+  const result = await sf.buy('whale-alerts');
+  console.log(`Feed:  ${result.feed}`);
+  console.log(`Price: ${result.price_stx} STX`);
+  console.log(`TX:    ${result.tx}`);
+  console.log(`Data keys: ${Object.keys(result.data).join(', ')}`);
+}
+
+main().catch((err) => {
+  console.error('Agent error:', err.message);
+  process.exit(1);
+});
+```
+
+## Run It
+
+```bash
+AGENT_PRIVATE_KEY=<your-hex-key> npx tsx basic-agent.ts
+```
+
+## Expected Output
+
+```
+Wallet: SP2PBB...
+Available feeds: 16
+  - whale-alerts (0.005 STX)
+  - btc-sentiment (0.003 STX)
+  - defi-scores (0.01 STX)
+  ...
+
+Buying whale-alerts...
+Feed:  whale-alerts
+Price: 0.005 STX
+TX:    0xabc123...
+Data keys: alerts, summary, btc_price_usd, data_source
+```
+
+## What It Does
+
+1. Initializes the SDK with your wallet
+2. Calls `sf.discover()` to list all 16 feeds
+3. Calls `sf.buy('whale-alerts')` which automatically handles the x402 payment flow
+4. Prints the returned data
+
+**Cost:** 0.005 STX (~$0.002)

@@ -1,0 +1,110 @@
+---
+title: Chaining Feeds
+description: "Purchase multiple feeds in sequence for cross-analysis"
+---
+
+# Chaining Feeds
+
+## Overview
+
+`sf.chain()` purchases multiple feeds in sequence and returns all results together. This is useful for research agents that need data from multiple sources for cross-analysis.
+
+## Basic Usage
+
+```typescript
+const results = await sf.chain([
+  'btc-sentiment',
+  'whale-alerts',
+  'defi-scores',
+]);
+```
+
+## Response Structure
+
+```typescript
+interface ChainResult {
+  feeds: PurchaseResult[];   // Results from each feed
+  total_spent_stx: number;   // Total STX spent
+  timestamp: string;          // ISO timestamp
+}
+```
+
+Example:
+
+```typescript
+const results = await sf.chain([
+  'btc-sentiment',
+  'smart-money-flows',
+  'defi-scores',
+]);
+
+console.log(results.total_spent_stx);  // 0.093
+console.log(results.feeds.length);     // 3
+
+// Access individual feed data
+const sentiment = results.feeds[0].data;
+const flows = results.feeds[1].data;
+const defi = results.feeds[2].data;
+```
+
+## Custom Delay
+
+By default, there's a 1-second delay between purchases. You can customize this:
+
+```typescript
+// 2-second delay between purchases
+const results = await sf.chain(
+  ['btc-sentiment', 'whale-alerts', 'defi-scores'],
+  2000,
+);
+
+// No delay (faster but may hit rate limits)
+const results = await sf.chain(
+  ['btc-sentiment', 'whale-alerts'],
+  0,
+);
+```
+
+## Research Agent Pattern
+
+A common pattern is to chain feeds for comprehensive market analysis:
+
+```typescript
+async function marketResearch(sf: ShadowFeed) {
+  const results = await sf.chain([
+    'btc-sentiment',        // Market mood
+    'smart-money-flows',    // Institutional moves
+    'liquidation-alerts',   // Risk signals
+    'defi-scores',          // Protocol health
+    'bridge-flows',         // Cross-chain activity
+  ], 2000);
+
+  const [sentiment, flows, liquidations, defi, bridges] = results.feeds;
+
+  return {
+    mood: sentiment.data.overall_label,
+    smartMoneySignal: flows.data.signal,
+    liquidationRisk: liquidations.data.total_liquidations_24h,
+    topProtocol: defi.data.protocols?.[0]?.protocol,
+    totalSpent: results.total_spent_stx,
+  };
+}
+```
+
+## Cost Estimation
+
+Before chaining, you can check feed prices:
+
+```typescript
+const feedIds = ['btc-sentiment', 'smart-money-flows', 'defi-scores'];
+
+let totalCost = 0;
+for (const id of feedIds) {
+  const info = await sf.getFeed(id);
+  if (info) {
+    totalCost += info.price_stx;
+    console.log(`${id}: ${info.price_stx} STX`);
+  }
+}
+console.log(`Total estimated cost: ${totalCost} STX`);
+```

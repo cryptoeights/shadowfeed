@@ -1,0 +1,113 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "ShadowFeed",
+  "logo": {
+    "dark": "/logo/dark.svg",
+    "light": "/logo/light.svg"
+  },
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#F97316",
+    "light": "#FB923C",
+    "dark": "#EA580C",
+    "anchors": {
+      "from": "#F97316",
+      "to": "#EA580C"
+    }
+  },
+  "topbarLinks": [
+    {
+      "name": "Dashboard",
+      "url": "https://shadowfeed.app"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Get API Access",
+    "url": "https://shadowfeed.app"
+  },
+  "tabs": [
+    {
+      "name": "API Reference",
+      "url": "api"
+    },
+    {
+      "name": "Data Feeds",
+      "url": "feeds"
+    }
+  ],
+  "anchors": [
+    {
+      "name": "GitHub",
+      "icon": "github",
+      "url": "https://github.com/pebriansyah/shadowfeed"
+    },
+    {
+      "name": "npm Package",
+      "icon": "npm",
+      "url": "https://www.npmjs.com/package/shadowfeed-agent"
+    },
+    {
+      "name": "Explorer",
+      "icon": "bitcoin",
+      "url": "https://explorer.hiro.so/address/SP1DV3T4ST2A89ZZ07M73B2N4AR5XFMDCNPGKK6CS?chain=mainnet"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "Get Started",
+      "pages": [
+        "introduction",
+        "getting-started/quickstart",
+        "getting-started/how-it-works",
+        "getting-started/supported-networks"
+      ]
+    },
+    {
+      "group": "Agent SDK",
+      "pages": [
+        "sdk/installation",
+        "sdk/configuration",
+        "sdk/buying-feeds",
+        "sdk/chaining-feeds",
+        "sdk/discovery"
+      ]
+    },
+    {
+      "group": "Examples",
+      "pages": [
+        "examples/basic-agent",
+        "examples/smart-agent",
+        "examples/research-agent"
+      ]
+    },
+    {
+      "group": "Architecture",
+      "pages": [
+        "architecture/overview",
+        "architecture/x402-protocol",
+        "architecture/facilitator"
+      ]
+    },
+    {
+      "group": "API Reference",
+      "pages": [
+        "api/overview",
+        "api/free-endpoints",
+        "api/paid-endpoints"
+      ]
+    },
+    {
+      "group": "Data Feeds",
+      "pages": [
+        "feeds/overview",
+        "feeds/original-feeds",
+        "feeds/nansen-premium",
+        "feeds/free-api-feeds"
+      ]
+    }
+  ],
+  "footerSocials": {
+    "x": "https://x.com/shadowfeed_app",
+    "github": "https://github.com/pebriansyah/shadowfeed"
+  }
+}

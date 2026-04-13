@@ -1,0 +1,67 @@
+---
+title: Installation
+description: "Install the ShadowFeed Agent SDK"
+---
+
+# Installation
+
+## npm
+
+```bash
+npm install shadowfeed-agent
+```
+
+## yarn
+
+```bash
+yarn add shadowfeed-agent
+```
+
+## pnpm
+
+```bash
+pnpm add shadowfeed-agent
+```
+
+## Requirements
+
+- **Node.js** 18 or later
+- **TypeScript** 5.0+ (optional but recommended)
+
+## Dependencies
+
+The SDK automatically installs these dependencies:
+
+| Package | Purpose |
+|---------|---------|
+| `axios` | HTTP client for API requests |
+| `x402-stacks` | x402 payment protocol for Stacks blockchain |
+
+## Verify Installation
+
+```typescript
+import { ShadowFeed } from 'shadowfeed-agent';
+
+const sf = new ShadowFeed({
+  privateKey: 'your-private-key-hex',
+  network: 'mainnet',
+});
+
+// Should log your SP... address
+console.log(sf.address);
+```
+
+## TypeScript Support
+
+The SDK ships with full TypeScript declarations. All types are exported:
+
+```typescript
+import type {
+  ShadowFeedConfig,
+  FeedId,
+  FeedInfo,
+  PurchaseResult,
+  ChainResult,
+  DiscoverOptions,
+} from 'shadowfeed-agent';
+```
