@@ -1,321 +1,228 @@
 <p align="center">
   <img src="https://img.shields.io/badge/x402-stacks-orange?style=for-the-badge&logo=bitcoin&logoColor=white" alt="x402-stacks" />
-  <img src="https://img.shields.io/badge/Stacks-Bitcoin_L2-5546FF?style=for-the-badge&logo=blockstack&logoColor=white" alt="Stacks" />
-  <img src="https://img.shields.io/badge/Clarity-Smart_Contract-00A4FF?style=for-the-badge" alt="Clarity" />
+  <img src="https://img.shields.io/badge/Stacks-Mainnet-5546FF?style=for-the-badge&logo=blockstack&logoColor=white" alt="Stacks Mainnet" />
+  <img src="https://img.shields.io/npm/v/shadowfeed-agent?style=for-the-badge&color=orange&label=SDK" alt="npm" />
+  <img src="https://img.shields.io/badge/Feeds-16_Live-emerald?style=for-the-badge" alt="16 Feeds" />
   <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="MIT" />
 </p>
 
 <h1 align="center">ShadowFeed</h1>
-<h3 align="center">The First Decentralized Data Marketplace Where AI Agents Pay With Bitcoin</h3>
+<h3 align="center">Decentralized Data Marketplace for AI Agents on Bitcoin</h3>
 
 <p align="center">
-  <strong>AI agents autonomously buy real-time crypto intelligence via x402 micropayments on Stacks (Bitcoin L2).</strong><br/>
+  <strong>AI agents autonomously discover and purchase real-time crypto intelligence via x402 micropayments on Stacks (Bitcoin L2).</strong><br/>
   No signup. No subscription. No human intervention. Just data for STX.
 </p>
 
 <p align="center">
-  <a href="https://shadowfeed-production.up.railway.app">Live Demo</a> &#x2022;
-  <a href="https://explorer.hiro.so/txid/0x78445f38499d186f20e766dcc223e9f66af3bb4891d8a9eedcc946464eb80891?chain=testnet">Verified On-Chain TX</a> &#x2022;
-  <a href="https://explorer.hiro.so/txid/1a0ebac72aced46a07192016bda09925669ca1beb4897f72e41e216a719d282e?chain=testnet">Smart Contract</a>
+  <a href="https://shadowfeed.app">Dashboard</a> &#x2022;
+  <a href="https://api.shadowfeed.app/registry/feeds">API</a> &#x2022;
+  <a href="https://www.npmjs.com/package/shadowfeed-agent">npm SDK</a> &#x2022;
+  <a href="https://explorer.hiro.so/address/SP1DV3T4ST2A89ZZ07M73B2N4AR5XFMDCNPGKK6CS?chain=mainnet">On-Chain</a>
 </p>
 
 ---
 
-## The Insight
+## Quickstart (5 minutes)
 
-There are **1.2 million AI agents** running today, and that number is doubling every quarter. These agents need real-time data to make decisions — market prices, whale movements, DeFi analytics. But here's the problem:
+```bash
+npm install shadowfeed-agent
+```
 
-**Every data provider in crypto requires a human to sign up.**
+```typescript
+import { ShadowFeed } from 'shadowfeed-agent';
 
-| Provider | Pricing | Agent-Friendly? |
-|----------|---------|:---------------:|
-| CoinGecko Pro | $129/mo subscription | No — requires signup + credit card |
-| Nansen | $150/mo subscription | No — requires KYC verification |
-| Arkham Intel | $300/mo subscription | No — requires human authentication |
-| **ShadowFeed** | **$0.003/query** | **Yes — fully autonomous** |
+const sf = new ShadowFeed({
+  privateKey: process.env.AGENT_PRIVATE_KEY,
+  network: 'mainnet',
+  agentName: 'My Agent',
+});
 
-AI agents can't create accounts. They can't enter credit cards. They can't complete KYC. They need a payment protocol that speaks their language: **HTTP**.
+// Discover all 16 feeds
+const feeds = await sf.discover();
 
-That's exactly what **x402** does. It turns payment into a standard HTTP header — and ShadowFeed is the first data marketplace built on top of it.
+// Buy data — payment is automatic via x402
+const result = await sf.buy('whale-alerts');
+console.log(result.data);
+```
+
+Generate a wallet:
+
+```bash
+npx tsx -e "const {generateKeypair}=require('x402-stacks'); console.log(generateKeypair('mainnet'))"
+```
+
+Fund the `SP...` address with STX from any exchange, then run your agent.
 
 ## How It Works
 
 ```
-   AI Agent                    ShadowFeed                 Stacks (Bitcoin L2)
+   AI Agent                    ShadowFeed API              Stacks (Bitcoin L2)
       │                            │                            │
       │  GET /feeds/whale-alerts   │                            │
       │───────────────────────────>│                            │
       │                            │                            │
       │  HTTP 402 Payment Required │                            │
-      │  {amount: 5000, payTo: ST} │                            │
+      │  {amount: 5000, payTo: SP} │                            │
       │<───────────────────────────│                            │
       │                            │                            │
-      │  [Auto-signs STX transfer] │                            │
+      │  [SDK auto-signs STX TX]   │                            │
       │                            │                            │
-      │  GET + payment header      │                            │
+      │  GET + payment-signature   │                            │
       │───────────────────────────>│  Verify + Broadcast TX     │
       │                            │───────────────────────────>│
-      │                            │                            │
       │                            │  TX Confirmed on Bitcoin   │
       │                            │<───────────────────────────│
-      │  200 OK + whale alert data │                            │
+      │                            │                            │
+      │  200 OK + feed data        │                            │
       │<───────────────────────────│                            │
 ```
 
-**4 lines of code** is all an AI agent needs:
+Every payment is a real on-chain STX transaction, verifiable on [Hiro Explorer](https://explorer.hiro.so).
+
+## Available Feeds (16)
+
+### Original Feeds
+
+| Feed | Price | Source |
+|------|-------|--------|
+| `whale-alerts` | 0.005 STX | CoinGecko + Blockchain.info |
+| `btc-sentiment` | 0.003 STX | Alternative.me + CoinGecko |
+| `defi-scores` | 0.01 STX | DeFiLlama |
+
+### Nansen Premium Feeds
+
+| Feed | Price | Source |
+|------|-------|--------|
+| `smart-money-flows` | 0.08 STX | Nansen Smart Money |
+| `token-intel` | 0.05 STX | Nansen Token God Mode |
+| `wallet-profiler` | 0.05 STX | Nansen Profiler |
+| `smart-money-holdings` | 0.05 STX | Nansen Holdings |
+| `dex-trades` | 0.08 STX | Nansen DEX + Perps |
+
+### Free API Feeds
+
+| Feed | Price | Source |
+|------|-------|--------|
+| `liquidation-alerts` | 0.008 STX | Binance Futures |
+| `gas-prediction` | 0.003 STX | Blocknative + mempool.space |
+| `token-launches` | 0.005 STX | DEXScreener |
+| `governance` | 0.005 STX | Snapshot.org |
+| `stablecoin-flows` | 0.005 STX | DeFiLlama |
+| `security-alerts` | 0.005 STX | DeFiLlama |
+| `dev-activity` | 0.003 STX | GitHub API |
+| `bridge-flows` | 0.005 STX | DeFiLlama |
+
+## SDK Usage
+
+### Discover feeds
 
 ```typescript
-import { wrapAxiosWithPayment, privateKeyToAccount } from 'x402-stacks';
-
-const account = privateKeyToAccount(PRIVATE_KEY, 'testnet');
-const api = wrapAxiosWithPayment(axios.create(), account);
-
-// That's it. Every request auto-pays if the server demands it.
-const { data } = await api.get('https://shadowfeed-production.up.railway.app/feeds/whale-alerts');
+const feeds = await sf.discover();
+const cheap = await sf.discover({ maxPrice: 0.005 });
+const onchain = await sf.discover({ category: 'on-chain' });
 ```
 
-## What Makes This Different
+### Buy a single feed
 
-### 1. Real Data, Not Mocks
-
-Every feed connects to **production APIs** and enriches raw data with computed analytics:
-
-| Feed | Price | Live Sources | Computed Analytics |
-|------|-------|-------------|-------------------|
-| **Whale Alerts** | 0.005 STX | CoinGecko + Blockchain.info | Whale movements, exchange flow patterns, significance scoring |
-| **BTC Sentiment** | 0.003 STX | Alternative.me + CoinGecko | Fear & Greed Index, social sentiment, market trend analysis |
-| **DeFi Scores** | 0.01 STX | DeFiLlama (10 protocols) | Risk/opportunity scores, TVL analysis, protocol recommendations |
-
-### 2. Smart Agent with Decision Logic
-
-Most hackathon demos show agents that blindly buy everything. **Our agent thinks before it spends.**
-
-```
-[THINK] Market is in extreme fear (FGI: 9).
-        High fear often correlates with whale accumulation.
-[DECIDE] BUYING whale-alerts — bearish conditions require whale monitoring
-[ACT] Sending x402 payment... ✓ Confirmed: 0x78445f38...
-
-[THINK] 3 whale movements detected, 2 are exchange inflows.
-        Could signal further sell pressure. Need DeFi exposure analysis.
-[DECIDE] BUYING defi-scores — extreme whale activity requires portfolio risk check
-[ACT] Sending x402 payment... ✓ Confirmed: 0xf9b10630...
-
-COST ANALYSIS
-  Feeds purchased: 3/3 (conditions triggered all feeds)
-  Total spent:     0.018 STX (~$0.02)
-  vs CoinGecko Pro: $129/month = 7,167x more expensive
+```typescript
+const result = await sf.buy('btc-sentiment');
+// result.data → { fear_greed_index, btc_price_usd, market_trend, ... }
+// result.price_stx → 0.003
+// result.tx → '0xabc123...'
 ```
 
-The agent **conditionally purchases** data based on market conditions — demonstrating that x402 enables AI agents to make economically rational decisions about what data to buy.
+### Chain multiple feeds
 
-### 3. Wallet Connect for Judges
+```typescript
+const research = await sf.chain([
+  'btc-sentiment',
+  'smart-money-flows',
+  'defi-scores',
+]);
+// research.total_spent_stx → 0.093
+// research.feeds[0].data → btc-sentiment data
+// research.feeds[1].data → smart-money-flows data
+```
 
-Not just for AI agents — **humans can try it too**. Connect your Leather or Xverse wallet directly in the dashboard and buy data with a single click.
+### Query parameters
 
-### 4. On-Chain Everything
+```typescript
+const wallet = await sf.buy('wallet-profiler', {
+  address: '0xb5998e11E666Fd1e7f3B8e8d9122A755eec1E9b7',
+  chain: 'ethereum',
+});
+```
 
-Every payment is a real STX transaction settled on Stacks (Bitcoin L2):
+## Free API Endpoints
 
-| Feed | Transaction | Block Explorer |
-|------|-------------|----------------|
-| whale-alerts | `0x78445f38...` | [View TX](https://explorer.hiro.so/txid/0x78445f38499d186f20e766dcc223e9f66af3bb4891d8a9eedcc946464eb80891?chain=testnet) |
-| btc-sentiment | `0x3785963d...` | [View TX](https://explorer.hiro.so/txid/0x3785963d5d39a638b0e433fad21caa1ee4e75c1fd9c1b9f378982b9b986a0fc4?chain=testnet) |
-| defi-scores | `0xf9b10630...` | [View TX](https://explorer.hiro.so/txid/0xf9b1063038239c3ce6a2d05e5a3d510e66ef8e8c14fa62c019341552443299b5?chain=testnet) |
-
-### 5. Clarity Smart Contract
-
-Deployed on Stacks testnet: [`ST3G55...shadowfeed-reg`](https://explorer.hiro.so/txid/1a0ebac72aced46a07192016bda09925669ca1beb4897f72e41e216a719d282e?chain=testnet)
-
-On-chain provider registry with staking, feed registration, query logging, and stake slashing for bad data providers. This creates **economic accountability** — providers have skin in the game.
-
-## Live Demo
-
-**https://shadowfeed-production.up.railway.app**
-
-What you can do:
-- Browse available feeds and pricing
-- Test free API endpoints interactively
-- See the 402 Payment Required response in action
-- Connect your Leather/Xverse wallet and buy data
-- View live activity feed with real on-chain transactions
-- Check agent leaderboard
-
-## Quick Start
+| Endpoint | Description |
+|----------|-------------|
+| `GET /health` | Service status |
+| `GET /registry/feeds` | All feeds with pricing and stats |
+| `GET /stats` | Provider reputation and performance |
+| `GET /activity` | Live transaction feed |
+| `GET /leaderboard` | Agent rankings |
 
 ```bash
-# Clone and install
-git clone https://github.com/cryptoeights/shadowfeed.git
-cd shadowfeed && npm install
-
-# Configure environment
-cp .env.example .env
-# Add your Stacks testnet private key to .env
-
-# Start the server (facilitator is embedded)
-npm run dev
-
-# In another terminal — run the smart agent
-npm run smart-agent
+curl https://api.shadowfeed.app/registry/feeds
 ```
-
-**Need testnet STX?** Get free tokens from the [Stacks Faucet](https://explorer.hiro.so/sandbox/faucet?chain=testnet).
 
 ## Architecture
 
 ```
 shadowfeed/
-├── src/
-│   ├── server.ts              # Express + x402 middleware + embedded facilitator
-│   ├── db.ts                  # SQLite — query tracking, response storage
-│   ├── registry.ts            # Feed discovery (free endpoint)
-│   ├── reputation.ts          # Provider reputation scoring
-│   └── feeds/
-│       ├── whale-alerts.ts    # CoinGecko + Blockchain.info → whale analysis
-│       ├── btc-sentiment.ts   # Alternative.me + CoinGecko → sentiment scores
-│       └── defi-scores.ts     # DeFiLlama → risk/opportunity scores
-├── client/
-│   ├── smart-agent.ts         # Autonomous agent with conditional buying logic
-│   ├── agent-demo.ts          # Basic agent (buys all feeds)
-│   └── simulate-agents.ts    # 10-agent simulation for demo
-├── contracts/
-│   ├── shadowfeed-registry.clar     # Full contract (staking + slashing)
-│   ├── shadowfeed-registry-v2.clar  # Simplified (staking)
-│   └── shadowfeed-registry-v3.clar  # Deployed version (registry only)
-├── public/
-│   └── index.html             # Dashboard with wallet connect
-└── scripts/
-    ├── deploy-contract.ts     # Contract deployment to Stacks
-    └── fund-server.ts         # Wallet funding utility
+├── workers/
+│   ├── api/                   # Cloudflare Worker (Hono) — api.shadowfeed.app
+│   │   └── src/
+│   │       ├── index.ts       # x402 payment handler + routes
+│   │       ├── feeds/         # 16 data feed modules
+│   │       ├── registry.ts    # Feed discovery
+│   │       ├── db.ts          # D1 database queries
+│   │       └── types.ts
+│   └── facilitator/           # Cloudflare Worker — facilitator.shadowfeed.app
+│       └── src/
+│           ├── index.ts       # Verify + settle endpoints
+│           └── stacks.ts      # TX validation + broadcast
+├── packages/
+│   └── agent-sdk/             # npm: shadowfeed-agent
+│       ├── src/
+│       │   ├── client.ts      # ShadowFeed class
+│       │   ├── discovery.ts   # Feed discovery + filtering
+│       │   └── types.ts       # TypeScript types
+│       └── examples/          # 3 example agents
+├── docs/                      # Mintlify documentation (22 pages)
+├── contracts/                 # Clarity smart contracts (v1-v3)
+├── public/                    # Dashboard SPA — shadowfeed.app
+└── client/                    # Agent scripts
 ```
-
-## API Reference
-
-### Free Endpoints
-
-| Endpoint | Description |
-|----------|-------------|
-| `GET /health` | Service health check |
-| `GET /registry/feeds` | All available feeds with prices and stats |
-| `GET /stats` | Provider reputation and performance |
-| `GET /activity` | Live transaction feed |
-| `GET /leaderboard` | Agent rankings by query volume |
-| `GET /activity/:id/data` | View actual response data for any query |
-
-### Paid Endpoints (x402 Protected)
-
-| Endpoint | Price | Description |
-|----------|-------|-------------|
-| `GET /feeds/whale-alerts` | 0.005 STX | Real-time whale movements with significance scoring |
-| `GET /feeds/btc-sentiment` | 0.003 STX | BTC sentiment with Fear & Greed Index + social analysis |
-| `GET /feeds/defi-scores` | 0.01 STX | DeFi protocol risk/opportunity scores for 10 protocols |
-
-Calling any paid endpoint without payment returns `HTTP 402 Payment Required`. The x402-stacks SDK handles the payment flow automatically.
-
-## The Bigger Picture
-
-ShadowFeed demonstrates a new economic primitive: **machine-to-machine data commerce**.
-
-Today, the data economy is designed for humans — subscriptions, dashboards, CSV exports. But as AI agents become the primary consumers of data, the infrastructure needs to change:
-
-- **From subscriptions to micropayments** — agents should pay for what they use
-- **From signup forms to HTTP headers** — payment should be a protocol, not a product
-- **From trust to verification** — every transaction provable on Bitcoin
-
-x402 + Stacks makes this possible. ShadowFeed is the proof.
-
-## Market Opportunity
-
-### The AI Agent Economy is Exploding
-
-The autonomous AI agent market is projected to grow from **$5.1B (2024)** to **$47.1B by 2030** — a 44.8% CAGR. By 2027, Gartner predicts **50% of enterprise software interactions** will involve AI agents acting autonomously.
-
-These agents all need one thing: **real-time data**. And they need to pay for it without human intervention.
-
-```
-2024: 1.2M active AI agents      → $5.1B market
-2025: 3.5M active AI agents      → $9.2B market
-2026: 8M+ active AI agents       → $16B market     ← WE ARE HERE
-2028: 50M+ active AI agents      → $32B market
-2030: 200M+ active AI agents     → $47B market
-```
-
-### Why This Matters for Stacks
-
-ShadowFeed creates a **new revenue stream for the Stacks ecosystem**:
-
-| Impact | Description |
-|--------|-------------|
-| **Transaction Volume** | Every data query = 1 STX transaction. At scale, millions of micro-transactions per day flowing through Stacks |
-| **STX Demand** | AI agents need STX to buy data, creating organic buy pressure on the token |
-| **Developer Adoption** | x402 makes Stacks the easiest blockchain for machine-to-machine payments — attracting builders |
-| **Bitcoin Alignment** | Data commerce settled on Bitcoin L2 reinforces the "Bitcoin as global settlement layer" narrative |
-| **DeFi Synergy** | Agents buying DeFi data → making trades → generating more DeFi activity → a flywheel effect |
-
-### Total Addressable Market
-
-```
-Crypto data market (2026):              ~$2.5B/year
-  └─ Addressable by AI agents:         ~$800M/year
-     └─ Capturable via micropayments:   ~$200M/year
-        └─ ShadowFeed's initial niche:  ~$10M/year (whale alerts, sentiment, DeFi scores)
-```
-
-Even capturing **0.5%** of the AI agent data spend would mean **$1M+ annual revenue** — entirely on-chain, entirely on Stacks.
-
-## Roadmap
-
-### Phase 1: Foundation (Hackathon) — Completed
-
-- [x] x402-stacks payment integration with HTTP 402 flow
-- [x] 3 live data feeds (whale alerts, BTC sentiment, DeFi scores)
-- [x] Real API data sources (CoinGecko, DeFiLlama, Alternative.me, Blockchain.info)
-- [x] Smart agent with conditional buying logic
-- [x] Clarity smart contract deployed on testnet
-- [x] Dashboard with wallet connect (Leather/Xverse)
-- [x] Verified on-chain transactions on Stacks testnet
-- [x] Live deployment on Railway
-
-### Phase 2: Marketplace (Q2 2026)
-
-- [ ] Open marketplace — anyone can register as a data provider
-- [ ] Provider staking with mainnet STX (economic accountability)
-- [ ] Data quality scoring with on-chain reputation
-- [ ] 10+ data feeds: NFT analytics, gas predictions, liquidation alerts, MEV data
-- [ ] Agent SDK package (`npm install @shadowfeed/agent`) for one-line integration
-- [ ] Rate limiting and tiered pricing per provider
-
-### Phase 3: Scale (Q3 2026)
-
-- [ ] Mainnet launch on Stacks
-- [ ] Multi-chain data feeds (Bitcoin, Ethereum, Solana data available via Stacks payments)
-- [ ] AI agent marketplace — agents can discover and subscribe to feeds programmatically
-- [ ] Provider DAO governance — community votes on slashing disputes
-- [ ] Bulk query discounts via Clarity smart contract logic
-- [ ] Analytics dashboard for providers (revenue, query patterns, agent behavior)
-
-### Phase 4: Network Effects (Q4 2026+)
-
-- [ ] Agent-to-agent data reselling (agents become both buyers and sellers)
-- [ ] Prediction market feeds — agents bet on outcomes using purchased data
-- [ ] Cross-protocol data bundles (e.g., "DeFi Risk Package" = 5 feeds for discount)
-- [ ] Enterprise API with SLA guarantees backed by staked STX
-- [ ] Integration with major AI frameworks (LangChain, AutoGPT, CrewAI)
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
-| Runtime | Node.js + TypeScript |
-| Server | Express.js |
-| Payments | x402-stacks SDK v2 |
-| Blockchain | Stacks (Bitcoin L2) |
-| Smart Contract | Clarity |
-| Database | SQLite (better-sqlite3) |
-| Data Sources | CoinGecko, DeFiLlama, Alternative.me, Blockchain.info |
-| Frontend | Tailwind CSS |
-| Deployment | Railway |
+| Edge Runtime | Cloudflare Workers |
+| Web Framework | Hono |
+| Database | Cloudflare D1 (SQLite) |
+| Cache | Cloudflare KV |
+| Static Hosting | Cloudflare Pages |
+| Payments | x402 v2 protocol (x402-stacks SDK) |
+| Blockchain | Stacks Mainnet (Bitcoin L2) |
+| Smart Contracts | Clarity |
+| Agent SDK | TypeScript (npm: shadowfeed-agent) |
+| Data Sources | CoinGecko, Nansen, DeFiLlama, Binance, GitHub, Snapshot, DEXScreener |
+
+## Links
+
+| Resource | URL |
+|----------|-----|
+| Dashboard | https://shadowfeed.app |
+| API | https://api.shadowfeed.app |
+| Facilitator | https://facilitator.shadowfeed.app |
+| npm SDK | https://www.npmjs.com/package/shadowfeed-agent |
+| Contract | [SP1DV3T4ST2A89ZZ07M73B2N4AR5XFMDCNPGKK6CS](https://explorer.hiro.so/address/SP1DV3T4ST2A89ZZ07M73B2N4AR5XFMDCNPGKK6CS?chain=mainnet) |
+| Contract TX | [198e5930...](https://explorer.hiro.so/txid/198e59303b69582bc4fcef5d284ea0c92264a856855755ee692605dc6dcd9042?chain=mainnet) |
 
 ## License
 
-MIT — use it, fork it, build on it.
+MIT
