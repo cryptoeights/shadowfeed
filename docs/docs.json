@@ -82,7 +82,7 @@
       "anchors": [
         {
           "anchor": "GitHub",
-          "href": "https://github.com/pebriansyah/shadowfeed",
+          "href": "https://github.com/cryptoeights/shadowfeed",
           "icon": "github"
         },
         {
@@ -117,8 +117,8 @@
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/shadowfeed_app",
-      "github": "https://github.com/pebriansyah/shadowfeed"
+      "x": "https://x.com/shadow_agents",
+      "github": "https://github.com/cryptoeights/shadowfeed"
     }
   }
 }

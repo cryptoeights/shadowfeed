@@ -39,7 +39,7 @@
     {
       "name": "GitHub",
       "icon": "github",
-      "url": "https://github.com/pebriansyah/shadowfeed"
+      "url": "https://github.com/cryptoeights/shadowfeed"
     },
     {
       "name": "npm Package",
@@ -107,7 +107,7 @@
     }
   ],
   "footerSocials": {
-    "x": "https://x.com/shadowfeed_app",
-    "github": "https://github.com/pebriansyah/shadowfeed"
+    "x": "https://x.com/shadow_agents",
+    "github": "https://github.com/cryptoeights/shadowfeed"
   }
 }
