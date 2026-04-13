@@ -8,3 +8,6 @@ dist/
 .claude/
 client/auto-agent.ts
 client/multi-agent.ts
+Delta.ts
+packages/agent-sdk/node_modules/
+packages/agent-sdk/dist/

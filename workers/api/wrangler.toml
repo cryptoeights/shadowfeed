@@ -1,0 +1,22 @@
+name = "shadowfeed-api"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+NETWORK = "mainnet"
+FACILITATOR_URL = "https://api.shadowfeed.app"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "shadowfeed"
+database_id = "70e9d037-f842-4436-b3df-10e5af19cf12"
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "80f580155fba425e97fe1d0dce528513"
+
+# Custom domain routing
+[[routes]]
+pattern = "api.shadowfeed.app"
+custom_domain = true
