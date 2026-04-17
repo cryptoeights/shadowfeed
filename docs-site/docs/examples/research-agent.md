@@ -1,0 +1,83 @@
+---
+description: "Chain multiple feeds for comprehensive market analysis"
+---
+
+# Research Agent
+
+A research-focused agent that chains 5 feeds across different categories for comprehensive market analysis.
+
+## Full Code
+
+```typescript
+import { ShadowFeed } from 'shadowfeed-agent';
+
+async function main() {
+  const sf = new ShadowFeed({
+    privateKey: process.env.AGENT_PRIVATE_KEY!,
+    network: 'mainnet',
+    agentName: 'Research Agent',
+  });
+
+  console.log(`Research Agent | Wallet: ${sf.address}\n`);
+
+  // Discover premium feeds only (Nansen-powered, > 0.04 STX)
+  const premiumFeeds = await sf.discover({ minPrice: 0.04 });
+  console.log(`Premium feeds available: ${premiumFeeds.length}`);
+  premiumFeeds.forEach((f) =>
+    console.log(`  - ${f.id} (${f.price_display})`)
+  );
+
+  // Chain: buy multiple feeds for cross-analysis
+  const researchFeeds = [
+    'btc-sentiment',
+    'smart-money-flows',
+    'defi-scores',
+    'liquidation-alerts',
+    'bridge-flows',
+  ];
+
+  console.log(`\nChaining ${researchFeeds.length} feeds...\n`);
+  const results = await sf.chain(researchFeeds, 2000);
+
+  // Print summary
+  console.log('=== Research Summary ===');
+  results.feeds.forEach((r) => {
+    const keys = Object.keys(r.data);
+    console.log(`\n[${r.feed}] — ${r.price_stx} STX`);
+    console.log(`  Keys: ${keys.slice(0, 6).join(', ')}`);
+    if (r.tx) console.log(`  TX: ${r.tx}`);
+  });
+
+  console.log(`\nTotal spent: ${results.total_spent_stx.toFixed(4)} STX`);
+  console.log(`Feeds purchased: ${results.feeds.length}`);
+}
+
+main().catch((err) => {
+  console.error('Agent error:', err.message);
+  process.exit(1);
+});
+```
+
+## Run It
+
+```bash
+AGENT_PRIVATE_KEY=<your-hex-key> npx tsx research-agent.ts
+```
+
+## Feeds Purchased
+
+| Feed | Price | Why |
+|------|-------|-----|
+| `btc-sentiment` | 0.003 STX | Market mood baseline |
+| `smart-money-flows` | 0.08 STX | Institutional money movements |
+| `defi-scores` | 0.01 STX | Protocol health assessment |
+| `liquidation-alerts` | 0.008 STX | Risk/leverage signals |
+| `bridge-flows` | 0.005 STX | Cross-chain activity |
+| **Total** | **0.106 STX** | |
+
+## Use Cases
+
+- **Daily market briefings** — Run once per day to get a comprehensive overview
+- **Pre-trade research** — Run before making trading decisions
+- **Alert systems** — Chain with conditional logic to trigger notifications
+- **Portfolio monitoring** — Combine with wallet-profiler for full portfolio analysis

@@ -1,0 +1,102 @@
+---
+description: "ShadowFeed's payment verification and settlement service"
+---
+
+# Facilitator
+
+The facilitator is a Cloudflare Worker that verifies and settles x402 payments on the Stacks blockchain.
+
+## URL
+
+```
+https://facilitator.shadowfeed.app
+```
+
+## Why a Custom Facilitator?
+
+ShadowFeed built its own facilitator instead of using the official `facilitator.stacksx402.com` because:
+
+- The official facilitator returns 500 errors on `/settle` for mainnet transactions
+- Custom facilitator gives us full control over broadcast retry logic
+- Hiro API key integration for reliable transaction broadcasting
+- Better error messages for debugging
+
+## Endpoints
+
+### GET /supported
+
+Returns supported networks and assets.
+
+```bash
+curl https://facilitator.shadowfeed.app/supported
+```
+
+```json
+{
+  "x402Version": 2,
+  "kinds": [
+    {
+      "scheme": "exact",
+      "network": "stacks:1",
+      "asset": "STX"
+    },
+    {
+      "scheme": "exact",
+      "network": "stacks:2147483648",
+      "asset": "STX"
+    }
+  ]
+}
+```
+
+### POST /verify
+
+Validates a signed transaction without broadcasting it.
+
+```bash
+curl -X POST https://facilitator.shadowfeed.app/verify \
+  -H "Content-Type: application/json" \
+  -d '{
+    "paymentPayload": { "payload": { "transaction": "hex..." } },
+    "paymentRequirements": { "amount": "5000", "payTo": "SP1DV..." }
+  }'
+```
+
+```json
+{
+  "valid": true,
+  "payer": "SP2PBB...",
+  "invalidReason": null
+}
+```
+
+### POST /settle
+
+Broadcasts the transaction and waits for confirmation.
+
+```bash
+curl -X POST https://facilitator.shadowfeed.app/settle \
+  -H "Content-Type: application/json" \
+  -d '{
+    "paymentPayload": { "payload": { "transaction": "hex..." } },
+    "paymentRequirements": { "amount": "5000", "payTo": "SP1DV..." }
+  }'
+```
+
+```json
+{
+  "success": true,
+  "payer": "SP2PBB...",
+  "transaction": "0xabc123...",
+  "network": "stacks:1"
+}
+```
+
+## Implementation Details
+
+- **Runtime:** Cloudflare Workers (Hono framework)
+- **TX Deserialization:** `@stacks/transactions` v7
+- **Broadcasting:** Direct POST to Hiro API (`/v2/transactions`) with API key
+- **Confirmation:** Polls Hiro API for TX status (up to 25 seconds)
+- **Address Derivation:** `c32address` from signer hash for proper SP-prefix addresses
+- **Retry Logic:** 3 attempts with exponential backoff for 429 rate limits

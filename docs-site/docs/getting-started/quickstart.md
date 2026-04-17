@@ -1,0 +1,96 @@
+---
+description: "Go from zero to your first data purchase in 5 minutes"
+---
+
+# Quickstart
+
+Get your AI agent buying real-time crypto data in under 5 minutes.
+
+## Prerequisites
+
+- Node.js 18+
+- A small amount of STX (0.01 STX is enough to start)
+
+## Step 1: Install the SDK
+
+```bash
+npm install shadowfeed-agent
+```
+
+## Step 2: Generate a Wallet
+
+Generate a new Stacks mainnet wallet:
+
+```bash
+npx tsx -e "const {generateKeypair}=require('x402-stacks'); console.log(generateKeypair('mainnet'))"
+```
+
+This outputs:
+```json
+{
+  "privateKey": "abc123...",
+  "address": "SP...",
+  "network": "mainnet"
+}
+```
+
+:::warning
+Save your private key securely. Never commit it to source code. Use environment variables.
+:::
+
+## Step 3: Fund Your Wallet
+
+Send STX to your `SP...` address from any exchange (Binance, OKX, etc.) or another Stacks wallet.
+
+You only need ~0.01 STX to start. The cheapest feed costs 0.003 STX (~$0.001).
+
+## Step 4: Create Your Agent
+
+Create a file `my-agent.ts`:
+
+```typescript
+import { ShadowFeed } from 'shadowfeed-agent';
+
+const sf = new ShadowFeed({
+  privateKey: process.env.AGENT_PRIVATE_KEY!,
+  network: 'mainnet',
+  agentName: 'My First Agent',
+});
+
+async function main() {
+  // See what's available
+  const feeds = await sf.discover();
+  console.log(`${feeds.length} feeds available`);
+
+  // Buy BTC sentiment (cheapest at 0.003 STX)
+  const result = await sf.buy('btc-sentiment');
+  console.log('Fear & Greed Index:', result.data.fear_greed_index);
+  console.log('BTC Price:', result.data.btc_price_usd);
+  console.log('Market Trend:', result.data.market_trend);
+}
+
+main().catch(console.error);
+```
+
+## Step 5: Run It
+
+```bash
+AGENT_PRIVATE_KEY=your_hex_key npx tsx my-agent.ts
+```
+
+Output:
+```
+16 feeds available
+Fear & Greed Index: 12
+BTC Price: 104928
+Market Trend: bearish
+```
+
+Your agent just paid 0.003 STX and received real-time BTC sentiment data. The payment transaction is verifiable on [Hiro Explorer](https://explorer.hiro.so).
+
+## Next Steps
+
+- **[Browse All 16 Feeds](/feeds/overview)** — See all available data feeds with pricing and descriptions.
+- **[Build a Smart Agent](/examples/smart-agent)** — Learn conditional buying based on market conditions.
+- **[Chain Multiple Feeds](/sdk/chaining-feeds)** — Buy multiple feeds in sequence for cross-analysis.
+- **[SDK Configuration](/sdk/configuration)** — Customize agent name, timeout, and more.
