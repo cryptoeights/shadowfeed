@@ -1,10 +1,10 @@
 # Product Requirements Document (PRD)
 # ShadowFeed — Decentralized Data Marketplace for AI Agents
 
-**Version:** 1.0
-**Date:** March 2, 2026
+**Version:** 2.0
+**Date:** April 17, 2026
 **Author:** Pebriansyah
-**Status:** Draft
+**Status:** M1 Complete — M2 In Progress
 
 ---
 
@@ -34,11 +34,25 @@
 
 ## 1. Executive Summary
 
-ShadowFeed is the first decentralized data marketplace where AI agents autonomously purchase real-time crypto intelligence via x402 micropayments on Stacks (Bitcoin L2). This PRD defines the requirements to evolve ShadowFeed from a working testnet MVP (3 feeds, 20+ agents) to a production-ready mainnet marketplace (15+ feeds, open provider marketplace, published SDK).
+ShadowFeed is the first decentralized data marketplace where AI agents autonomously purchase real-time crypto intelligence via x402 micropayments on Stacks (Bitcoin L2). This PRD defines the requirements to evolve ShadowFeed from a working testnet MVP to a production-ready mainnet marketplace.
 
-**Grant Budget:** $4,500 USD (in STX)
-**Duration:** 8 weeks
-**Key Outcome:** Any AI developer can `npm install @shadowfeed/agent` and have their agent purchasing data autonomously within 5 minutes.
+**Grant Budget:** $5,000 USD (in STX)
+**Duration:** 2 milestones over 6 weeks
+**Key Outcome:** Any AI developer can `npm install shadowfeed-agent` and have their agent purchasing data autonomously within 5 minutes.
+
+### Milestone 1 Status: COMPLETE (April 17, 2026)
+
+| Deliverable | Status | Evidence |
+|-------------|--------|----------|
+| Mainnet migration | ✅ Complete | 9 successful TXs on Stacks mainnet |
+| 16 live data feeds | ✅ Complete | 3 original + 5 Nansen premium + 8 free API feeds |
+| Agent SDK published | ✅ Complete | `shadowfeed-agent` v1.0.0 on npm |
+| Documentation site | ✅ Complete | docs.shadowfeed.app (22 pages, Mintlify) |
+| Dashboard | ✅ Complete | shadowfeed.app (Cloudflare Pages) |
+| Brand identity | ✅ Complete | 6 logo variants, 48 raster assets, brand guide |
+| Intro video | ✅ Complete | 15s Remotion video for launch |
+| Embedded facilitator | ✅ Complete | x402 verify/settle built-in, no third-party |
+| Cloudflare Workers API | ✅ Complete | Hono-based Workers with D1 database |
 
 ---
 
@@ -80,48 +94,84 @@ ShadowFeed becomes the one-stop data layer that every AI agent on Stacks relies 
 
 ---
 
-## 4. Current State (MVP)
+## 4. Current State (Post-M1)
 
-### What's Built
+### What's Built — Production (Cloudflare Workers)
 
-**Server (`src/server.ts`)**
-- Express.js with embedded x402 facilitator
-- 3 paid data feeds with x402 payment middleware
+**API Server (`workers/api/`)**
+- Hono-based Cloudflare Worker with x402 payment middleware
+- 16 paid data feeds with x402 micropayment protection
 - Free discovery endpoints (`/registry/feeds`, `/stats`, `/activity`, `/leaderboard`)
-- Demo mode for testing without real payments
-- Wallet purchase endpoint for browser transactions
+- Embedded x402 facilitator (`/supported`, `/verify`, `/settle`)
+- KV caching for feed responses
+- D1 database for query tracking and analytics
 
-**Data Feeds (`src/feeds/`)**
-| Feed | Price | Real Data Sources | File |
-|------|-------|-------------------|------|
-| Whale Alerts | 0.005 STX | CoinGecko, Blockchain.info | `whale-alerts.ts` |
-| BTC Sentiment | 0.003 STX | Alternative.me, CoinGecko | `btc-sentiment.ts` |
-| DeFi Scores | 0.01 STX | DeFiLlama | `defi-scores.ts` |
+**16 Live Data Feeds (`workers/api/src/feeds/`)**
+
+| # | Feed ID | Price | Data Sources | Category |
+|---|---------|-------|-------------|----------|
+| 1 | `whale-alerts` | 0.005 STX | CoinGecko, Blockchain.info | on-chain |
+| 2 | `btc-sentiment` | 0.003 STX | Alternative.me, CoinGecko | social |
+| 3 | `defi-scores` | 0.01 STX | DeFiLlama | analytics |
+| 4 | `smart-money-flows` | 0.08 STX | Nansen API | on-chain |
+| 5 | `token-intel` | 0.05 STX | Nansen Token God Mode | analytics |
+| 6 | `wallet-profiler` | 0.05 STX | Nansen Profiler | on-chain |
+| 7 | `smart-money-holdings` | 0.05 STX | Nansen Holdings | on-chain |
+| 8 | `dex-trades` | 0.08 STX | Nansen DEX/Perp Trades | on-chain |
+| 9 | `liquidation-alerts` | 0.008 STX | Binance Futures API | derivatives |
+| 10 | `gas-prediction` | 0.003 STX | BlockNative, Mempool.space | infrastructure |
+| 11 | `token-launches` | 0.005 STX | DEXScreener API | discovery |
+| 12 | `governance` | 0.005 STX | Snapshot GraphQL API | governance |
+| 13 | `stablecoin-flows` | 0.005 STX | DeFiLlama Stablecoins | analytics |
+| 14 | `security-alerts` | 0.005 STX | DeFiLlama Protocols | security |
+| 15 | `dev-activity` | 0.003 STX | GitHub API | development |
+| 16 | `bridge-flows` | 0.005 STX | DeFiLlama Chains | cross-chain |
+
+**Agent SDK (`shadowfeed-agent` on npm)**
+- Published v1.0.0 on npmjs.com
+- Auto-handles x402 payment negotiation
+- Feed discovery, single buy, conditional buy
+- Dependencies: axios, x402-stacks
+
+**Dashboard (`public/`)**
+- Deployed on Cloudflare Pages at shadowfeed.app
+- 3D particle background with animations
+- 16-feed discovery, live activity feed, agent leaderboard
+- Leather/Xverse wallet connect
+- Responsive navbar with mobile hamburger menu
+- Mainnet badge, Docs link to docs.shadowfeed.app
+- Brand guide page (`/brand.html`)
+
+**Documentation (`docs/`)**
+- 22-page Mintlify docs at docs.shadowfeed.app
+- Getting started, SDK reference, API docs, architecture, examples
+- Custom ShadowFeed logo and branding
+
+**Brand Identity (`public/brand/`)**
+- 6 SVG logo variants (mark, horizontal, wordmark × dark/light/mono)
+- 48 raster assets (PNG/JPG at 256-4096px)
+- Brand guide page with colors, typography, usage rules
+- ZIP download kit (3MB)
 
 **Smart Contract (`contracts/`)**
 - v3 deployed on testnet (registry only, no staking)
-- v1 has full staking/slashing logic (not deployed)
+- v1 has full staking/slashing logic (available for mainnet deployment)
 
 **Agent Clients (`client/`)**
 - `smart-agent.ts` — Conditional purchasing logic
 - `simulate-agents.ts` — 10-agent simulation
 - `agent-demo.ts` — Basic demo agent
 
-**Dashboard (`public/index.html`)**
-- 3D particle background with animations
-- Feed discovery, live activity feed, agent leaderboard
-- Leather/Xverse wallet connect
-- Light theme with orange/amber brand colors
-
-**Database (`src/db.ts`)**
-- SQLite with WAL mode
-- Tables: `queries`, `feed_stats`
-- Query tracking, analytics, leaderboard data
+**Legacy Server (`src/server.ts`)**
+- Express.js with embedded x402 facilitator (original implementation)
+- 3 feeds only (whale-alerts, btc-sentiment, defi-scores)
+- SQLite with WAL mode (tables: `queries`, `feed_stats`)
 
 **Infrastructure**
-- Deployed on Railway: https://shadowfeed-production.up.railway.app
-- Stacks testnet integration
-- 20+ verified on-chain transactions
+- Production: Cloudflare Workers + Pages + D1 + KV
+- Domain: shadowfeed.app (dashboard), docs.shadowfeed.app (docs)
+- Stacks mainnet: 9 verified on-chain transactions
+- Wallet: SP1RJRFTBGX1G5360F0EJWN86G299HP7Z6MAMP7D9
 
 ---
 
@@ -1502,13 +1552,13 @@ Deploy new contract `shadowfeed-registry-v2` on mainnet based on `shadowfeed-reg
 
 | Metric | Current (MVP) | Target (Week 8) | Measurement |
 |--------|--------------|------------------|-------------|
-| Network | Testnet | Mainnet | Server config |
-| Live feeds | 3 | 15+ | `/registry/feeds` count |
-| Unique agents | 20+ | 50+ | Database unique payer count |
-| Monthly STX tx | ~20 | 2,000+ | On-chain tx count |
-| External providers | 0 | 2+ | Provider registry |
-| SDK installs | 0 | 50+ | npm download stats |
-| Published tutorials | 0 | 5+ | Public URLs |
+| Network | Testnet | Mainnet | ✅ Live on mainnet |
+| Live feeds | 3 | 15+ | ✅ 16 feeds deployed |
+| Unique agents | 20+ | 50+ | 🔄 M2 target |
+| Monthly STX tx | ~20 | 2,000+ | 🔄 9 mainnet TXs so far |
+| External providers | 0 | 2+ | 🔄 M2 target |
+| SDK installs | 0 | 50+ | ✅ `shadowfeed-agent` v1.0.0 published |
+| Published tutorials | 0 | 5+ | 🔄 M2 target |
 
 ### Secondary KPIs
 
@@ -1523,30 +1573,54 @@ Deploy new contract `shadowfeed-registry-v2` on mainnet based on `shadowfeed-reg
 
 ---
 
-## 12. Timeline & Milestones
+## 12. Timeline & Milestones (Grant Contract)
 
 ```
-Week 1   Week 2   Week 3   Week 4   Week 5   Week 6   Week 7   Week 8
-├────────┼────────┼────────┼────────┼────────┼────────┼────────┼────────┤
-│◄──── Mainnet Migration ────►│                                        │
-│       & Security Audit       │                                        │
-│                    │◄──── Data Feed Expansion (12 feeds) ────►│       │
-│                              │                    │◄── Marketplace ──►│
-│                              │                    │◄── Agent SDK ────►│
-│                                                            │◄─ Grow ─►│
-├────────┼────────┼────────┼────────┼────────┼────────┼────────┼────────┤
-        MS1                           MS2       MS3     MS4     MS5
+     April 7        April 15       April 22                    May 22
+     ├───────────────┼──────────────┼───────────────────────────┤
+     │  Contract     │   Upfront    │     M1 Due               │  M2 Due
+     │  Signed       │   $500       │     $1,500               │  $3,000
+     │               │              │     ✅ COMPLETE           │  🔄 IN PROGRESS
+     └───────────────┴──────────────┴───────────────────────────┘
 ```
 
-### Milestone Details
+### Grant Milestones (Signed Contract)
 
-| MS | Name | Week | Budget | Key Deliverable |
-|----|------|------|--------|-----------------|
-| MS1 | Mainnet Launch | 3 | $900 (20%) | ShadowFeed live on mainnet with 3 feeds |
-| MS2 | 15+ Feeds | 5 | $1,350 (30%) | 12 new feeds deployed and operational |
-| MS3 | Marketplace | 6 | $900 (20%) | Provider registration + staking live |
-| MS4 | SDK Published | 7 | $675 (15%) | @shadowfeed/agent on npm |
-| MS5 | Community | 8 | $675 (15%) | 50+ agents, 5+ tutorials, 2+ partnerships |
+| Milestone | Budget | Deadline | Deliverables | Status |
+|-----------|--------|----------|-------------|--------|
+| Upfront | $500 | Apr 15 | — | ✅ Received |
+| **M1** | $1,500 | **Apr 22** | Mainnet migration + 15 feeds + Agent SDK | ✅ **COMPLETE** |
+| **M2** | $3,000 | May 22 | 2+ external providers + 50+ unique purchases | 🔄 In Progress |
+
+### M1 Completion Evidence
+
+| Deliverable | Evidence |
+|-------------|----------|
+| Mainnet migration | 9 successful STX transactions on Stacks mainnet ([Hiro Explorer](https://explorer.hiro.so/address/SP1RJRFTBGX1G5360F0EJWN86G299HP7Z6MAMP7D9)) |
+| 16 data feeds (exceeds 15 target) | All registered in `workers/api/src/registry.ts`, accessible via `/registry/feeds` |
+| Agent SDK | `shadowfeed-agent` v1.0.0 on [npmjs.com](https://www.npmjs.com/package/shadowfeed-agent) |
+| Documentation | 22 pages at [docs.shadowfeed.app](https://docs.shadowfeed.app) |
+| Dashboard | Live at [shadowfeed.app](https://shadowfeed.app) |
+| Embedded facilitator | x402 verify/settle endpoints built into Workers API |
+
+### M2 Targets (Due May 22)
+
+| Deliverable | Target | Current |
+|-------------|--------|---------|
+| External data providers | 2+ registered | 0 |
+| Unique feed purchases | 50+ unique wallet addresses | ~9 |
+| Provider marketplace | Registration + staking live | Not started |
+| Community tutorials | 5+ published | 0 |
+
+### Internal Development Milestones (PRD)
+
+| MS | Name | Budget | Key Deliverable | Status |
+|----|------|--------|-----------------|--------|
+| MS1 | Mainnet Launch | $900 | Mainnet with verified STX payments | ✅ Complete |
+| MS2 | 15+ Feeds | $1,350 | 16 feeds deployed (3 original + 5 Nansen + 8 free API) | ✅ Complete |
+| MS3 | Marketplace | $900 | Provider registration + staking | 🔄 M2 scope |
+| MS4 | SDK Published | $675 | `shadowfeed-agent` on npm | ✅ Complete |
+| MS5 | Community | $675 | 50+ agents, tutorials, partnerships | 🔄 M2 scope |
 
 ---
 
@@ -1571,7 +1645,7 @@ The following are explicitly **not** included in this grant cycle:
 - Multi-chain support (Ethereum, Solana, etc.)
 - Provider DAO governance
 - Mobile app
-- Custom domain / SSL setup
+- ~~Custom domain / SSL setup~~ ✅ Done (shadowfeed.app + docs.shadowfeed.app)
 - Advanced ML models for data enrichment
 - Fiat on-ramp for agents
 - Batched settlement optimization

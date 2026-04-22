@@ -23,6 +23,11 @@ import { generateStablecoinFlows } from './feeds/stablecoin-flows';
 import { generateSecurityAlerts } from './feeds/security-alerts';
 import { generateDevActivity } from './feeds/dev-activity';
 import { generateBridgeFlows } from './feeds/bridge-flows';
+import { generateAlexPriceFeed } from './feeds/alex-price-feed';
+import { generateAlexPoolAnalytics } from './feeds/alex-pool-analytics';
+import { generateAlexTvlFlows } from './feeds/alex-tvl-flows';
+import { generateAlexSwapActivity } from './feeds/alex-swap-activity';
+import { generateAlexPairsOverview } from './feeds/alex-pairs-overview';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -38,6 +43,7 @@ app.use('*', async (c, next) => {
       'smart-money-flows', 'token-intel', 'wallet-profiler', 'smart-money-holdings', 'dex-trades',
       'liquidation-alerts', 'gas-prediction', 'token-launches', 'governance',
       'stablecoin-flows', 'security-alerts', 'dev-activity', 'bridge-flows',
+      'alex-price-feed', 'alex-pool-analytics', 'alex-tvl-flows', 'alex-swap-activity', 'alex-pairs-overview',
     ]);
     dbInitialized = true;
   }
@@ -71,6 +77,11 @@ function formatTimeAgo(timestampMs: number): string {
   return `${Math.floor(diff / 86400000)}d ago`;
 }
 
+// Unicode-safe base64 encoder — btoa() only supports Latin-1, so we encode via UTF-8 bytes first.
+function safeBtoa(str: string): string {
+  return Buffer.from(str, 'utf-8').toString('base64');
+}
+
 const FEED_PRICES: Record<string, number> = {
   // Original feeds
   'whale-alerts': 0.005,
@@ -91,6 +102,12 @@ const FEED_PRICES: Record<string, number> = {
   'security-alerts': 0.005,
   'dev-activity': 0.003,
   'bridge-flows': 0.005,
+  // ALEX Lab Stacks DeFi feeds
+  'alex-price-feed': 0.003,
+  'alex-pool-analytics': 0.005,
+  'alex-tvl-flows': 0.005,
+  'alex-swap-activity': 0.005,
+  'alex-pairs-overview': 0.003,
 };
 
 // ============================================
@@ -237,7 +254,7 @@ app.get('/', (c) => {
       leaderboard: '/leaderboard',
       docs: 'https://shadowfeed.app',
     },
-    feeds_available: 16,
+    feeds_available: 21,
     payment_protocol: 'x402-stacks',
   });
 });
@@ -385,6 +402,11 @@ async function generateFeedById(feedId: string, kv: KVNamespace, nansenKey?: str
     case 'security-alerts': return generateSecurityAlerts(kv);
     case 'dev-activity': return generateDevActivity(kv);
     case 'bridge-flows': return generateBridgeFlows(kv);
+    case 'alex-price-feed': return generateAlexPriceFeed(kv);
+    case 'alex-pool-analytics': return generateAlexPoolAnalytics(kv);
+    case 'alex-tvl-flows': return generateAlexTvlFlows(kv);
+    case 'alex-swap-activity': return generateAlexSwapActivity(kv);
+    case 'alex-pairs-overview': return generateAlexPairsOverview(kv);
     default: throw new Error(`Unknown feed: ${feedId}`);
   }
 }
@@ -430,7 +452,7 @@ async function x402Handler(
     };
 
     // Header: base64-encoded JSON, Body: same JSON object
-    const headerValue = btoa(JSON.stringify(paymentRequired));
+    const headerValue = safeBtoa(JSON.stringify(paymentRequired));
 
     return c.json(paymentRequired, 402, { 'payment-required': headerValue });
   }
@@ -517,7 +539,7 @@ async function x402Handler(
     transaction: txId,
     network,
   };
-  const paymentResponseHeader = btoa(JSON.stringify(paymentResponse));
+  const paymentResponseHeader = safeBtoa(JSON.stringify(paymentResponse));
 
   return c.json({
     feed: feedId,
@@ -604,6 +626,27 @@ app.get('/feeds/dev-activity', (c) =>
 
 app.get('/feeds/bridge-flows', (c) =>
   x402Handler(c, 'bridge-flows', 0.005, 'ShadowFeed: Cross-chain bridge volume and flows', (kv) => generateBridgeFlows(kv))
+);
+
+// --- ALEX Lab Stacks DeFi feeds ---
+app.get('/feeds/alex-price-feed', (c) =>
+  x402Handler(c, 'alex-price-feed', 0.003, 'ShadowFeed: ALEX Lab token prices for Stacks ecosystem', (kv) => generateAlexPriceFeed(kv))
+);
+
+app.get('/feeds/alex-pool-analytics', (c) =>
+  x402Handler(c, 'alex-pool-analytics', 0.005, 'ShadowFeed: ALEX Lab pool analytics - liquidity, APY, volume rankings', (kv) => generateAlexPoolAnalytics(kv))
+);
+
+app.get('/feeds/alex-tvl-flows', (c) =>
+  x402Handler(c, 'alex-tvl-flows', 0.005, 'ShadowFeed: ALEX Lab TVL flows and pool concentration analysis', (kv) => generateAlexTvlFlows(kv))
+);
+
+app.get('/feeds/alex-swap-activity', (c) =>
+  x402Handler(c, 'alex-swap-activity', 0.005, 'ShadowFeed: ALEX Lab swap activity and trending pairs', (kv) => generateAlexSwapActivity(kv))
+);
+
+app.get('/feeds/alex-pairs-overview', (c) =>
+  x402Handler(c, 'alex-pairs-overview', 0.003, 'ShadowFeed: ALEX Lab trading pairs overview', (kv) => generateAlexPairsOverview(kv))
 );
 
 // ============================================
