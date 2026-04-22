@@ -2,9 +2,9 @@
 // We use gemini-2.5-flash for a good speed/cost balance — ~$0.0001/call
 // at our typical payload size (500 input + 300 output tokens).
 
-// gemini-2.0-flash — fast, cheap, wide availability. Swap to 2.5-flash once
-// capacity stabilises (2.5 tends to 503 during demand spikes).
-const GEMINI_MODEL = 'gemini-2.0-flash';
+// gemini-2.5-flash — current generation. 2.0-flash is no longer available to
+// new users. Billing must be enabled for production throughput.
+const GEMINI_MODEL = 'gemini-2.5-flash';
 const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 // Retry 503 (overloaded) up to this many times with exponential backoff.
 const GEMINI_MAX_RETRIES = 3;

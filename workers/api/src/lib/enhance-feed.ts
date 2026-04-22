@@ -144,8 +144,9 @@ export async function enhanceFeedData(
       userPrompt,
       responseJsonSchema: INSIGHTS_SCHEMA,
       temperature: 0.2,
-      maxOutputTokens: 1024,
-      timeoutMs: 20_000,
+      maxOutputTokens: 2048, // generous — thinking tokens count against this on 2.5
+      timeoutMs: 25_000,
+      thinkingBudget: 512,   // enable some thinking for better analysis depth
     });
 
     // Validate shape defensively — even with responseSchema, models can misbehave.
