@@ -181,28 +181,82 @@
 <body class="font-sans text-gray-700 antialiased">
 
   <!-- Nav -->
+  <style>
+    .nav-links { display: flex; align-items: center; gap: 20px; }
+    .nav-links a { font-size: 13px; color: #6b7280; font-weight: 500; text-decoration: none; white-space: nowrap; transition: color 0.2s; }
+    .nav-links a:hover { color: #111827; }
+    .nav-actions { display: flex; align-items: center; gap: 10px; }
+    #mobile-menu-btn { display: none; }
+    #mobile-menu { display: none; }
+    @media (max-width: 1024px) {
+      .nav-links { display: none; }
+      #mobile-menu-btn { display: flex; }
+    }
+    #mobile-menu.open { display: flex; }
+    #mobile-menu a, #mobile-menu button { width: 100%; text-align: left; }
+  </style>
   <nav class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100">
-    <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-3">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <!-- Logo -->
+      <a href="#hero" class="flex items-center gap-2.5 shrink-0">
         <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-lg shadow-orange-500/20">
           <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
         </div>
         <span class="font-extrabold text-gray-900 text-lg tracking-tight">Shadow<span class="text-orange-500">Feed</span></span>
+      </a>
+
+      <!-- Desktop nav links -->
+      <div class="nav-links">
+        <a href="#feeds">Feeds</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#try-it">Try It</a>
+        <a href="#activity">Activity</a>
+        <a href="#leaderboard">Leaderboard</a>
+        <a href="/brand.html">Brand</a>
       </div>
-      <div class="flex items-center gap-6">
-        <a href="#feeds" class="text-sm text-gray-500 hover:text-gray-900 transition font-medium">Feeds</a>
-        <a href="#how-it-works" class="text-sm text-gray-500 hover:text-gray-900 transition font-medium">How It Works</a>
-        <a href="#try-it" class="text-sm text-gray-500 hover:text-gray-900 transition font-medium">Try It</a>
-        <a href="#activity" class="text-sm text-gray-500 hover:text-gray-900 transition font-medium">Activity</a>
-        <a href="#leaderboard" class="text-sm text-gray-500 hover:text-gray-900 transition font-medium">Leaderboard</a>
-        <a href="https://hyre.mintlify.app" target="_blank" class="text-sm text-gray-500 hover:text-gray-900 transition font-medium">Docs</a>
-        <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200">
-          <div class="w-2 h-2 rounded-full bg-emerald-500 pulse-dot"></div>
-          <span class="text-xs text-emerald-600 font-semibold" id="network-badge">Mainnet</span>
+
+      <!-- Right actions -->
+      <div class="nav-actions">
+        <div class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200">
+          <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 pulse-dot"></div>
+          <span class="text-[11px] text-emerald-600 font-semibold" id="network-badge">Mainnet</span>
         </div>
-        <button id="wallet-btn" onclick="connectWallet()" class="flex items-center gap-2 px-5 py-2 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold transition shadow-lg shadow-gray-900/10">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        <a href="https://docs.shadowfeed.app" target="_blank" class="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold transition shadow-lg shadow-orange-500/20">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+          Docs
+        </a>
+        <button id="wallet-btn" onclick="connectWallet()" class="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-xs font-semibold transition shadow-lg shadow-gray-900/10">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
           <span id="wallet-btn-text">Connect Wallet</span>
+        </button>
+
+        <!-- Mobile hamburger -->
+        <button id="mobile-menu-btn" onclick="document.getElementById('mobile-menu').classList.toggle('open')" class="items-center justify-center w-9 h-9 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition">
+          <svg class="w-5 h-5 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile menu -->
+    <div id="mobile-menu" class="flex-col gap-1 px-4 pb-4 bg-white border-t border-gray-100 lg:hidden">
+      <a href="#feeds" onclick="document.getElementById('mobile-menu').classList.remove('open')" class="block px-3 py-2.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg font-medium">Feeds</a>
+      <a href="#how-it-works" onclick="document.getElementById('mobile-menu').classList.remove('open')" class="block px-3 py-2.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg font-medium">How It Works</a>
+      <a href="#try-it" onclick="document.getElementById('mobile-menu').classList.remove('open')" class="block px-3 py-2.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg font-medium">Try It</a>
+      <a href="#activity" onclick="document.getElementById('mobile-menu').classList.remove('open')" class="block px-3 py-2.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg font-medium">Activity</a>
+      <a href="#leaderboard" onclick="document.getElementById('mobile-menu').classList.remove('open')" class="block px-3 py-2.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg font-medium">Leaderboard</a>
+      <a href="/brand.html" class="block px-3 py-2.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg font-medium">Brand</a>
+      <div class="border-t border-gray-100 mt-1 pt-2 flex flex-col gap-2">
+        <div class="flex items-center gap-2 px-3 py-1.5">
+          <div class="w-2 h-2 rounded-full bg-emerald-500 pulse-dot"></div>
+          <span class="text-xs text-emerald-600 font-semibold">Mainnet</span>
+        </div>
+        <a href="https://docs.shadowfeed.app" target="_blank" class="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+          Docs
+        </a>
+        <button onclick="connectWallet()" class="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+          Connect Wallet
         </button>
       </div>
     </div>
@@ -237,7 +291,7 @@
       <!-- Stats bar -->
       <div class="flex justify-center gap-12 hero-enter-delay-4">
         <div class="text-center">
-          <div class="text-4xl font-black text-gray-900" id="hero-feeds">3</div>
+          <div class="text-4xl font-black text-gray-900" id="hero-feeds">21</div>
           <div class="text-sm text-gray-400 font-medium mt-1">Live Feeds</div>
         </div>
         <div class="w-px bg-gray-200"></div>
@@ -298,7 +352,14 @@
         <h2 class="text-4xl font-extrabold text-gray-900 mb-4">Available Data Feeds</h2>
         <p class="text-lg text-gray-400">Real-time crypto intelligence — pay only when you need it.</p>
       </div>
+      <!-- Category filter chips -->
+      <div id="feed-filter" class="flex flex-wrap items-center justify-center gap-2 mb-10 reveal"></div>
+
+      <!-- Feed grid -->
       <div class="grid md:grid-cols-3 gap-6 reveal" id="feeds-grid"></div>
+
+      <!-- Show more / less hint -->
+      <div id="feeds-hint" class="mt-10 text-center reveal"></div>
     </div>
   </section>
 
@@ -496,6 +557,70 @@
                 <span class="text-xs font-bold text-orange-600 bg-orange-50 px-2.5 py-1 rounded-full">0.005 STX</span>
               </div>
               <p class="text-xs text-gray-400">Cross-chain bridge volume and flows</p>
+            </button>
+            <button onclick="tryEndpoint('/feeds/smart-money-holdings')" class="w-full text-left p-4 card group">
+              <div class="flex items-center justify-between mb-1">
+                <div class="font-mono text-sm"><span class="text-emerald-600">GET</span> <span class="text-gray-900 font-semibold">/feeds/smart-money-holdings</span></div>
+                <span class="text-xs font-bold text-yellow-600 bg-yellow-50 px-2.5 py-1 rounded-full">0.05 STX</span>
+              </div>
+              <p class="text-xs text-gray-400">Smart money top holdings via Nansen &mdash; premium</p>
+            </button>
+            <button onclick="tryEndpoint('/feeds/stablecoin-flows')" class="w-full text-left p-4 card group">
+              <div class="flex items-center justify-between mb-1">
+                <div class="font-mono text-sm"><span class="text-emerald-600">GET</span> <span class="text-gray-900 font-semibold">/feeds/stablecoin-flows</span></div>
+                <span class="text-xs font-bold text-orange-600 bg-orange-50 px-2.5 py-1 rounded-full">0.005 STX</span>
+              </div>
+              <p class="text-xs text-gray-400">Stablecoin market cap and flow analysis</p>
+            </button>
+            <button onclick="tryEndpoint('/feeds/dev-activity')" class="w-full text-left p-4 card group">
+              <div class="flex items-center justify-between mb-1">
+                <div class="font-mono text-sm"><span class="text-emerald-600">GET</span> <span class="text-gray-900 font-semibold">/feeds/dev-activity</span></div>
+                <span class="text-xs font-bold text-orange-600 bg-orange-50 px-2.5 py-1 rounded-full">0.003 STX</span>
+              </div>
+              <p class="text-xs text-gray-400">Developer activity across Stacks/ETH/Solana repos</p>
+            </button>
+
+            <!-- ALEX Lab Stacks DeFi feeds -->
+            <div class="pt-3 pb-1">
+              <div class="text-xs font-bold uppercase tracking-wider text-fuchsia-600 flex items-center gap-2">
+                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="4"/></svg>
+                ALEX Lab &mdash; Stacks DeFi
+              </div>
+            </div>
+            <button onclick="tryEndpoint('/feeds/alex-price-feed')" class="w-full text-left p-4 card group">
+              <div class="flex items-center justify-between mb-1">
+                <div class="font-mono text-sm"><span class="text-emerald-600">GET</span> <span class="text-gray-900 font-semibold">/feeds/alex-price-feed</span></div>
+                <span class="text-xs font-bold text-fuchsia-600 bg-fuchsia-50 px-2.5 py-1 rounded-full">0.003 STX</span>
+              </div>
+              <p class="text-xs text-gray-400">ALEX token prices across Stacks ecosystem pools</p>
+            </button>
+            <button onclick="tryEndpoint('/feeds/alex-pool-analytics')" class="w-full text-left p-4 card group">
+              <div class="flex items-center justify-between mb-1">
+                <div class="font-mono text-sm"><span class="text-emerald-600">GET</span> <span class="text-gray-900 font-semibold">/feeds/alex-pool-analytics</span></div>
+                <span class="text-xs font-bold text-fuchsia-600 bg-fuchsia-50 px-2.5 py-1 rounded-full">0.005 STX</span>
+              </div>
+              <p class="text-xs text-gray-400">ALEX pool liquidity, APY, volume rankings</p>
+            </button>
+            <button onclick="tryEndpoint('/feeds/alex-tvl-flows')" class="w-full text-left p-4 card group">
+              <div class="flex items-center justify-between mb-1">
+                <div class="font-mono text-sm"><span class="text-emerald-600">GET</span> <span class="text-gray-900 font-semibold">/feeds/alex-tvl-flows</span></div>
+                <span class="text-xs font-bold text-fuchsia-600 bg-fuchsia-50 px-2.5 py-1 rounded-full">0.005 STX</span>
+              </div>
+              <p class="text-xs text-gray-400">ALEX platform TVL and pool concentration</p>
+            </button>
+            <button onclick="tryEndpoint('/feeds/alex-swap-activity')" class="w-full text-left p-4 card group">
+              <div class="flex items-center justify-between mb-1">
+                <div class="font-mono text-sm"><span class="text-emerald-600">GET</span> <span class="text-gray-900 font-semibold">/feeds/alex-swap-activity</span></div>
+                <span class="text-xs font-bold text-fuchsia-600 bg-fuchsia-50 px-2.5 py-1 rounded-full">0.005 STX</span>
+              </div>
+              <p class="text-xs text-gray-400">ALEX swap activity and trending pairs</p>
+            </button>
+            <button onclick="tryEndpoint('/feeds/alex-pairs-overview')" class="w-full text-left p-4 card group">
+              <div class="flex items-center justify-between mb-1">
+                <div class="font-mono text-sm"><span class="text-emerald-600">GET</span> <span class="text-gray-900 font-semibold">/feeds/alex-pairs-overview</span></div>
+                <span class="text-xs font-bold text-fuchsia-600 bg-fuchsia-50 px-2.5 py-1 rounded-full">0.003 STX</span>
+              </div>
+              <p class="text-xs text-gray-400">ALEX trading pairs and token frequency</p>
             </button>
           </div>
         </div>
@@ -824,9 +949,16 @@ console.<span class="text-blue-400">log</span>(data);</pre>
   </footer>
 
   <script>
-    const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-      ? window.location.origin
-      : 'https://api.shadowfeed.app';
+    // API endpoint resolution:
+    // - ?api=local OR ?api=<url> → override via query string (for dev/testing)
+    // - otherwise → always use production API (works from localhost preview too)
+    const API = (() => {
+      const params = new URLSearchParams(window.location.search);
+      const override = params.get('api');
+      if (override === 'local') return window.location.origin;
+      if (override && override.startsWith('http')) return override;
+      return 'https://api.shadowfeed.app';
+    })();
 
     function showTab(tab) {
       ['install', 'server', 'client'].forEach(t => {
@@ -908,42 +1040,170 @@ console.<span class="text-blue-400">log</span>(data);</pre>
       'security-alerts': { icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>', color: 'red' },
       'dev-activity': { icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>', color: 'sky' },
       'bridge-flows': { icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>', color: 'lime' },
+      // ALEX Lab Stacks DeFi feeds
+      'alex-price-feed': { icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>', color: 'fuchsia' },
+      'alex-pool-analytics': { icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>', color: 'fuchsia' },
+      'alex-tvl-flows': { icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/>', color: 'fuchsia' },
+      'alex-swap-activity': { icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>', color: 'fuchsia' },
+      'alex-pairs-overview': { icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>', color: 'fuchsia' },
     };
+
+    // Keep feeds in memory so filter chips can re-render without refetching.
+    let allFeeds = [];
+    let activeCategory = 'all';
+
+    // Display-friendly labels for categories
+    const CATEGORY_LABELS = {
+      'all': 'All',
+      'on-chain': 'On-chain',
+      'social': 'Social',
+      'analytics': 'Analytics',
+      'derivatives': 'Derivatives',
+      'infrastructure': 'Infrastructure',
+      'discovery': 'Discovery',
+      'governance': 'Governance',
+      'security': 'Security',
+      'development': 'Development',
+      'cross-chain': 'Cross-chain',
+      'stacks-defi': 'Stacks DeFi',
+    };
+
+    function renderFeedCard(feed) {
+      const fi = feedIcons[feed.id] || feedIcons['whale-alerts'];
+      const title = feed.id.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      return `
+        <div class="card p-8" id="feed-card-${feed.id}">
+          <div class="flex items-center justify-between mb-5">
+            <div class="w-14 h-14 rounded-2xl bg-${fi.color}-50 flex items-center justify-center">
+              <svg class="w-7 h-7 text-${fi.color}-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">${fi.icon}</svg>
+            </div>
+            <span class="text-2xl font-black text-orange-500">${feed.price_display}</span>
+          </div>
+          <h3 class="text-lg font-bold text-gray-900 mb-2">${title}</h3>
+          <p class="text-sm text-gray-500 mb-5 leading-relaxed">${feed.description}</p>
+          <div class="flex items-center justify-between text-xs text-gray-400">
+            <span class="px-2.5 py-1 bg-gray-100 rounded-full font-medium">${feed.category}</span>
+            <span>${feed.update_frequency}</span>
+          </div>
+          <div class="mt-5 pt-5 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400">
+            <span>${feed.stats.total_queries} queries served</span>
+            <span>${feed.stats.avg_response_ms}ms avg</span>
+          </div>
+          <button onclick="buyFeedData('${feed.id}', ${feed.price_microstx})"
+            class="wallet-buy-btn hidden w-full mt-4 py-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-bold transition shadow-lg flex items-center justify-center gap-2"
+            id="buy-btn-${feed.id}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            Buy Data — ${feed.price_display}
+          </button>
+        </div>`;
+    }
+
+    function renderFilterChips() {
+      const filter = document.getElementById('feed-filter');
+      if (!filter) return;
+
+      // Count feeds per category
+      const counts = allFeeds.reduce((acc, f) => {
+        acc[f.category] = (acc[f.category] || 0) + 1;
+        return acc;
+      }, {});
+
+      // Build chip list: "All" first, then categories sorted by count desc
+      const categories = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+      const chips = [
+        { key: 'all', label: 'All', count: allFeeds.length },
+        ...categories.map(cat => ({
+          key: cat,
+          label: CATEGORY_LABELS[cat] || cat,
+          count: counts[cat],
+        })),
+      ];
+
+      filter.innerHTML = chips.map(chip => {
+        const isActive = activeCategory === chip.key;
+        const baseClasses = 'inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition cursor-pointer border';
+        const activeClasses = 'bg-gray-900 text-white border-gray-900';
+        const inactiveClasses = 'bg-white text-gray-600 border-gray-200 hover:border-orange-300 hover:text-orange-600';
+        return `<button type="button" onclick="filterFeeds('${chip.key}')" class="${baseClasses} ${isActive ? activeClasses : inactiveClasses}">
+          <span>${chip.label}</span>
+          <span class="text-xs font-bold ${isActive ? 'text-orange-300' : 'text-gray-400'}">${chip.count}</span>
+        </button>`;
+      }).join('');
+    }
+
+    // "All" view is intentionally limited to 2 rows (6 cards) as a teaser.
+    // Users click a category chip to see the full list for that category.
+    const ALL_VIEW_LIMIT = 6;
+    let allViewExpanded = false;
+
+    function renderFeedsGrid() {
+      const grid = document.getElementById('feeds-grid');
+      const hint = document.getElementById('feeds-hint');
+      if (!grid) return;
+
+      const filtered = activeCategory === 'all'
+        ? allFeeds
+        : allFeeds.filter(f => f.category === activeCategory);
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '<div class="col-span-3 text-center text-gray-400 py-10 text-sm">No feeds in this category.</div>';
+        if (hint) hint.innerHTML = '';
+        return;
+      }
+
+      const shouldLimit = activeCategory === 'all' && !allViewExpanded;
+      const visible = shouldLimit ? filtered.slice(0, ALL_VIEW_LIMIT) : filtered;
+
+      grid.innerHTML = visible.map(renderFeedCard).join('');
+
+      if (hint) {
+        if (shouldLimit && filtered.length > ALL_VIEW_LIMIT) {
+          const remaining = filtered.length - ALL_VIEW_LIMIT;
+          hint.innerHTML = `<button type="button" onclick="expandAllView()"
+            class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white border border-gray-200 text-sm font-semibold text-gray-700 hover:border-orange-300 hover:text-orange-600 transition shadow-sm">
+            Show all ${filtered.length} feeds
+            <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-orange-50 text-orange-600">+${remaining}</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <p class="text-xs text-gray-400 mt-3">or pick a category above to drill down</p>`;
+        } else if (activeCategory === 'all' && allViewExpanded && filtered.length > ALL_VIEW_LIMIT) {
+          hint.innerHTML = `<button type="button" onclick="collapseAllView()"
+            class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white border border-gray-200 text-sm font-semibold text-gray-700 hover:border-orange-300 hover:text-orange-600 transition shadow-sm">
+            Show less
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+          </button>`;
+        } else {
+          hint.innerHTML = '';
+        }
+      }
+    }
+
+    function expandAllView() {
+      allViewExpanded = true;
+      renderFeedsGrid();
+    }
+
+    function collapseAllView() {
+      allViewExpanded = false;
+      renderFeedsGrid();
+      document.getElementById('feeds')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function filterFeeds(category) {
+      activeCategory = category;
+      allViewExpanded = false; // reset expansion when switching categories
+      renderFilterChips();
+      renderFeedsGrid();
+    }
 
     async function loadFeeds() {
       try {
         const res = await fetch(API + '/registry/feeds');
         const data = await res.json();
-        const grid = document.getElementById('feeds-grid');
-        grid.innerHTML = data.feeds.map(feed => {
-          const fi = feedIcons[feed.id] || feedIcons['whale-alerts'];
-          return `
-            <div class="card p-8" id="feed-card-${feed.id}">
-              <div class="flex items-center justify-between mb-5">
-                <div class="w-14 h-14 rounded-2xl bg-${fi.color}-50 flex items-center justify-center">
-                  <svg class="w-7 h-7 text-${fi.color}-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">${fi.icon}</svg>
-                </div>
-                <span class="text-2xl font-black text-orange-500">${feed.price_display}</span>
-              </div>
-              <h3 class="text-lg font-bold text-gray-900 mb-2">${feed.id.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</h3>
-              <p class="text-sm text-gray-500 mb-5 leading-relaxed">${feed.description}</p>
-              <div class="flex items-center justify-between text-xs text-gray-400">
-                <span class="px-2.5 py-1 bg-gray-100 rounded-full font-medium">${feed.category}</span>
-                <span>${feed.update_frequency}</span>
-              </div>
-              <div class="mt-5 pt-5 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400">
-                <span>${feed.stats.total_queries} queries served</span>
-                <span>${feed.stats.avg_response_ms}ms avg</span>
-              </div>
-              <button onclick="buyFeedData('${feed.id}', ${feed.price_microstx})"
-                class="wallet-buy-btn hidden w-full mt-4 py-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-bold transition shadow-lg flex items-center justify-center gap-2"
-                id="buy-btn-${feed.id}">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                Buy Data — ${feed.price_display}
-              </button>
-            </div>`;
-        }).join('');
-        document.getElementById('hero-feeds').textContent = data.feeds.length;
+        allFeeds = data.feeds || [];
+        renderFilterChips();
+        renderFeedsGrid();
+        document.getElementById('hero-feeds').textContent = allFeeds.length;
         document.getElementById('footer-provider').textContent = data.provider.slice(0, 10) + '...' + data.provider.slice(-6);
       } catch {}
     }
@@ -987,6 +1247,11 @@ console.<span class="text-blue-400">log</span>(data);</pre>
       'security-alerts': { label: 'Security Alerts', color: 'red', emoji: '' },
       'dev-activity': { label: 'Dev Activity', color: 'sky', emoji: '' },
       'bridge-flows': { label: 'Bridge Flows', color: 'lime', emoji: '' },
+      'alex-price-feed': { label: 'ALEX Prices', color: 'fuchsia', emoji: '' },
+      'alex-pool-analytics': { label: 'ALEX Pools', color: 'fuchsia', emoji: '' },
+      'alex-tvl-flows': { label: 'ALEX TVL', color: 'fuchsia', emoji: '' },
+      'alex-swap-activity': { label: 'ALEX Swaps', color: 'fuchsia', emoji: '' },
+      'alex-pairs-overview': { label: 'ALEX Pairs', color: 'fuchsia', emoji: '' },
     };
 
     async function loadActivity() {
@@ -1123,6 +1388,11 @@ console.<span class="text-blue-400">log</span>(data);</pre>
       if (feed === 'security-alerts') return renderSecurityAlerts(data);
       if (feed === 'dev-activity') return renderDevActivity(data);
       if (feed === 'bridge-flows') return renderBridgeFlows(data);
+      if (feed === 'alex-price-feed') return renderAlexPriceFeed(data);
+      if (feed === 'alex-pool-analytics') return renderAlexPoolAnalytics(data);
+      if (feed === 'alex-tvl-flows') return renderAlexTvlFlows(data);
+      if (feed === 'alex-swap-activity') return renderAlexSwapActivity(data);
+      if (feed === 'alex-pairs-overview') return renderAlexPairsOverview(data);
       return '<pre class="text-xs text-gray-500 whitespace-pre-wrap">' + JSON.stringify(data, null, 2) + '</pre>';
     }
 
@@ -1379,21 +1649,225 @@ console.<span class="text-blue-400">log</span>(data);</pre>
       </div>`;
     }
 
+    // ===== ALEX Lab renderers =====
+    function renderAlexPriceFeed(data) {
+      const eco = data.stacks_ecosystem || {};
+      const prices = (data.prices || []).filter(p => p.has_liquidity).slice(0, 10);
+      return `<div class="space-y-4">
+        ${data.summary ? `<div class="grid grid-cols-3 gap-2">
+          <div class="p-3 rounded-xl bg-fuchsia-50 border border-fuchsia-100 text-center"><div class="text-xs text-gray-400">Tokens</div><div class="text-lg font-black text-fuchsia-600">${data.summary.tokens_tracked}</div></div>
+          <div class="p-3 rounded-xl bg-fuchsia-50 border border-fuchsia-100 text-center"><div class="text-xs text-gray-400">With Price</div><div class="text-lg font-black text-fuchsia-600">${data.summary.tokens_with_price}</div></div>
+          <div class="p-3 rounded-xl bg-fuchsia-50 border border-fuchsia-100 text-center"><div class="text-xs text-gray-400">Pools</div><div class="text-lg font-black text-fuchsia-600">${data.summary.pools_analyzed}</div></div>
+        </div>` : ''}
+        ${eco.alex_price_usd !== undefined ? `<div class="p-3 rounded-xl bg-gray-50 border border-gray-100">
+          <div class="text-xs font-bold text-gray-400 uppercase mb-2">Stacks Ecosystem</div>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="flex justify-between"><span class="text-gray-600">ALEX</span><span class="font-bold text-gray-900">$${eco.alex_price_usd.toFixed(6)}</span></div>
+            <div class="flex justify-between"><span class="text-gray-600">STX</span><span class="font-bold text-gray-900">$${eco.stx_price_usd.toFixed(4)}</span></div>
+            <div class="flex justify-between"><span class="text-gray-600">wBTC</span><span class="font-bold text-gray-900">$${eco.wrapped_btc_price_usd.toFixed(2)}</span></div>
+            <div class="flex justify-between"><span class="text-gray-600">wUSD</span><span class="font-bold text-gray-900">$${eco.wrapped_usd_price_usd.toFixed(4)}</span></div>
+          </div>
+        </div>` : ''}
+        ${prices.length ? `<div class="space-y-1">${prices.map(p => `<div class="flex items-center justify-between text-xs py-1.5 border-b border-gray-50">
+          <span class="text-gray-700 font-medium">${p.symbol}</span>
+          <div class="flex gap-3">
+            <span class="text-gray-400">${p.pool_count} pool${p.pool_count !== 1 ? 's' : ''}</span>
+            <span class="font-bold text-gray-900">$${p.price_usd >= 1 ? p.price_usd.toFixed(4) : p.price_usd.toFixed(8)}</span>
+          </div>
+        </div>`).join('')}</div>` : ''}
+      </div>`;
+    }
+
+    function renderAlexPoolAnalytics(data) {
+      const s = data.summary || {};
+      const pools = data.top_pools_by_liquidity || [];
+      return `<div class="space-y-4">
+        <div class="grid grid-cols-2 gap-2">
+          <div class="p-3 rounded-xl bg-fuchsia-50 border border-fuchsia-100 text-center"><div class="text-xs text-gray-400">Active Pools</div><div class="text-lg font-black text-fuchsia-600">${s.active_pools || 0}/${s.total_pools || 0}</div></div>
+          <div class="p-3 rounded-xl bg-fuchsia-50 border border-fuchsia-100 text-center"><div class="text-xs text-gray-400">Total Liquidity</div><div class="text-lg font-black text-fuchsia-600">$${((s.total_liquidity_usd || 0)).toLocaleString()}</div></div>
+        </div>
+        ${s.top_pool ? `<div class="p-3 rounded-xl bg-gray-50 border border-gray-100 text-center"><div class="text-xs text-gray-400">Top Pool</div><div class="text-sm font-bold text-gray-900">${s.top_pool}</div></div>` : ''}
+        ${pools.length ? `<div class="space-y-1"><div class="text-xs font-bold text-gray-400 uppercase mb-1">Top by Liquidity</div>${pools.slice(0, 8).map(p => `<div class="flex items-center justify-between text-xs py-1.5 border-b border-gray-50">
+          <span class="text-gray-700 font-medium">${p.pair}</span>
+          <div class="flex gap-3">
+            <span class="text-gray-500">$${p.liquidity_usd.toLocaleString()}</span>
+            ${p.apy_pct > 0 ? `<span class="text-emerald-600 font-bold">${p.apy_pct.toFixed(2)}% APY</span>` : ''}
+          </div>
+        </div>`).join('')}</div>` : ''}
+      </div>`;
+    }
+
+    function renderAlexTvlFlows(data) {
+      const p = data.platform || {};
+      const dist = data.pool_distribution || {};
+      const pools = data.top_pools_by_tvl || [];
+      return `<div class="space-y-4">
+        <div class="p-4 rounded-xl bg-fuchsia-50 border border-fuchsia-100 text-center">
+          <div class="text-xs text-gray-400">Platform TVL</div>
+          <div class="text-2xl font-black text-fuchsia-600">$${(p.total_tvl_usd || 0).toLocaleString()}</div>
+          <div class="text-xs text-gray-400 mt-1">Block ${p.block_height || '-'}</div>
+        </div>
+        <div class="p-3 rounded-xl bg-gray-50 border border-gray-100">
+          <div class="text-xs font-bold text-gray-400 uppercase mb-2">Concentration</div>
+          <div class="flex justify-between text-xs"><span class="text-gray-600">Top 5 share</span><span class="font-bold text-gray-900">${dist.concentration_top_5_pct || 0}%</span></div>
+          <div class="flex justify-between text-xs"><span class="text-gray-600">Top 10 share</span><span class="font-bold text-gray-900">${dist.concentration_top_10_pct || 0}%</span></div>
+          ${dist.assessment ? `<div class="text-xs text-gray-500 italic mt-2">${dist.assessment}</div>` : ''}
+        </div>
+        ${pools.length ? `<div class="space-y-1">${pools.slice(0, 6).map(p => `<div class="flex items-center justify-between text-xs py-1.5 border-b border-gray-50">
+          <span class="text-gray-700 font-medium">${p.pair}</span>
+          <div class="flex gap-3">
+            <span class="text-gray-500">$${p.tvl.toLocaleString()}</span>
+            <span class="text-fuchsia-600 font-bold">${p.share_pct}%</span>
+          </div>
+        </div>`).join('')}</div>` : ''}
+      </div>`;
+    }
+
+    function renderAlexSwapActivity(data) {
+      const s = data.summary || {};
+      const trending = data.trending_pairs || [];
+      const dist = data.volume_distribution || {};
+      return `<div class="space-y-4">
+        <div class="grid grid-cols-2 gap-2">
+          <div class="p-3 rounded-xl bg-fuchsia-50 border border-fuchsia-100 text-center"><div class="text-xs text-gray-400">Volume 24h</div><div class="text-lg font-black text-fuchsia-600">$${(s.total_volume_usd || 0).toLocaleString()}</div></div>
+          <div class="p-3 rounded-xl bg-fuchsia-50 border border-fuchsia-100 text-center"><div class="text-xs text-gray-400">Active Pools</div><div class="text-lg font-black text-fuchsia-600">${s.active_pools || 0}</div></div>
+        </div>
+        <div class="p-3 rounded-xl bg-gray-50 border border-gray-100">
+          <div class="text-xs font-bold text-gray-400 uppercase mb-2">Volume Distribution</div>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="flex justify-between"><span class="text-gray-600">&gt;$10k</span><span class="font-bold text-emerald-600">${dist.over_10k_usd || 0}</span></div>
+            <div class="flex justify-between"><span class="text-gray-600">$1k-$10k</span><span class="font-bold text-amber-600">${dist.between_1k_10k_usd || 0}</span></div>
+            <div class="flex justify-between"><span class="text-gray-600">&lt;$1k</span><span class="font-bold text-gray-600">${dist.under_1k_usd || 0}</span></div>
+            <div class="flex justify-between"><span class="text-gray-600">Zero</span><span class="font-bold text-gray-400">${dist.zero_volume || 0}</span></div>
+          </div>
+        </div>
+        ${trending.length ? `<div class="space-y-1"><div class="text-xs font-bold text-gray-400 uppercase mb-1">Trending Pairs</div>${trending.slice(0, 6).map(t => {
+          const sig = t.signal || 'inactive';
+          const sigColor = sig === 'high_activity' ? 'text-emerald-600 bg-emerald-50' : sig === 'moderate_activity' ? 'text-amber-600 bg-amber-50' : sig === 'light_activity' ? 'text-sky-600 bg-sky-50' : 'text-gray-500 bg-gray-50';
+          return `<div class="flex items-center justify-between text-xs py-1.5 border-b border-gray-50">
+            <span class="text-gray-700 font-medium">${t.pair}</span>
+            <div class="flex gap-2">
+              <span class="text-gray-500">$${t.volume_usd.toLocaleString()}</span>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${sigColor}">${sig.replace('_', ' ')}</span>
+            </div>
+          </div>`;
+        }).join('')}</div>` : ''}
+      </div>`;
+    }
+
+    function renderAlexPairsOverview(data) {
+      const s = data.summary || {};
+      const tokens = data.token_frequency || [];
+      const traded = data.most_traded_pairs || [];
+      return `<div class="space-y-4">
+        <div class="grid grid-cols-3 gap-2">
+          <div class="p-3 rounded-xl bg-fuchsia-50 border border-fuchsia-100 text-center"><div class="text-xs text-gray-400">Pairs</div><div class="text-lg font-black text-fuchsia-600">${s.total_pairs || 0}</div></div>
+          <div class="p-3 rounded-xl bg-fuchsia-50 border border-fuchsia-100 text-center"><div class="text-xs text-gray-400">With Vol</div><div class="text-lg font-black text-fuchsia-600">${s.pairs_with_volume || 0}</div></div>
+          <div class="p-3 rounded-xl bg-fuchsia-50 border border-fuchsia-100 text-center"><div class="text-xs text-gray-400">With Price</div><div class="text-lg font-black text-fuchsia-600">${s.pairs_with_price || 0}</div></div>
+        </div>
+        ${tokens.length ? `<div class="p-3 rounded-xl bg-gray-50 border border-gray-100">
+          <div class="text-xs font-bold text-gray-400 uppercase mb-2">Token Frequency</div>
+          <div class="flex flex-wrap gap-1.5">${tokens.slice(0, 12).map(t => `<span class="px-2.5 py-1 bg-white border border-gray-200 rounded-full text-xs"><span class="font-bold text-gray-900">${t.symbol}</span> <span class="text-gray-400">${t.pair_count}</span></span>`).join('')}</div>
+        </div>` : ''}
+        ${traded.length ? `<div class="space-y-1"><div class="text-xs font-bold text-gray-400 uppercase mb-1">Most Traded</div>${traded.slice(0, 6).map(p => `<div class="flex items-center justify-between text-xs py-1.5 border-b border-gray-50">
+          <span class="text-gray-700 font-medium">${p.pair}</span>
+          <span class="text-gray-500">Vol: ${(p.base_volume + p.target_volume).toFixed(2)}</span>
+        </div>`).join('')}</div>` : ''}
+      </div>`;
+    }
+
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDataModal(); });
 
     // ===== WALLET CONNECT =====
     let walletAddress = null;
     let walletProvider = null;
 
+    // Debug helper — run `_walletDebug()` in devtools console to inspect wallet state
+    window._walletDebug = function() {
+      const state = {
+        'window.LeatherProvider': !!window.LeatherProvider,
+        'window.StacksProvider': !!window.StacksProvider,
+        'window.XverseProviders': !!window.XverseProviders,
+        'window.XverseProviders.StacksProvider': !!window.XverseProviders?.StacksProvider,
+        'walletAddress': walletAddress,
+        'walletProvider name': walletProvider?.name || null,
+        'pageOrigin': window.location.origin,
+        'isSecureContext': window.isSecureContext,
+      };
+      console.table(state);
+      console.log('Raw providers:', {
+        LeatherProvider: window.LeatherProvider,
+        StacksProvider: window.StacksProvider,
+        XverseProviders: window.XverseProviders,
+      });
+      return state;
+    };
+
+    // Manual test — run `_walletTest()` in devtools console to trigger popup without UI
+    window._walletTest = async function() {
+      const wp = window.LeatherProvider || window.StacksProvider || window.XverseProviders?.StacksProvider;
+      if (!wp) { console.error('No wallet provider found'); return; }
+      console.log('Testing wallet request directly...');
+      try {
+        const resp = await wp.request('getAddresses');
+        console.log('✅ Direct test succeeded:', resp);
+        return resp;
+      } catch (err) {
+        console.error('❌ Direct test failed:', err);
+        return err;
+      }
+    };
+
+    // Pick the first available Stacks wallet provider.
+    // Order matches what used to work before — Leather dedicated namespace wins,
+    // then falls through to the shared StacksProvider. We also peek at Xverse's
+    // dedicated namespace last because it sometimes loses the StacksProvider race.
     function getWalletProvider() {
       if (window.LeatherProvider) return { provider: window.LeatherProvider, name: 'Leather' };
       if (window.StacksProvider) return { provider: window.StacksProvider, name: 'Stacks Wallet' };
+      if (window.XverseProviders?.StacksProvider) return { provider: window.XverseProviders.StacksProvider, name: 'Xverse' };
       return null;
+    }
+
+    // Pick the Stacks (STX) address from a wallet's address list.
+    // Handles both testnet (ST...) and mainnet (SP...) + varying provider shapes.
+    function pickStxAddress(addresses) {
+      if (!Array.isArray(addresses) || addresses.length === 0) return null;
+      // 1. Match by explicit symbol/type (most reliable)
+      const bySymbol = addresses.find(a =>
+        a?.symbol === 'STX' ||
+        a?.type === 'stx' ||
+        a?.type === 'stacks' ||
+        a?.chain === 'stacks'
+      );
+      if (bySymbol?.address) return bySymbol;
+      // 2. Match by address prefix: SP (mainnet) or ST (testnet)
+      const byPrefix = addresses.find(a => {
+        const addr = a?.address;
+        return typeof addr === 'string' && (addr.startsWith('SP') || addr.startsWith('ST'));
+      });
+      if (byPrefix?.address) return byPrefix;
+      // 3. Last resort: first address with a non-btc-looking prefix
+      const nonBtc = addresses.find(a => {
+        const addr = a?.address;
+        return typeof addr === 'string' && !addr.startsWith('bc1') && !addr.startsWith('tb1') && !addr.startsWith('1') && !addr.startsWith('3');
+      });
+      return nonBtc || null;
+    }
+
+    // Race a promise against a timeout so UI never hangs forever.
+    function withTimeout(promise, ms, label) {
+      return Promise.race([
+        promise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error(`${label} timed out after ${ms / 1000}s — wallet popup may be blocked`)), ms)),
+      ]);
     }
 
     async function connectWallet() {
       const btn = document.getElementById('wallet-btn');
       const btnText = document.getElementById('wallet-btn-text');
+
+      // Toggle disconnect if already connected
       if (walletAddress) {
         walletAddress = null; walletProvider = null;
         btnText.textContent = 'Connect Wallet';
@@ -1401,20 +1875,39 @@ console.<span class="text-blue-400">log</span>(data);</pre>
         document.querySelectorAll('.wallet-buy-btn').forEach(b => b.classList.add('hidden'));
         return;
       }
+
       const wp = getWalletProvider();
       if (!wp) { showWalletModal(); return; }
       btnText.textContent = 'Connecting...';
+
       try {
-        let addresses;
+        let addresses = [];
         if (wp.provider.request) {
-          const resp = await wp.provider.request('getAddresses');
+          const resp = await withTimeout(
+            wp.provider.request('getAddresses'),
+            30_000,
+            'Wallet connection'
+          );
           addresses = resp?.result?.addresses || resp?.addresses || [];
         } else if (wp.provider.connect) {
-          const resp = await wp.provider.connect();
+          const resp = await withTimeout(
+            wp.provider.connect(),
+            30_000,
+            'Wallet connection'
+          );
           addresses = resp?.addresses || [];
+        } else {
+          throw new Error(`${wp.name} provider has no request() or connect() method`);
         }
-        const stxAddr = addresses.find(a => (a.symbol === 'STX' || a.type === 'stacks') && a.address?.startsWith('ST')) || addresses.find(a => a.address?.startsWith('ST')) || addresses[0];
-        if (!stxAddr?.address) { btnText.textContent = 'Connect Wallet'; alert('Could not get STX address.'); return; }
+
+        const stxAddr = pickStxAddress(addresses);
+        if (!stxAddr?.address) {
+          btnText.textContent = 'Connect Wallet';
+          console.warn('[wallet] No STX address in response:', addresses);
+          alert('Could not find a Stacks address in your wallet response. Make sure your wallet has a Stacks account.');
+          return;
+        }
+
         walletAddress = stxAddr.address;
         walletProvider = wp;
         btnText.textContent = walletAddress.slice(0, 6) + '...' + walletAddress.slice(-4);
@@ -1422,8 +1915,14 @@ console.<span class="text-blue-400">log</span>(data);</pre>
         document.querySelectorAll('.wallet-buy-btn').forEach(b => b.classList.remove('hidden'));
       } catch (err) {
         btnText.textContent = 'Connect Wallet';
-        if (!(err.code === 4001 || err.message?.includes('denied') || err.message?.includes('cancel'))) {
-          alert('Wallet connection failed: ' + (err.message || 'Unknown error'));
+        const isUserCancel = err?.code === 4001 ||
+          /denied|cancel|reject/i.test(err?.message || '');
+        const isTimeout = /timed out/i.test(err?.message || '');
+        if (!isUserCancel) {
+          console.error('[wallet] Connection error:', err);
+          alert(isTimeout
+            ? `${err.message}\n\nTry:\n  1. Check if the wallet popup is hidden behind the browser\n  2. Unlock your wallet extension\n  3. Reload the page and try again`
+            : 'Wallet connection failed: ' + (err?.message || 'Unknown error'));
         }
       }
     }
@@ -1461,6 +1960,10 @@ console.<span class="text-blue-400">log</span>(data);</pre>
       'liquidation-alerts': { micro: 8000, stx: 0.008 }, 'gas-prediction': { micro: 3000, stx: 0.003 }, 'token-launches': { micro: 5000, stx: 0.005 },
       'governance': { micro: 5000, stx: 0.005 }, 'stablecoin-flows': { micro: 5000, stx: 0.005 }, 'security-alerts': { micro: 5000, stx: 0.005 },
       'dev-activity': { micro: 3000, stx: 0.003 }, 'bridge-flows': { micro: 5000, stx: 0.005 },
+      // ALEX Lab Stacks DeFi feeds
+      'alex-price-feed': { micro: 3000, stx: 0.003 }, 'alex-pool-analytics': { micro: 5000, stx: 0.005 },
+      'alex-tvl-flows': { micro: 5000, stx: 0.005 }, 'alex-swap-activity': { micro: 5000, stx: 0.005 },
+      'alex-pairs-overview': { micro: 3000, stx: 0.003 },
     };
 
     async function buyFeedData(feedId, priceMicro) {
