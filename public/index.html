@@ -1442,28 +1442,84 @@ console.<span class="text-blue-400">log</span>(data);</pre>
     }
 
     function renderSentiment(data) {
-      const fgValue = data.fear_greed_index || 50;
+      const fgValue = data.fear_greed?.value ?? 50;
+      const fgClass = data.fear_greed?.classification ?? 'unknown';
       const fgColor = fgValue >= 70 ? 'text-emerald-600' : fgValue >= 40 ? 'text-amber-600' : 'text-red-600';
       const fgBg = fgValue >= 70 ? 'bg-emerald-500' : fgValue >= 40 ? 'bg-amber-500' : 'bg-red-500';
+
+      const btc = data.btc_market || {};
+      const global = data.global_market || {};
+      const vol = data.volatility || {};
+      const sources = data.data_sources || [];
+
+      const volColors = { low: 'text-emerald-600', normal: 'text-gray-700', elevated: 'text-amber-600', extreme: 'text-red-600' };
+      const volLevel = vol.level || 'normal';
+
+      const fmtUsd = (n) => {
+        if (!n) return '-';
+        if (n >= 1e12) return '$' + (n / 1e12).toFixed(2) + 'T';
+        if (n >= 1e9) return '$' + (n / 1e9).toFixed(2) + 'B';
+        if (n >= 1e6) return '$' + (n / 1e6).toFixed(2) + 'M';
+        return '$' + n.toLocaleString();
+      };
+
       return `<div class="space-y-4">
-        ${data.btc_price_usd ? `<div class="flex items-center gap-4 mb-2">
-          <div><span class="text-gray-400 text-xs">BTC Price</span><div class="text-gray-900 font-black text-lg">$${data.btc_price_usd.toLocaleString()}</div></div>
-          ${data.btc_24h_change !== undefined ? `<div><span class="text-gray-400 text-xs">24h</span><div class="font-black text-lg ${data.btc_24h_change >= 0 ? 'text-emerald-600' : 'text-red-600'}">${data.btc_24h_change >= 0 ? '+' : ''}${data.btc_24h_change}%</div></div>` : ''}</div>` : ''}
+        ${btc.price_usd ? `<div class="flex items-center gap-4 mb-2">
+          <div><span class="text-gray-400 text-xs">BTC Price</span><div class="text-gray-900 font-black text-lg">$${btc.price_usd.toLocaleString()}</div></div>
+          ${btc.change_24h_pct !== undefined ? `<div><span class="text-gray-400 text-xs">24h</span><div class="font-black text-lg ${btc.change_24h_pct >= 0 ? 'text-emerald-600' : 'text-red-600'}">${btc.change_24h_pct >= 0 ? '+' : ''}${btc.change_24h_pct}%</div></div>` : ''}
+          ${btc.dominance_pct ? `<div><span class="text-gray-400 text-xs">BTC.D</span><div class="font-black text-lg text-gray-900">${btc.dominance_pct}%</div></div>` : ''}
+        </div>` : ''}
+
         <div class="p-4 rounded-xl bg-gray-50 border border-gray-100 text-center">
           <div class="text-xs text-gray-400 mb-2">Fear & Greed Index</div>
           <div class="text-4xl font-black ${fgColor} mb-2">${fgValue}</div>
           <div class="w-full bg-gray-200 rounded-full h-3 mb-2"><div class="${fgBg} h-3 rounded-full" style="width: ${fgValue}%"></div></div>
-          <div class="text-sm font-bold text-gray-900">${(data.overall_label || 'neutral').replace(/_/g, ' ').toUpperCase()}</div>
+          <div class="text-sm font-bold text-gray-900">${fgClass.toUpperCase()}</div>
         </div>
+
         <div class="grid grid-cols-2 gap-3">
-          <div class="p-3 rounded-xl bg-gray-50 border border-gray-100 text-center"><div class="text-xs text-gray-400">Market Trend</div><div class="text-sm font-bold ${data.market_trend === 'bullish' ? 'text-emerald-600' : data.market_trend === 'bearish' ? 'text-red-600' : 'text-amber-600'}">${(data.market_trend || 'N/A').toUpperCase()}</div></div>
-          <div class="p-3 rounded-xl bg-gray-50 border border-gray-100 text-center"><div class="text-xs text-gray-400">BTC Dominance</div><div class="text-sm font-bold text-gray-900">${data.btc_dominance || 'N/A'}%</div></div>
+          <div class="p-3 rounded-xl bg-gray-50 border border-gray-100 text-center">
+            <div class="text-xs text-gray-400">Overall Score</div>
+            <div class="text-sm font-bold ${data.overall_score > 0 ? 'text-emerald-600' : data.overall_score < 0 ? 'text-red-600' : 'text-gray-700'}">${data.overall_score > 0 ? '+' : ''}${data.overall_score} (${(data.overall_label || '').replace(/_/g, ' ')})</div>
+          </div>
+          <div class="p-3 rounded-xl bg-gray-50 border border-gray-100 text-center">
+            <div class="text-xs text-gray-400">Market Trend</div>
+            <div class="text-sm font-bold ${data.market_trend === 'bullish' ? 'text-emerald-600' : data.market_trend === 'bearish' ? 'text-red-600' : 'text-amber-600'}">${(data.market_trend || 'N/A').toUpperCase()}</div>
+          </div>
         </div>
-        <div class="space-y-2"><h4 class="text-xs font-bold text-gray-400 uppercase">Source Scores</h4>
-          ${['twitter', 'reddit', 'news'].map(s => { const src = data.sources?.[s]; if (!src) return '';
-            return `<div class="p-3 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-between"><span class="text-sm text-gray-700 capitalize font-medium">${s}</span><span class="text-sm font-bold ${src.score > 0 ? 'text-emerald-600' : src.score < 0 ? 'text-red-600' : 'text-gray-400'}">${src.score > 0 ? '+' : ''}${src.score}</span></div>`;
-          }).join('')}</div>
-        ${data.sources?.news?.headlines ? `<div class="space-y-1"><h4 class="text-xs font-bold text-gray-400 uppercase">Headlines</h4>${data.sources.news.headlines.map(h => `<p class="text-xs text-gray-500 pl-3 border-l-2 border-gray-200">${h}</p>`).join('')}</div>` : ''}
+
+        ${(btc.high_24h_usd || btc.low_24h_usd) ? `
+          <div class="p-3 rounded-xl bg-gray-50 border border-gray-100">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-gray-400 uppercase">24h Range</span>
+              <span class="text-xs font-bold ${volColors[volLevel] || 'text-gray-600'}">${volLevel.toUpperCase()} · ${vol.range_24h_pct ?? '-'}%</span>
+            </div>
+            <div class="flex justify-between text-xs">
+              <div><span class="text-gray-400">Low:</span> <span class="font-bold text-red-600">$${(btc.low_24h_usd || 0).toLocaleString()}</span></div>
+              <div><span class="text-gray-400">High:</span> <span class="font-bold text-emerald-600">$${(btc.high_24h_usd || 0).toLocaleString()}</span></div>
+            </div>
+            ${btc.volume_24h_usd ? `<div class="text-xs text-gray-500 mt-2">Volume 24h: <span class="font-bold text-gray-700">${fmtUsd(btc.volume_24h_usd)}</span></div>` : ''}
+          </div>
+        ` : ''}
+
+        ${global.total_market_cap_usd ? `
+          <div class="p-3 rounded-xl bg-gray-50 border border-gray-100">
+            <div class="text-xs font-bold text-gray-400 uppercase mb-2">Global Crypto Market</div>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <div><span class="text-gray-400">Total Cap:</span> <span class="font-bold text-gray-900">${fmtUsd(global.total_market_cap_usd)}</span></div>
+              <div><span class="text-gray-400">24h Chg:</span> <span class="font-bold ${global.market_cap_change_24h_pct >= 0 ? 'text-emerald-600' : 'text-red-600'}">${global.market_cap_change_24h_pct >= 0 ? '+' : ''}${global.market_cap_change_24h_pct}%</span></div>
+              <div><span class="text-gray-400">24h Vol:</span> <span class="font-bold text-gray-900">${fmtUsd(global.total_volume_24h_usd)}</span></div>
+              <div><span class="text-gray-400">Active Coins:</span> <span class="font-bold text-gray-900">${global.active_cryptocurrencies?.toLocaleString() ?? '-'}</span></div>
+            </div>
+          </div>
+        ` : ''}
+
+        ${sources.length > 0 ? `
+          <div class="pt-2 border-t border-gray-100">
+            <div class="text-[10px] text-gray-400 uppercase tracking-wider mb-1">Data Sources</div>
+            <div class="flex flex-wrap gap-1">${sources.map(s => `<span class="px-2 py-0.5 rounded-full bg-gray-100 text-[10px] text-gray-600">${s}</span>`).join('')}</div>
+          </div>
+        ` : ''}
       </div>`;
     }
 
