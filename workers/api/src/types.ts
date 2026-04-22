@@ -8,6 +8,7 @@ export interface Env {
   NANSEN_API_KEY: string;
   HIRO_API_KEY?: string;
   DEMO_MODE?: string;
+  GEMINI_API_KEY?: string;
 }
 
 export interface QueryRow {

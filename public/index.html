@@ -1068,9 +1068,16 @@ console.<span class="text-blue-400">log</span>(data);</pre>
       'stacks-defi': 'Stacks DeFi',
     };
 
+    // Compute enhanced (AI) price display: 3x base price (matches backend ENHANCE_PRICE_MULTIPLIER)
+    function enhancedPriceDisplay(basePriceStx) {
+      const enhancedStx = Math.round(basePriceStx * 3 * 1000) / 1000;
+      return `${enhancedStx} STX`;
+    }
+
     function renderFeedCard(feed) {
       const fi = feedIcons[feed.id] || feedIcons['whale-alerts'];
       const title = feed.id.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      const enhancedPrice = enhancedPriceDisplay(feed.price_stx);
       return `
         <div class="card p-8" id="feed-card-${feed.id}">
           <div class="flex items-center justify-between mb-5">
@@ -1089,12 +1096,21 @@ console.<span class="text-blue-400">log</span>(data);</pre>
             <span>${feed.stats.total_queries} queries served</span>
             <span>${feed.stats.avg_response_ms}ms avg</span>
           </div>
-          <button onclick="buyFeedData('${feed.id}', ${feed.price_microstx})"
-            class="wallet-buy-btn hidden w-full mt-4 py-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-bold transition shadow-lg flex items-center justify-center gap-2"
-            id="buy-btn-${feed.id}">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-            Buy Data — ${feed.price_display}
-          </button>
+          <div class="wallet-buy-btn hidden mt-4 space-y-2">
+            <button onclick="buyFeedData('${feed.id}', ${feed.price_microstx}, false)"
+              class="w-full py-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-bold transition shadow-lg flex items-center justify-center gap-2"
+              id="buy-btn-${feed.id}">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              Buy Raw — ${feed.price_display}
+            </button>
+            <button onclick="buyFeedData('${feed.id}', ${feed.price_microstx}, true)"
+              class="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-700 hover:to-fuchsia-700 text-white text-sm font-bold transition shadow-lg flex items-center justify-center gap-2"
+              id="buy-enhanced-btn-${feed.id}"
+              title="Raw data + AI-generated insights, signal, and TL;DR via Gemini">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              ✨ Buy + AI Insights — ${enhancedPrice}
+            </button>
+          </div>
         </div>`;
     }
 
@@ -1156,6 +1172,12 @@ console.<span class="text-blue-400">log</span>(data);</pre>
 
       grid.innerHTML = visible.map(renderFeedCard).join('');
 
+      // Buy buttons render hidden by default; un-hide them when wallet is
+      // already connected (including after filter / category change / reload).
+      if (walletAddress) {
+        grid.querySelectorAll('.wallet-buy-btn').forEach(b => b.classList.remove('hidden'));
+      }
+
       if (hint) {
         if (shouldLimit && filtered.length > ALL_VIEW_LIMIT) {
           const remaining = filtered.length - ALL_VIEW_LIMIT;
@@ -1205,6 +1227,11 @@ console.<span class="text-blue-400">log</span>(data);</pre>
         renderFeedsGrid();
         document.getElementById('hero-feeds').textContent = allFeeds.length;
         document.getElementById('footer-provider').textContent = data.provider.slice(0, 10) + '...' + data.provider.slice(-6);
+
+        // Feeds are rendered — now restore connected-wallet UI from localStorage
+        // (nav button + un-hidden buy buttons). This is idempotent: calling it
+        // again is harmless if state was already restored.
+        restoreWalletFromStorage();
       } catch {}
     }
 
@@ -1782,6 +1809,46 @@ console.<span class="text-blue-400">log</span>(data);</pre>
     let walletAddress = null;
     let walletProvider = null;
 
+    // Persist wallet state across page reloads. We only store the address +
+    // wallet type — signing flows still go through the live provider each time,
+    // so no sensitive keys ever leave the wallet extension.
+    const WALLET_STORAGE_KEY = 'shadowfeed.wallet';
+
+    function saveWalletState(address, name, type) {
+      try {
+        localStorage.setItem(WALLET_STORAGE_KEY, JSON.stringify({ address, name, type, ts: Date.now() }));
+      } catch {}
+    }
+
+    function loadWalletState() {
+      try {
+        const raw = localStorage.getItem(WALLET_STORAGE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed?.address || !parsed?.type) return null;
+        return parsed;
+      } catch { return null; }
+    }
+
+    function clearWalletState() {
+      try { localStorage.removeItem(WALLET_STORAGE_KEY); } catch {}
+    }
+
+    // Restore connected-wallet UI from localStorage on page load.
+    // Buttons become clickable optimistically; actual signing still requires
+    // the wallet extension to approve each transaction.
+    function restoreWalletFromStorage() {
+      const saved = loadWalletState();
+      if (!saved) return;
+      walletAddress = saved.address;
+      walletProvider = { name: saved.name, type: saved.type };
+      const btn = document.getElementById('wallet-btn');
+      const btnText = document.getElementById('wallet-btn-text');
+      if (btnText) btnText.textContent = walletAddress.slice(0, 6) + '...' + walletAddress.slice(-4);
+      if (btn) btn.className = 'flex items-center gap-2 px-5 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold transition border border-gray-200';
+      document.querySelectorAll('.wallet-buy-btn').forEach(b => b.classList.remove('hidden'));
+    }
+
     // Debug helper — run `_walletDebug()` in devtools console to inspect wallet state
     window._walletDebug = function() {
       const state = {
@@ -1818,27 +1885,92 @@ console.<span class="text-blue-400">log</span>(data);</pre>
       }
     };
 
-    // Pick the first available Stacks wallet provider.
-    // Order matches what used to work before — Leather dedicated namespace wins,
-    // then falls through to the shared StacksProvider. We also peek at Xverse's
-    // dedicated namespace last because it sometimes loses the StacksProvider race.
-    function getWalletProvider() {
-      if (window.LeatherProvider) return { provider: window.LeatherProvider, name: 'Leather' };
-      if (window.StacksProvider) return { provider: window.StacksProvider, name: 'Stacks Wallet' };
-      if (window.XverseProviders?.StacksProvider) return { provider: window.XverseProviders.StacksProvider, name: 'Xverse' };
+    // Wallet detection. Leather exposes a dedicated `window.LeatherProvider`
+    // with a working `request()` method. Xverse's `window.StacksProvider.request`
+    // is a stub that always throws "request function is not implemented" — we
+    // must use the sats-connect library (dynamically loaded) to talk to Xverse.
+    function detectWalletType() {
+      if (window.LeatherProvider?.request) return 'leather';
+      // Xverse sets window.StacksProvider (sometimes winning a race with Leather)
+      // and also window.XverseProviders.StacksProvider. Either present → Xverse.
+      if (window.XverseProviders?.StacksProvider) return 'xverse';
+      if (window.StacksProvider) return 'xverse'; // assume Xverse (Leather's provider already handled above)
       return null;
     }
 
+    // Cached sats-connect module promise so we only load it once per session.
+    let _satsConnectPromise = null;
+    function loadSatsConnect() {
+      if (!_satsConnectPromise) {
+        _satsConnectPromise = import('https://esm.sh/sats-connect@3.5.0').catch(err => {
+          _satsConnectPromise = null; // allow retry on next call
+          throw new Error('Failed to load sats-connect: ' + err.message);
+        });
+      }
+      return _satsConnectPromise;
+    }
+
+    // Get Stacks addresses from whichever wallet the user has installed.
+    // Returns: { name: 'Leather'|'Xverse', addresses: [{ address, ... }] }
+    async function getStacksAddresses() {
+      const walletType = detectWalletType();
+      if (!walletType) {
+        throw new Error('NO_WALLET');
+      }
+
+      if (walletType === 'leather') {
+        const resp = await withTimeout(
+          window.LeatherProvider.request('getAddresses'),
+          30_000,
+          'Leather connection'
+        );
+        const addresses = resp?.result?.addresses || resp?.addresses || [];
+        return { name: 'Leather', addresses };
+      }
+
+      // walletType === 'xverse' → use sats-connect with the correct Xverse method
+      // Xverse docs: https://docs.xverse.app/sats-connect/stacks-methods/stx_getaccounts
+      //   import { request } from "sats-connect";
+      //   await request("stx_getAccounts", {})
+      // Response: { status: 'success', result: [{ address, publicKey, network, ... }] }
+      const mod = await loadSatsConnect();
+      const request = mod.request || mod.default?.request;
+      if (typeof request !== 'function') {
+        throw new Error('sats-connect module loaded but request() is missing');
+      }
+
+      const resp = await withTimeout(
+        request('stx_getAccounts', {}),
+        60_000,
+        'Xverse connection'
+      );
+
+      if (resp?.status !== 'success') {
+        throw new Error(resp?.error?.message || 'Xverse returned an error');
+      }
+      // Xverse returns `result` as an array of accounts directly (not wrapped in .addresses)
+      const result = resp?.result;
+      const addresses = Array.isArray(result)
+        ? result
+        : (result?.addresses || []);
+      return { name: 'Xverse', addresses };
+    }
+
     // Pick the Stacks (STX) address from a wallet's address list.
-    // Handles both testnet (ST...) and mainnet (SP...) + varying provider shapes.
+    // Handles different response shapes:
+    //   Leather `getAddresses`: [{ symbol: 'BTC'|'STX', address, type, publicKey, ... }]
+    //   Xverse  `stx_getAccounts`: [{ address, publicKey, network, gaiaHubUrl, gaiaAppKey }]
+    //     (already filtered to Stacks accounts by the method name)
     function pickStxAddress(addresses) {
       if (!Array.isArray(addresses) || addresses.length === 0) return null;
-      // 1. Match by explicit symbol/type (most reliable)
+      // 1. Match by explicit symbol (Leather-style)
       const bySymbol = addresses.find(a =>
         a?.symbol === 'STX' ||
         a?.type === 'stx' ||
         a?.type === 'stacks' ||
-        a?.chain === 'stacks'
+        a?.chain === 'stacks' ||
+        a?.addressType === 'stacks' ||
+        a?.addressType === 'stx'
       );
       if (bySymbol?.address) return bySymbol;
       // 2. Match by address prefix: SP (mainnet) or ST (testnet)
@@ -1847,7 +1979,12 @@ console.<span class="text-blue-400">log</span>(data);</pre>
         return typeof addr === 'string' && (addr.startsWith('SP') || addr.startsWith('ST'));
       });
       if (byPrefix?.address) return byPrefix;
-      // 3. Last resort: first address with a non-btc-looking prefix
+      // 3. Xverse stx_getAccounts fallback: gaiaHubUrl is a Stacks-specific marker
+      const byStacksMarker = addresses.find(a =>
+        a?.gaiaHubUrl !== undefined || a?.gaiaAppKey !== undefined
+      );
+      if (byStacksMarker?.address) return byStacksMarker;
+      // 4. Last resort: first non-btc-looking address
       const nonBtc = addresses.find(a => {
         const addr = a?.address;
         return typeof addr === 'string' && !addr.startsWith('bc1') && !addr.startsWith('tb1') && !addr.startsWith('1') && !addr.startsWith('3');
@@ -1870,35 +2007,17 @@ console.<span class="text-blue-400">log</span>(data);</pre>
       // Toggle disconnect if already connected
       if (walletAddress) {
         walletAddress = null; walletProvider = null;
+        clearWalletState();
         btnText.textContent = 'Connect Wallet';
         btn.className = 'flex items-center gap-2 px-5 py-2 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold transition shadow-lg shadow-gray-900/10';
         document.querySelectorAll('.wallet-buy-btn').forEach(b => b.classList.add('hidden'));
         return;
       }
 
-      const wp = getWalletProvider();
-      if (!wp) { showWalletModal(); return; }
       btnText.textContent = 'Connecting...';
 
       try {
-        let addresses = [];
-        if (wp.provider.request) {
-          const resp = await withTimeout(
-            wp.provider.request('getAddresses'),
-            30_000,
-            'Wallet connection'
-          );
-          addresses = resp?.result?.addresses || resp?.addresses || [];
-        } else if (wp.provider.connect) {
-          const resp = await withTimeout(
-            wp.provider.connect(),
-            30_000,
-            'Wallet connection'
-          );
-          addresses = resp?.addresses || [];
-        } else {
-          throw new Error(`${wp.name} provider has no request() or connect() method`);
-        }
+        const { name, addresses } = await getStacksAddresses();
 
         const stxAddr = pickStxAddress(addresses);
         if (!stxAddr?.address) {
@@ -1909,11 +2028,17 @@ console.<span class="text-blue-400">log</span>(data);</pre>
         }
 
         walletAddress = stxAddr.address;
-        walletProvider = wp;
+        // Keep provider object for signing flows (buyFeedData).
+        // Leather: direct `window.LeatherProvider` usage.
+        // Xverse: sats-connect library handles signing too.
+        const walletType = name === 'Leather' ? 'leather' : 'xverse';
+        walletProvider = { name, type: walletType };
+        saveWalletState(walletAddress, name, walletType);
         btnText.textContent = walletAddress.slice(0, 6) + '...' + walletAddress.slice(-4);
         btn.className = 'flex items-center gap-2 px-5 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold transition border border-gray-200';
         document.querySelectorAll('.wallet-buy-btn').forEach(b => b.classList.remove('hidden'));
       } catch (err) {
+        if (err?.message === 'NO_WALLET') { btnText.textContent = 'Connect Wallet'; showWalletModal(); return; }
         btnText.textContent = 'Connect Wallet';
         const isUserCancel = err?.code === 4001 ||
           /denied|cancel|reject/i.test(err?.message || '');
@@ -1966,9 +2091,38 @@ console.<span class="text-blue-400">log</span>(data);</pre>
       'alex-pairs-overview': { micro: 3000, stx: 0.003 },
     };
 
-    async function buyFeedData(feedId, priceMicro) {
+    // Send a STX transfer using the active wallet.
+    // Leather: window.LeatherProvider.request('stx_transferStx', { recipient, amount: String, memo })
+    // Xverse (via sats-connect): request('stx_transferStx', { recipient, amount: Number(amount), memo })
+    async function sendStxTransfer({ recipient, amountMicroStx, memo }) {
+      if (walletProvider?.type === 'leather') {
+        const resp = await window.LeatherProvider.request('stx_transferStx', {
+          recipient,
+          amount: String(amountMicroStx),
+          network: 'mainnet',
+          memo,
+        });
+        return resp?.result?.txid || resp?.result?.txId || resp?.txid;
+      }
+      // Xverse → sats-connect. Docs show amount as Number(amount).
+      const mod = await loadSatsConnect();
+      const request = mod.request || mod.default?.request;
+      const resp = await request('stx_transferStx', {
+        recipient,
+        amount: Number(amountMicroStx),
+        memo,
+      });
+      if (resp?.status !== 'success') {
+        throw new Error(resp?.error?.message || 'Xverse transfer failed');
+      }
+      return resp?.result?.txid || resp?.result?.txId;
+    }
+
+    async function buyFeedData(feedId, priceMicro, enhance = false) {
       if (!walletAddress || !walletProvider) { alert('Please connect your wallet first.'); return; }
-      const btn = document.getElementById('buy-btn-' + feedId);
+      // Pick the right button element based on whether user chose enhanced or raw
+      const btnId = enhance ? `buy-enhanced-btn-${feedId}` : `buy-btn-${feedId}`;
+      const btn = document.getElementById(btnId);
       const origText = btn.innerHTML;
       btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Sending...';
       btn.disabled = true;
@@ -1977,14 +2131,20 @@ console.<span class="text-blue-400">log</span>(data);</pre>
         const health = await healthRes.json();
         const recipient = health.provider;
         const price = feedPricesMap[feedId] || { micro: priceMicro, stx: priceMicro / 1000000 };
-        let txId;
-        if (walletProvider.provider.request) {
-          const resp = await walletProvider.provider.request('stx_transferStx', { recipient, amount: String(price.micro), network: 'mainnet', memo: 'ShadowFeed: ' + feedId });
-          txId = resp?.result?.txid || resp?.result?.txId || resp?.txid;
-        } else { throw new Error('Wallet API not supported'); }
-        if (!txId) throw new Error('No txId returned');
-        btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Fetching data...';
-        const buyRes = await fetch(API + '/wallet/buy', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ feedId, txId, senderAddress: walletAddress }) });
+        // Enhanced requests cost 3x base price — user pays for Gemini inference
+        const effectiveMicro = enhance ? price.micro * 3 : price.micro;
+        const txId = await sendStxTransfer({
+          recipient,
+          amountMicroStx: effectiveMicro,
+          memo: enhance ? 'ShadowFeed+AI: ' + feedId : 'ShadowFeed: ' + feedId,
+        });
+        if (!txId) throw new Error('No txId returned from wallet');
+        btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> ' + (enhance ? 'Generating AI insights...' : 'Fetching data...');
+        const buyRes = await fetch(API + '/wallet/buy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ feedId, txId, senderAddress: walletAddress, enhance }),
+        });
         if (!buyRes.ok) { const errData = await buyRes.json(); throw new Error(errData.error || 'Server error'); }
         const result = await buyRes.json();
         showWalletPurchaseResult(feedId, result, txId);
@@ -1994,8 +2154,62 @@ console.<span class="text-blue-400">log</span>(data);</pre>
       } finally { btn.innerHTML = origText; btn.disabled = false; }
     }
 
+    // Render AI insights panel (shown when user purchased enhanced feed).
+    // Returns HTML string; if insights are missing (due to Gemini error) we
+    // display the fallback error message instead.
+    function renderAiInsightsPanel(insights, aiError) {
+      if (!insights && !aiError) return '';
+      if (aiError) {
+        return `<div class="p-4 rounded-xl bg-amber-50 border border-amber-200">
+          <div class="flex items-center gap-2 mb-2">
+            <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <span class="text-xs font-bold text-amber-800 uppercase tracking-wider">AI Insights Unavailable</span>
+          </div>
+          <p class="text-xs text-amber-700">${aiError.code}: ${aiError.message}</p>
+          <p class="text-xs text-amber-600 mt-2">Raw data is still delivered below.</p>
+        </div>`;
+      }
+      const signalColors = {
+        bullish: { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700' },
+        bearish: { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700' },
+        neutral: { bg: 'bg-gray-50', border: 'border-gray-200', text: 'text-gray-700' },
+        warning: { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700' },
+      };
+      const sc = signalColors[insights.signal.type] || signalColors.neutral;
+      return `
+        <div class="rounded-xl bg-gradient-to-br from-purple-50 to-fuchsia-50 border border-purple-200 p-4 mb-4">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <svg class="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L9 4.323V3a1 1 0 011-1z"/></svg>
+              <span class="text-xs font-bold text-purple-900 uppercase tracking-wider">AI Insights</span>
+              ${insights.cache_hit ? '<span class="text-[10px] text-purple-500">(cached)</span>' : ''}
+            </div>
+            <span class="text-[10px] text-purple-400 font-mono">${insights.generated_by}</span>
+          </div>
+          <div class="mb-4">
+            <p class="text-sm font-bold text-gray-900 leading-snug">${insights.tldr}</p>
+          </div>
+          <div class="mb-4">
+            <div class="text-[10px] font-bold text-purple-700 uppercase tracking-wider mb-2">Key Insights</div>
+            <ul class="space-y-1.5">
+              ${insights.insights.map(s => `<li class="flex gap-2 text-xs text-gray-700"><span class="text-purple-500 shrink-0">▸</span><span>${s}</span></li>`).join('')}
+            </ul>
+          </div>
+          <div class="flex items-center gap-2 pt-3 border-t border-purple-200">
+            <span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase ${sc.bg} ${sc.border} ${sc.text} border">${insights.signal.type}</span>
+            <span class="text-[10px] text-gray-500">Confidence: <span class="font-semibold text-gray-700">${insights.signal.confidence}</span></span>
+            <span class="text-[10px] text-gray-500">Timeframe: <span class="font-semibold text-gray-700">${insights.signal.timeframe}</span></span>
+          </div>
+        </div>
+      `;
+    }
+
     function showWalletPurchaseResult(feedId, result, txId) {
       const meta = feedMeta[feedId] || { label: feedId, color: 'zinc' };
+      const aiPanel = renderAiInsightsPanel(result.ai_insights, result.ai_error);
+      const enhancedBadge = result.enhanced
+        ? `<span class="ml-2 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700 uppercase tracking-wider">AI Enhanced</span>`
+        : '';
       const modal = document.createElement('div');
       modal.id = 'purchase-result-modal';
       modal.className = 'fixed inset-0 z-[200]';
@@ -2005,7 +2219,7 @@ console.<span class="text-blue-400">log</span>(data);</pre>
           <div class="flex items-center justify-between px-6 py-4 bg-emerald-50 border-b border-emerald-100">
             <div class="flex items-center gap-4">
               <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center"><svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div>
-              <div><span class="text-gray-900 font-bold text-sm">Purchase Successful!</span><span class="text-gray-400 text-xs ml-3">${meta.label}</span></div>
+              <div><span class="text-gray-900 font-bold text-sm">Purchase Successful!</span><span class="text-gray-400 text-xs ml-3">${meta.label}</span>${enhancedBadge}</div>
             </div>
             <button onclick="this.closest('#purchase-result-modal').remove()" class="w-8 h-8 rounded-lg bg-white/80 hover:bg-white flex items-center justify-center text-gray-400 hover:text-gray-600 transition">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -2017,7 +2231,11 @@ console.<span class="text-blue-400">log</span>(data);</pre>
             <div class="flex items-center gap-2"><span class="text-gray-400">From:</span><span class="text-gray-600 font-mono">${walletAddress.slice(0,8)}...${walletAddress.slice(-4)}</span></div>
           </div>
           <div class="flex-1 overflow-hidden flex flex-col md:flex-row">
-            <div class="md:w-1/2 p-6 overflow-y-auto border-r border-gray-100"><h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Data Summary</h3><div>${renderVisualData(feedId, result.data)}</div></div>
+            <div class="md:w-1/2 p-6 overflow-y-auto border-r border-gray-100">
+              ${aiPanel}
+              <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Data Summary</h3>
+              <div>${renderVisualData(feedId, result.data)}</div>
+            </div>
             <div class="md:w-1/2 p-6 overflow-y-auto bg-gray-50/50">
               <div class="flex items-center justify-between mb-4"><h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider">Raw Response</h3><button id="purchase-copy-btn" class="text-xs text-gray-400 hover:text-orange-500 transition font-medium">Copy JSON</button></div>
               <pre id="purchase-json" class="text-xs font-mono text-gray-600 whitespace-pre-wrap bg-white p-4 rounded-xl border border-gray-200 max-h-[60vh] overflow-auto"></pre>

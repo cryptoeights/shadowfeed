@@ -28,8 +28,39 @@ import { generateAlexPoolAnalytics } from './feeds/alex-pool-analytics';
 import { generateAlexTvlFlows } from './feeds/alex-tvl-flows';
 import { generateAlexSwapActivity } from './feeds/alex-swap-activity';
 import { generateAlexPairsOverview } from './feeds/alex-pairs-overview';
+import { enhanceFeedData } from './lib/enhance-feed';
 
 const app = new Hono<{ Bindings: Env }>();
+
+// Maps feed_id → category so enhance-feed.ts can select the right prompt frame.
+// Keep this in sync with the `FEED_DEFINITIONS` in registry.ts.
+const FEED_CATEGORIES: Record<string, string> = {
+  'whale-alerts': 'on-chain',
+  'btc-sentiment': 'social',
+  'defi-scores': 'analytics',
+  'smart-money-flows': 'on-chain',
+  'token-intel': 'analytics',
+  'wallet-profiler': 'on-chain',
+  'smart-money-holdings': 'on-chain',
+  'dex-trades': 'on-chain',
+  'liquidation-alerts': 'derivatives',
+  'gas-prediction': 'infrastructure',
+  'token-launches': 'discovery',
+  'governance': 'governance',
+  'stablecoin-flows': 'analytics',
+  'security-alerts': 'security',
+  'dev-activity': 'development',
+  'bridge-flows': 'cross-chain',
+  'alex-price-feed': 'stacks-defi',
+  'alex-pool-analytics': 'stacks-defi',
+  'alex-tvl-flows': 'stacks-defi',
+  'alex-swap-activity': 'stacks-defi',
+  'alex-pairs-overview': 'stacks-defi',
+};
+
+// Multiplier applied to the base feed price when the client requests
+// `?enhance=true`. Pays for Gemini inference + premium UX tier.
+const ENHANCE_PRICE_MULTIPLIER = 3;
 
 app.use('*', cors());
 
@@ -429,6 +460,15 @@ async function x402Handler(
   const env: Env = c.env;
   const network = env.NETWORK === 'mainnet' ? 'stacks:1' : 'stacks:2147483648';
 
+  // Check if client requested AI-enhanced insights (?enhance=true)
+  // Enhanced feeds cost 3x base price and include a Gemini-generated
+  // summary + signal analysis alongside the raw data.
+  const wantsEnhance = c.req.query('enhance') === 'true' || c.req.query('enhance') === '1';
+  const effectivePrice = wantsEnhance ? priceStx * ENHANCE_PRICE_MULTIPLIER : priceStx;
+  const effectiveDescription = wantsEnhance
+    ? `${description} (AI-enhanced with Gemini insights)`
+    : description;
+
   // x402 v2: check for payment-signature header (base64-encoded)
   const paymentSignatureHeader = c.req.header('payment-signature');
 
@@ -438,13 +478,13 @@ async function x402Handler(
       x402Version: 2,
       resource: {
         url: c.req.url,
-        description,
+        description: effectiveDescription,
         mimeType: 'application/json',
       },
       accepts: [{
         scheme: 'exact',
         network,
-        amount: String(STXtoMicroSTX(priceStx)),
+        amount: String(STXtoMicroSTX(effectivePrice)),
         asset: 'STX',
         payTo: env.SERVER_ADDRESS,
         maxTimeoutSeconds: 300,
@@ -477,7 +517,7 @@ async function x402Handler(
 
   const tx = deserializeTransaction(txHex);
   const txPayload = tx.payload as any;
-  const requiredAmount = BigInt(STXtoMicroSTX(priceStx));
+  const requiredAmount = BigInt(STXtoMicroSTX(effectivePrice));
   const txAmount = BigInt(txPayload.amount || 0);
 
   if (txAmount < requiredAmount) {
@@ -524,6 +564,23 @@ async function x402Handler(
   const data = await generateFn(env.CACHE);
   const responseMs = Date.now() - start;
 
+  // Optionally run data through Gemini for AI insights.
+  // If Gemini fails for any reason we still return the raw data — the user
+  // paid the enhanced price, but we prefer delivering partial value over nothing.
+  // The response includes ai_insights.error so agents can detect degraded mode.
+  let aiInsights: any = undefined;
+  let aiError: any = undefined;
+  if (wantsEnhance) {
+    const category = FEED_CATEGORIES[feedId] || 'analytics';
+    const result = await enhanceFeedData(feedId, category, data, env.GEMINI_API_KEY, env.CACHE, 300);
+    if (result.insights) {
+      aiInsights = result.insights;
+    } else if (result.error) {
+      aiError = { code: result.error.code, message: result.error.message };
+      console.warn(`[enhance] Failed for ${feedId}: ${result.error.code} - ${result.error.message}`);
+    }
+  }
+
   // Store agent name if provided via header
   const agentName = c.req.header('x-agent-name');
   if (agentName && payer !== 'unknown') {
@@ -541,15 +598,20 @@ async function x402Handler(
   };
   const paymentResponseHeader = safeBtoa(JSON.stringify(paymentResponse));
 
-  return c.json({
+  const responseBody: Record<string, unknown> = {
     feed: feedId,
     provider: env.SERVER_ADDRESS,
-    price: `${priceStx} STX`,
+    price: `${effectivePrice} STX`,
+    enhanced: wantsEnhance,
     timestamp: Date.now(),
     paid_by: payer,
     tx: txId,
     data,
-  }, 200, { 'payment-response': paymentResponseHeader });
+  };
+  if (aiInsights) responseBody.ai_insights = aiInsights;
+  if (aiError) responseBody.ai_error = aiError;
+
+  return c.json(responseBody, 200, { 'payment-response': paymentResponseHeader });
 }
 
 // --- Original feeds ---
@@ -655,7 +717,7 @@ app.get('/feeds/alex-pairs-overview', (c) =>
 
 app.post('/wallet/buy', async (c) => {
   const body = await c.req.json();
-  const { feedId, txId, senderAddress } = body;
+  const { feedId, txId, senderAddress, enhance } = body;
 
   if (!feedId || !txId || !senderAddress) {
     return c.json({ error: 'Missing feedId, txId, or senderAddress' }, 400);
@@ -665,25 +727,45 @@ app.post('/wallet/buy', async (c) => {
     return c.json({ error: 'Invalid feed ID' }, 400);
   }
 
+  const wantsEnhance = enhance === true || enhance === 'true';
+  const basePrice = FEED_PRICES[feedId];
+  const effectivePrice = wantsEnhance ? basePrice * ENHANCE_PRICE_MULTIPLIER : basePrice;
+
   const start = Date.now();
 
   try {
     const data = await generateFeedById(feedId, c.env.CACHE, c.env.NANSEN_API_KEY);
 
+    // Run through Gemini if the client paid for enhancement. Non-blocking
+    // semantics: raw data always wins, insights are a bonus layer.
+    let aiInsights: any = undefined;
+    let aiError: any = undefined;
+    if (wantsEnhance) {
+      const category = FEED_CATEGORIES[feedId] || 'analytics';
+      const result = await enhanceFeedData(feedId, category, data, c.env.GEMINI_API_KEY, c.env.CACHE, 300);
+      if (result.insights) aiInsights = result.insights;
+      else if (result.error) aiError = { code: result.error.code, message: result.error.message };
+    }
+
     const responseMs = Date.now() - start;
     await recordQuery(c.env.DB, feedId, senderAddress, txId, responseMs, data);
 
-    return c.json({
+    const responseBody: Record<string, unknown> = {
       feed: feedId,
       provider: c.env.SERVER_ADDRESS,
-      price: `${FEED_PRICES[feedId]} STX`,
+      price: `${effectivePrice} STX`,
+      enhanced: wantsEnhance,
       timestamp: Date.now(),
       paid_by: senderAddress,
       tx: txId,
       tx_explorer: `https://explorer.hiro.so/txid/${txId}?chain=${c.env.NETWORK}`,
       wallet_payment: true,
       data,
-    });
+    };
+    if (aiInsights) responseBody.ai_insights = aiInsights;
+    if (aiError) responseBody.ai_error = aiError;
+
+    return c.json(responseBody);
   } catch (err: any) {
     return c.json({ error: 'Failed to generate feed data', detail: err.message }, 500);
   }
