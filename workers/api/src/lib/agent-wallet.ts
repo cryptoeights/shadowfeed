@@ -37,11 +37,14 @@ export async function loadAgentAccount(
 
 // Fetch live STX balance from the Stacks API. Used to gate agent execution
 // (skip the run if balance < expected feed cost).
+//
+// Returns balance_microstx as a string (not bigint) so the result is safe
+// to JSON.stringify — bigints throw TypeError when serialized.
 export async function getAgentBalance(
   address: string,
   network: 'mainnet' | 'testnet' = 'mainnet',
   hiroApiKey?: string,
-): Promise<{ balance_microstx: bigint; balance_stx: number } | null> {
+): Promise<{ balance_microstx: string; balance_stx: number } | null> {
   const apiBase = network === 'mainnet' ? 'https://api.hiro.so' : 'https://api.testnet.hiro.so';
   try {
     const headers: Record<string, string> = {};
@@ -49,10 +52,11 @@ export async function getAgentBalance(
     const res = await fetch(`${apiBase}/extended/v1/address/${address}/stx`, { headers });
     if (!res.ok) return null;
     const json = await res.json() as { balance?: string };
-    const microstx = BigInt(json.balance || '0');
+    const microstxStr = json.balance || '0';
+    const microstxNum = Number(microstxStr);
     return {
-      balance_microstx: microstx,
-      balance_stx: Number(microstx) / 1_000_000,
+      balance_microstx: microstxStr,
+      balance_stx: Number.isFinite(microstxNum) ? microstxNum / 1_000_000 : 0,
     };
   } catch {
     return null;

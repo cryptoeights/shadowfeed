@@ -199,21 +199,36 @@ agentRoutes.get('/agents', async c => {
 });
 
 agentRoutes.get('/agents/:id', async c => {
-  const id = c.req.param('id');
-  const agent = await getAgentById(c.env.DB, id);
-  if (!agent) return c.json({ error: 'agent not found' }, 404);
-  // Public agents visible to anyone; private only to owner.
-  if (!agent.is_public) {
-    const me = await requireAuth(c);
-    if (!me || me.user_id !== agent.user_id) return c.json({ error: 'forbidden' }, 403);
+  try {
+    const id = c.req.param('id');
+    const agent = await getAgentById(c.env.DB, id);
+    if (!agent) return c.json({ error: 'agent not found' }, 404);
+
+    // Authenticate once, then use to gate access + balance lookup.
+    const me = await authenticate(c.env.DB, bearerToken(c.req.header('Authorization')));
+
+    // Private agents are only visible to their owner.
+    if (!agent.is_public && (!me || me.user_id !== agent.user_id)) {
+      return c.json({ error: 'forbidden' }, 403);
+    }
+
+    const view: any = publicAgentView(agent);
+
+    // Include live STX balance for owner views (best-effort; never 500 on Hiro outage).
+    if (me?.user_id === agent.user_id) {
+      try {
+        const network = c.env.NETWORK === 'mainnet' ? 'mainnet' : 'testnet';
+        view.balance = await getAgentBalance(agent.agent_wallet_address, network, c.env.HIRO_API_KEY);
+      } catch (err) {
+        console.error('[agents/:id] balance fetch failed:', err);
+        view.balance = null;
+      }
+    }
+    return c.json({ agent: view });
+  } catch (err: any) {
+    console.error('[agents/:id] handler crashed:', err?.message ?? err, err?.stack);
+    return c.json({ error: 'internal error', detail: err?.message ?? 'unknown' }, 500);
   }
-  // Include live balance for owner views
-  const view: any = publicAgentView(agent);
-  const me = await authenticate(c.env.DB, bearerToken(c.req.header('Authorization')));
-  if (me?.user_id === agent.user_id) {
-    view.balance = await getAgentBalance(agent.agent_wallet_address, 'mainnet', c.env.HIRO_API_KEY);
-  }
-  return c.json({ agent: view });
 });
 
 agentRoutes.patch('/agents/:id', async c => {
@@ -243,17 +258,23 @@ agentRoutes.delete('/agents/:id', async c => {
 });
 
 agentRoutes.get('/agents/:id/runs', async c => {
-  const id = c.req.param('id');
-  const agent = await getAgentById(c.env.DB, id);
-  if (!agent) return c.json({ error: 'agent not found' }, 404);
-  // Same access policy as agent details
-  if (!agent.is_public) {
-    const me = await requireAuth(c);
-    if (!me || me.user_id !== agent.user_id) return c.json({ error: 'forbidden' }, 403);
+  try {
+    const id = c.req.param('id');
+    const agent = await getAgentById(c.env.DB, id);
+    if (!agent) return c.json({ error: 'agent not found' }, 404);
+
+    const me = await authenticate(c.env.DB, bearerToken(c.req.header('Authorization')));
+    if (!agent.is_public && (!me || me.user_id !== agent.user_id)) {
+      return c.json({ error: 'forbidden' }, 403);
+    }
+
+    const limit = Math.min(parseInt(c.req.query('limit') || '50', 10) || 50, 200);
+    const runs = await listAgentRuns(c.env.DB, id, limit);
+    return c.json({ runs });
+  } catch (err: any) {
+    console.error('[agents/:id/runs] handler crashed:', err?.message ?? err);
+    return c.json({ error: 'internal error', detail: err?.message ?? 'unknown' }, 500);
   }
-  const limit = Math.min(parseInt(c.req.query('limit') || '50', 10) || 50, 200);
-  const runs = await listAgentRuns(c.env.DB, id, limit);
-  return c.json({ runs });
 });
 
 // ────────────────────────────────────────────────────────────────────────────
