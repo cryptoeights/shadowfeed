@@ -208,8 +208,9 @@
       <!-- Desktop nav links -->
       <div class="nav-links">
         <a href="#feeds">Feeds</a>
-        <a href="#how-it-works">How It Works</a>
         <a href="#try-it">Try It</a>
+        <a href="#/agents" data-app-link>Agents</a>
+        <a href="#/discover" data-app-link>Discover</a>
         <a href="#activity">Activity</a>
         <a href="#leaderboard">Leaderboard</a>
         <a href="/brand.html">Brand</a>
@@ -240,8 +241,9 @@
     <!-- Mobile menu -->
     <div id="mobile-menu" class="flex-col gap-1 px-4 pb-4 bg-white border-t border-gray-100 lg:hidden">
       <a href="#feeds" onclick="document.getElementById('mobile-menu').classList.remove('open')" class="block px-3 py-2.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg font-medium">Feeds</a>
-      <a href="#how-it-works" onclick="document.getElementById('mobile-menu').classList.remove('open')" class="block px-3 py-2.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg font-medium">How It Works</a>
       <a href="#try-it" onclick="document.getElementById('mobile-menu').classList.remove('open')" class="block px-3 py-2.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg font-medium">Try It</a>
+      <a href="#/agents" data-app-link onclick="document.getElementById('mobile-menu').classList.remove('open')" class="block px-3 py-2.5 text-sm text-orange-600 hover:bg-gray-50 rounded-lg font-bold">Agents</a>
+      <a href="#/discover" data-app-link onclick="document.getElementById('mobile-menu').classList.remove('open')" class="block px-3 py-2.5 text-sm text-orange-600 hover:bg-gray-50 rounded-lg font-bold">Discover</a>
       <a href="#activity" onclick="document.getElementById('mobile-menu').classList.remove('open')" class="block px-3 py-2.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg font-medium">Activity</a>
       <a href="#leaderboard" onclick="document.getElementById('mobile-menu').classList.remove('open')" class="block px-3 py-2.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg font-medium">Leaderboard</a>
       <a href="/brand.html" class="block px-3 py-2.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg font-medium">Brand</a>
@@ -261,6 +263,9 @@
       </div>
     </div>
   </nav>
+
+  <!-- Marketing content (landing page) — hidden by hash router when in app mode -->
+  <div id="marketing-content">
 
   <!-- Hero -->
   <section class="relative pt-32 pb-24 px-6 overflow-hidden min-h-[90vh] flex items-center" id="hero">
@@ -929,6 +934,88 @@ console.<span class="text-blue-400">log</span>(data);</pre>
   </div>
 
   <!-- Footer -->
+  </div><!-- /marketing-content -->
+
+  <!-- ════════════════════════════════════════════════════════════
+       AGENT PLATFORM (Phase 1C/1D)
+       Hash-routed app sections, hidden by default. Shown only when
+       hash matches their data-route attribute.
+       ════════════════════════════════════════════════════════════ -->
+  <style>
+    .app-section { display: none; }
+    .app-section.active { display: block; }
+    body.app-mode #marketing-content { display: none; }
+    body.app-mode footer { display: none; }
+  </style>
+
+  <!-- /#/agents — User dashboard -->
+  <section id="route-agents" class="app-section py-24 px-6 min-h-screen" data-route="/agents">
+    <div class="max-w-6xl mx-auto">
+      <div class="flex items-center justify-between mb-10">
+        <div>
+          <p class="text-sm font-semibold text-orange-500 uppercase tracking-widest mb-2">Your Agents</p>
+          <h2 class="text-4xl font-extrabold text-gray-900">Dashboard</h2>
+          <p class="text-gray-500 mt-2">Autonomous bots powered by ShadowFeed data.</p>
+        </div>
+        <a href="#/agents/new" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-bold transition shadow-lg">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          New Agent
+        </a>
+      </div>
+      <div id="agents-dashboard-content"></div>
+    </div>
+  </section>
+
+  <!-- /#/agents/new — Create flow -->
+  <section id="route-agents-new" class="app-section py-24 px-6 min-h-screen" data-route="/agents/new">
+    <div class="max-w-3xl mx-auto">
+      <a href="#/agents" class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 mb-6">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        Back to dashboard
+      </a>
+      <div class="mb-8">
+        <p class="text-sm font-semibold text-orange-500 uppercase tracking-widest mb-2">Create</p>
+        <h2 class="text-4xl font-extrabold text-gray-900">New Agent</h2>
+      </div>
+      <div id="agent-create-content"></div>
+    </div>
+  </section>
+
+  <!-- /#/agents/:id — Agent detail -->
+  <section id="route-agent-detail" class="app-section py-24 px-6 min-h-screen" data-route="/agents/:id">
+    <div class="max-w-5xl mx-auto">
+      <a href="#/agents" class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 mb-6">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        Back to dashboard
+      </a>
+      <div id="agent-detail-content"></div>
+    </div>
+  </section>
+
+  <!-- /#/discover — Public marketplace -->
+  <section id="route-discover" class="app-section py-24 px-6 min-h-screen" data-route="/discover">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-10">
+        <p class="text-sm font-semibold text-orange-500 uppercase tracking-widest mb-2">Marketplace</p>
+        <h2 class="text-4xl font-extrabold text-gray-900">Discover Agents</h2>
+        <p class="text-gray-500 mt-2 max-w-xl mx-auto">Browse public agents created by the community. Fork or build your own in minutes.</p>
+      </div>
+      <div id="discover-filter-chips" class="flex flex-wrap items-center justify-center gap-2 mb-8"></div>
+      <div id="discover-content"></div>
+    </div>
+  </section>
+
+  <!-- /#/discover/:slug — Public agent profile -->
+  <section id="route-public-agent" class="app-section py-24 px-6 min-h-screen" data-route="/discover/:slug">
+    <div class="max-w-3xl mx-auto">
+      <a href="#/discover" class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 mb-6">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        Back to discover
+      </a>
+      <div id="public-agent-content"></div>
+    </div>
+  </section>
+
   <footer class="py-12 px-6 border-t border-gray-100 bg-white">
     <div class="max-w-5xl mx-auto">
       <div class="flex flex-col md:flex-row items-center justify-between gap-6">
@@ -2313,6 +2400,15 @@ console.<span class="text-blue-400">log</span>(data);</pre>
     loadFeeds(); loadStats(); loadActivity(); loadLeaderboard();
     setInterval(() => { loadStats(); loadActivity(); loadLeaderboard(); }, 5000);
 
+    // Expose marketing-page wallet helpers to window so the agent platform
+    // script (separate <script> block at the bottom) can reuse the same
+    // wallet connection / sats-connect loader. walletAddress + walletProvider
+    // are wrapped in getters so the agent script always sees current values.
+    Object.defineProperty(window, 'walletAddress', { get: () => walletAddress, configurable: true });
+    Object.defineProperty(window, 'walletProvider', { get: () => walletProvider, configurable: true });
+    window.connectWallet = connectWallet;
+    window.loadSatsConnect = loadSatsConnect;
+
     // ===== SCROLL REVEAL OBSERVER =====
     const revealObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
@@ -2497,6 +2593,854 @@ console.<span class="text-blue-400">log</span>(data);</pre>
       }, { threshold: 0.05 });
       particleObserver.observe(heroSection);
     })();
+  </script>
+
+  <!-- ════════════════════════════════════════════════════════════
+       AGENT PLATFORM CLIENT (Phase 1C/1D)
+       Hash router + SIWS auth + agent CRUD + discover marketplace.
+       ════════════════════════════════════════════════════════════ -->
+  <script>
+  (() => {
+    // ──────────────────────────────────────────────────────────────────────
+    // Constants + state
+    // ──────────────────────────────────────────────────────────────────────
+    const SESSION_KEY = 'shadowfeed.session';
+
+    // Use the same API base resolver as the marketing page
+    const APP_API = (() => {
+      const params = new URLSearchParams(window.location.search);
+      const override = params.get('api');
+      if (override === 'local') return window.location.origin;
+      if (override && override.startsWith('http')) return override;
+      return 'https://api.shadowfeed.app';
+    })();
+
+    const TEMPLATE_META = {
+      'whale-tracker':       { color: 'blue',    bg: 'bg-blue-50',    text: 'text-blue-600',    accent: 'bg-blue-500' },
+      'dca-bot':             { color: 'emerald', bg: 'bg-emerald-50', text: 'text-emerald-600', accent: 'bg-emerald-500' },
+      'gas-optimizer':       { color: 'amber',   bg: 'bg-amber-50',   text: 'text-amber-600',   accent: 'bg-amber-500' },
+      'liquidation-hunter':  { color: 'red',     bg: 'bg-red-50',     text: 'text-red-600',     accent: 'bg-red-500' },
+      'stacks-defi-monitor': { color: 'fuchsia', bg: 'bg-fuchsia-50', text: 'text-fuchsia-600', accent: 'bg-fuchsia-500' },
+    };
+
+    // Module-level state. We mutate carefully and re-render after each mutation.
+    const appState = {
+      session: null,           // { token, expires_at, user }
+      templates: [],           // populated lazily
+      agents: [],              // user's own agents
+      currentAgent: null,      // for /agents/:id
+      currentRuns: [],         // run history for currentAgent
+      publicAgents: [],        // for /discover
+      publicAgent: null,       // for /discover/:slug
+      activeDiscoverFilter: 'all',
+      currentRoute: { path: '', params: {} },
+      loading: false,
+      error: null,
+    };
+
+    // Map Hono-style template path patterns to regexes.
+    // Order matters: more specific routes first so /agents/new doesn't match /agents/:id.
+    const ROUTES = [
+      { id: 'route-agents-new',    pattern: /^\/agents\/new$/,           render: renderAgentCreate },
+      { id: 'route-agent-detail',  pattern: /^\/agents\/([^/]+)$/,       render: (m) => renderAgentDetail(m[1]) },
+      { id: 'route-agents',        pattern: /^\/agents$/,                render: renderAgentDashboard },
+      { id: 'route-public-agent',  pattern: /^\/discover\/([^/]+)$/,     render: (m) => renderPublicAgent(m[1]) },
+      { id: 'route-discover',      pattern: /^\/discover$/,              render: renderDiscover },
+    ];
+
+    // ──────────────────────────────────────────────────────────────────────
+    // Session persistence
+    // ──────────────────────────────────────────────────────────────────────
+    function loadSession() {
+      try {
+        const raw = localStorage.getItem(SESSION_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!parsed?.token || !parsed?.expires_at) return null;
+        if (parsed.expires_at < Math.floor(Date.now() / 1000)) {
+          localStorage.removeItem(SESSION_KEY);
+          return null;
+        }
+        return parsed;
+      } catch { return null; }
+    }
+
+    function saveSession(session) {
+      localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    }
+
+    function clearSession() {
+      localStorage.removeItem(SESSION_KEY);
+      appState.session = null;
+      appState.agents = [];
+      appState.currentAgent = null;
+      appState.currentRuns = [];
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // API client — auto-attaches Authorization when session exists
+    // ──────────────────────────────────────────────────────────────────────
+    async function apiFetch(path, options = {}) {
+      const headers = new Headers(options.headers || {});
+      if (appState.session?.token) {
+        headers.set('Authorization', 'Bearer ' + appState.session.token);
+      }
+      if (options.body && !headers.has('Content-Type')) {
+        headers.set('Content-Type', 'application/json');
+      }
+      const res = await fetch(APP_API + path, { ...options, headers });
+      const ct = res.headers.get('content-type') || '';
+      const data = ct.includes('json') ? await res.json().catch(() => null) : await res.text();
+      if (!res.ok) {
+        // 401 means session expired or invalid; force re-auth.
+        if (res.status === 401) {
+          clearSession();
+          renderApp();
+        }
+        const err = new Error((data && data.error) || ('HTTP ' + res.status));
+        err.status = res.status;
+        err.body = data;
+        throw err;
+      }
+      return data;
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // SIWS auth flow
+    // ──────────────────────────────────────────────────────────────────────
+    async function signInWithStacks() {
+      // Reuse the marketing page's wallet detection / connection so users
+      // don't have to maintain two separate wallet connections.
+      if (!window.walletAddress || !window.walletProvider) {
+        const ok = window.connectWallet && (await window.connectWallet());
+        await new Promise(r => setTimeout(r, 600));
+        if (!window.walletAddress) {
+          throw new Error('Connect a Stacks wallet first');
+        }
+      }
+      const wallet = window.walletAddress;
+      const walletType = window.walletProvider?.type || 'leather';
+
+      // Step 1: get nonce + message
+      const issued = await apiFetch('/auth/nonce', {
+        method: 'POST',
+        body: JSON.stringify({ wallet_address: wallet }),
+      });
+
+      // Step 2: sign the message with the active wallet
+      let signature, publicKey;
+      if (walletType === 'leather' && window.LeatherProvider) {
+        const resp = await window.LeatherProvider.request('stx_signMessage', { message: issued.message });
+        signature = resp?.result?.signature || resp?.signature;
+        publicKey = resp?.result?.publicKey || resp?.publicKey;
+      } else if (walletType === 'xverse' && window.loadSatsConnect) {
+        const mod = await window.loadSatsConnect();
+        const request = mod.request || mod.default?.request;
+        const resp = await request('stx_signMessage', { message: issued.message });
+        if (resp?.status !== 'success') throw new Error(resp?.error?.message || 'Xverse signing failed');
+        signature = resp.result?.signature;
+        publicKey = resp.result?.publicKey;
+      } else {
+        throw new Error('Unsupported wallet for signing');
+      }
+
+      if (!signature || !publicKey) {
+        throw new Error('Wallet did not return signature + public key');
+      }
+
+      // Step 3: verify with server
+      const verified = await apiFetch('/auth/verify', {
+        method: 'POST',
+        body: JSON.stringify({
+          wallet_address: wallet,
+          nonce: issued.nonce,
+          signature,
+          public_key: publicKey,
+        }),
+      });
+
+      appState.session = verified;
+      saveSession(verified);
+    }
+
+    async function signOut() {
+      try { await apiFetch('/auth/logout', { method: 'POST' }); } catch {}
+      clearSession();
+      window.location.hash = '#/discover';
+      renderApp();
+    }
+
+    // Expose to global so the navbar button can call it.
+    window.shadowfeedSignIn = async () => {
+      try {
+        await signInWithStacks();
+        renderApp();
+      } catch (err) {
+        console.error('[siws]', err);
+        alert('Sign-in failed: ' + (err.message || 'unknown'));
+      }
+    };
+    window.shadowfeedSignOut = signOut;
+
+    // ──────────────────────────────────────────────────────────────────────
+    // Templates loader (cached after first fetch)
+    // ──────────────────────────────────────────────────────────────────────
+    async function ensureTemplates() {
+      if (appState.templates.length > 0) return appState.templates;
+      const resp = await apiFetch('/agents/templates');
+      appState.templates = resp.templates || [];
+      return appState.templates;
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // HTML helpers (manual escaping — we don't ship a framework)
+    // ──────────────────────────────────────────────────────────────────────
+    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const fmtStx = (microstx) => (Number(microstx || 0) / 1_000_000).toFixed(6).replace(/0+$/, '0');
+    const fmtTime = (unixSec) => unixSec ? new Date(unixSec * 1000).toLocaleString() : '—';
+    const fmtRel = (unixSec) => {
+      if (!unixSec) return '—';
+      const diff = Date.now() - unixSec * 1000;
+      if (diff < 60_000) return Math.floor(diff / 1000) + 's ago';
+      if (diff < 3_600_000) return Math.floor(diff / 60_000) + 'm ago';
+      if (diff < 86_400_000) return Math.floor(diff / 3_600_000) + 'h ago';
+      return Math.floor(diff / 86_400_000) + 'd ago';
+    };
+    const shortAddr = (addr) => addr ? (addr.slice(0, 6) + '...' + addr.slice(-4)) : '';
+
+    function templateBadge(templateId) {
+      const meta = TEMPLATE_META[templateId] || { bg: 'bg-gray-50', text: 'text-gray-600' };
+      const tmpl = appState.templates.find(t => t.id === templateId);
+      const label = tmpl ? (tmpl.emoji + ' ' + tmpl.name) : templateId;
+      return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${meta.bg} ${meta.text}">${esc(label)}</span>`;
+    }
+
+    function statusBadge(status) {
+      const map = {
+        success:           { bg: 'bg-emerald-50', text: 'text-emerald-600' },
+        condition_not_met: { bg: 'bg-gray-50',    text: 'text-gray-500' },
+        failed:            { bg: 'bg-red-50',     text: 'text-red-600' },
+        insufficient_funds:{ bg: 'bg-amber-50',   text: 'text-amber-600' },
+        running:           { bg: 'bg-blue-50',    text: 'text-blue-600' },
+      };
+      const m = map[status] || { bg: 'bg-gray-50', text: 'text-gray-600' };
+      return `<span class="px-2 py-0.5 rounded-full text-xs font-semibold ${m.bg} ${m.text}">${esc(status.replace(/_/g, ' '))}</span>`;
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // Render: agent dashboard
+    // ──────────────────────────────────────────────────────────────────────
+    async function renderAgentDashboard() {
+      const root = document.getElementById('agents-dashboard-content');
+      if (!appState.session) {
+        root.innerHTML = renderAuthGate('Sign in with your Stacks wallet to view your agents.');
+        return;
+      }
+
+      root.innerHTML = `<div class="text-center py-12 text-gray-400">Loading your agents...</div>`;
+      try {
+        const [resp] = await Promise.all([apiFetch('/agents'), ensureTemplates()]);
+        appState.agents = resp.agents || [];
+
+        const totals = appState.agents.reduce((acc, a) => {
+          acc.runs += a.stats.total_runs;
+          acc.queries += a.stats.total_queries;
+          acc.triggered += a.stats.total_triggered;
+          acc.spent += a.stats.total_spent_microstx;
+          return acc;
+        }, { runs: 0, queries: 0, triggered: 0, spent: 0 });
+
+        if (appState.agents.length === 0) {
+          root.innerHTML = `
+            <div class="text-center py-20 px-6 rounded-2xl border-2 border-dashed border-gray-200">
+              <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-orange-50 flex items-center justify-center">
+                <svg class="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+              </div>
+              <h3 class="text-2xl font-bold text-gray-900 mb-2">No agents yet</h3>
+              <p class="text-gray-500 mb-6">Create your first autonomous agent in under a minute.</p>
+              <a href="#/agents/new" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-bold transition shadow-lg">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Create your first agent
+              </a>
+            </div>
+          `;
+          return;
+        }
+
+        root.innerHTML = `
+          <div class="grid md:grid-cols-4 gap-4 mb-8">
+            <div class="card p-5"><div class="text-xs text-gray-400 uppercase tracking-wider mb-1">Active Agents</div><div class="text-2xl font-black text-gray-900">${appState.agents.filter(a => a.active).length} <span class="text-base text-gray-400 font-medium">/ ${appState.agents.length}</span></div></div>
+            <div class="card p-5"><div class="text-xs text-gray-400 uppercase tracking-wider mb-1">Total Runs</div><div class="text-2xl font-black text-gray-900">${totals.runs.toLocaleString()}</div></div>
+            <div class="card p-5"><div class="text-xs text-gray-400 uppercase tracking-wider mb-1">Triggers Fired</div><div class="text-2xl font-black text-orange-500">${totals.triggered.toLocaleString()}</div></div>
+            <div class="card p-5"><div class="text-xs text-gray-400 uppercase tracking-wider mb-1">Total STX Spent</div><div class="text-2xl font-black text-gray-900">${fmtStx(totals.spent)} <span class="text-sm text-gray-400 font-medium">STX</span></div></div>
+          </div>
+          <div class="grid md:grid-cols-2 gap-4">
+            ${appState.agents.map(renderAgentCard).join('')}
+          </div>
+        `;
+      } catch (err) {
+        root.innerHTML = `<div class="p-6 rounded-xl bg-red-50 border border-red-200 text-red-700">Failed to load agents: ${esc(err.message)}</div>`;
+      }
+    }
+
+    function renderAgentCard(agent) {
+      const meta = TEMPLATE_META[agent.template] || {};
+      return `
+        <a href="#/agents/${esc(agent.id)}" class="card p-6 hover:border-orange-200 transition group">
+          <div class="flex items-start justify-between mb-3">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-1">
+                ${templateBadge(agent.template)}
+                ${agent.active
+                  ? '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-600">● Active</span>'
+                  : '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-gray-500">⏸ Paused</span>'}
+                ${agent.is_public ? '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-fuchsia-50 text-fuchsia-600">Public</span>' : ''}
+              </div>
+              <h3 class="text-lg font-bold text-gray-900 group-hover:text-orange-600 transition truncate">${esc(agent.name)}</h3>
+              ${agent.description ? `<p class="text-xs text-gray-500 mt-1 line-clamp-2">${esc(agent.description)}</p>` : ''}
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-2 pt-4 border-t border-gray-100 text-center">
+            <div><div class="text-base font-black text-gray-900">${agent.stats.total_runs}</div><div class="text-[10px] text-gray-400 uppercase">runs</div></div>
+            <div><div class="text-base font-black text-orange-500">${agent.stats.total_triggered}</div><div class="text-[10px] text-gray-400 uppercase">fired</div></div>
+            <div><div class="text-base font-black text-gray-900">${fmtRel(agent.stats.last_run_at)}</div><div class="text-[10px] text-gray-400 uppercase">last run</div></div>
+          </div>
+        </a>
+      `;
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // Render: agent create wizard
+    // ──────────────────────────────────────────────────────────────────────
+    async function renderAgentCreate() {
+      const root = document.getElementById('agent-create-content');
+      if (!appState.session) {
+        root.innerHTML = renderAuthGate('Sign in to create an agent.');
+        return;
+      }
+
+      root.innerHTML = `<div class="text-center py-12 text-gray-400">Loading templates...</div>`;
+      try {
+        await ensureTemplates();
+      } catch (err) {
+        root.innerHTML = `<div class="p-6 rounded-xl bg-red-50 border border-red-200 text-red-700">Failed to load templates: ${esc(err.message)}</div>`;
+        return;
+      }
+
+      // Step 1: pick template (driven by URL hash query string).
+      // Once a template is chosen we render the config form.
+      const url = new URL('http://x' + window.location.hash.slice(1));
+      const chosen = url.searchParams.get('template');
+      if (!chosen) {
+        root.innerHTML = `
+          <p class="text-gray-500 mb-6">Pick a template to start. Each template ships with sensible defaults — you only configure what matters.</p>
+          <div class="grid md:grid-cols-2 gap-4">
+            ${appState.templates.map(t => {
+              const meta = TEMPLATE_META[t.id] || {};
+              return `
+                <a href="#/agents/new?template=${encodeURIComponent(t.id)}" class="card p-6 hover:border-orange-200 transition block">
+                  <div class="flex items-start gap-4">
+                    <div class="w-12 h-12 rounded-xl ${meta.bg || 'bg-gray-50'} flex items-center justify-center text-2xl flex-shrink-0">${esc(t.emoji)}</div>
+                    <div class="flex-1 min-w-0">
+                      <h3 class="text-lg font-bold text-gray-900 mb-1">${esc(t.name)}</h3>
+                      <p class="text-xs text-gray-500 leading-relaxed">${esc(t.description)}</p>
+                      <div class="flex flex-wrap gap-1 mt-3">
+                        ${t.feeds.map(f => `<span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-gray-100 text-gray-500">${esc(f)}</span>`).join('')}
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              `;
+            }).join('')}
+          </div>
+        `;
+        return;
+      }
+
+      const template = appState.templates.find(t => t.id === chosen);
+      if (!template) {
+        root.innerHTML = `<div class="p-6 rounded-xl bg-red-50 border border-red-200 text-red-700">Unknown template: ${esc(chosen)}</div>`;
+        return;
+      }
+
+      const meta = TEMPLATE_META[template.id] || {};
+      root.innerHTML = `
+        <a href="#/agents/new" class="text-sm text-gray-500 hover:text-gray-900 inline-flex items-center gap-1 mb-4">← Pick a different template</a>
+        <div class="card p-8 mb-6">
+          <div class="flex items-start gap-4 mb-6">
+            <div class="w-14 h-14 rounded-2xl ${meta.bg || 'bg-gray-50'} flex items-center justify-center text-3xl flex-shrink-0">${esc(template.emoji)}</div>
+            <div class="flex-1">
+              <h3 class="text-2xl font-black text-gray-900">${esc(template.name)}</h3>
+              <p class="text-sm text-gray-500 mt-1">${esc(template.description)}</p>
+            </div>
+          </div>
+          <form id="agent-create-form" class="space-y-5">
+            <div>
+              <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Name</label>
+              <input type="text" name="name" required maxlength="100" placeholder="e.g. ${esc(template.name)} (mainnet)" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none transition" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Description (optional)</label>
+              <textarea name="description" maxlength="500" rows="2" placeholder="What does this agent do?" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none transition resize-none"></textarea>
+            </div>
+            ${template.config_fields.map(renderConfigField).join('')}
+            <div>
+              <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Schedule</label>
+              <select name="schedule_cron" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none transition">
+                ${template.schedule_options.map(s => `<option value="${esc(s.cron)}" ${s.cron === template.default_schedule ? 'selected' : ''}>${esc(s.label)}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Webhook URL (optional)</label>
+              <input type="url" name="webhook_url" placeholder="https://your-server.com/shadowfeed-hook" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none transition" />
+              <p class="text-xs text-gray-400 mt-1.5">When the trigger fires, we POST a JSON payload to this URL. Leave empty to log only.</p>
+            </div>
+            <div>
+              <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" name="is_public" class="w-4 h-4 rounded border-gray-300 text-orange-500 focus:ring-orange-300" />
+                <div>
+                  <span class="text-sm font-semibold text-gray-900">Make agent public</span>
+                  <p class="text-xs text-gray-500">Publishes to the /discover marketplace. Others can view stats and fork your config.</p>
+                </div>
+              </label>
+            </div>
+            <div class="pt-4 flex items-center gap-3">
+              <button type="submit" class="px-6 py-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-bold transition shadow-lg" id="agent-create-submit">Create Agent</button>
+              <a href="#/agents" class="px-6 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-bold transition">Cancel</a>
+              <span id="agent-create-error" class="text-sm text-red-600"></span>
+            </div>
+          </form>
+        </div>
+      `;
+
+      // Wire up submit
+      document.getElementById('agent-create-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const errEl = document.getElementById('agent-create-error');
+        const btn = document.getElementById('agent-create-submit');
+        errEl.textContent = '';
+        btn.disabled = true;
+        btn.textContent = 'Creating...';
+        try {
+          const config = {};
+          for (const field of template.config_fields) {
+            const raw = form.elements[field.key].value;
+            if (field.type === 'number') config[field.key] = Number(raw);
+            else if (field.type === 'boolean') config[field.key] = form.elements[field.key].checked;
+            else config[field.key] = raw;
+          }
+          const body = {
+            template: template.id,
+            name: form.elements.name.value.trim(),
+            description: form.elements.description.value.trim() || undefined,
+            config,
+            schedule_cron: form.elements.schedule_cron.value,
+            webhook_url: form.elements.webhook_url.value.trim() || undefined,
+            is_public: form.elements.is_public.checked,
+          };
+          const resp = await apiFetch('/agents', { method: 'POST', body: JSON.stringify(body) });
+          window.location.hash = '#/agents/' + resp.agent.id;
+        } catch (err) {
+          errEl.textContent = err.message;
+          btn.disabled = false;
+          btn.textContent = 'Create Agent';
+        }
+      });
+    }
+
+    function renderConfigField(field) {
+      const id = 'config-' + field.key;
+      if (field.type === 'enum') {
+        return `
+          <div>
+            <label for="${id}" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">${esc(field.label)}</label>
+            <select id="${id}" name="${esc(field.key)}" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none transition">
+              ${field.enum_values.map(v => `<option value="${esc(v)}" ${v === field.default ? 'selected' : ''}>${esc(v)}</option>`).join('')}
+            </select>
+            ${field.description ? `<p class="text-xs text-gray-400 mt-1.5">${esc(field.description)}</p>` : ''}
+          </div>
+        `;
+      }
+      if (field.type === 'boolean') {
+        return `
+          <div>
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" id="${id}" name="${esc(field.key)}" ${field.default ? 'checked' : ''} class="w-4 h-4 rounded border-gray-300 text-orange-500 focus:ring-orange-300" />
+              <div>
+                <span class="text-sm font-semibold text-gray-900">${esc(field.label)}</span>
+                ${field.description ? `<p class="text-xs text-gray-500">${esc(field.description)}</p>` : ''}
+              </div>
+            </label>
+          </div>
+        `;
+      }
+      // number / string
+      return `
+        <div>
+          <label for="${id}" class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">${esc(field.label)}${field.suffix ? ` <span class="text-gray-400 font-normal normal-case">(${esc(field.suffix)})</span>` : ''}</label>
+          <input id="${id}" name="${esc(field.key)}" type="${field.type === 'number' ? 'number' : 'text'}" value="${esc(field.default)}" ${field.min !== undefined ? `min="${field.min}"` : ''} ${field.max !== undefined ? `max="${field.max}"` : ''} class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none transition" />
+          ${field.description ? `<p class="text-xs text-gray-400 mt-1.5">${esc(field.description)}</p>` : ''}
+        </div>
+      `;
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // Render: agent detail
+    // ──────────────────────────────────────────────────────────────────────
+    async function renderAgentDetail(agentId) {
+      const root = document.getElementById('agent-detail-content');
+      if (!appState.session) {
+        root.innerHTML = renderAuthGate('Sign in to view this agent.');
+        return;
+      }
+
+      root.innerHTML = `<div class="text-center py-12 text-gray-400">Loading agent...</div>`;
+      try {
+        const [agentResp, runsResp] = await Promise.all([
+          apiFetch('/agents/' + encodeURIComponent(agentId)),
+          apiFetch('/agents/' + encodeURIComponent(agentId) + '/runs?limit=50'),
+          ensureTemplates(),
+        ]);
+        const a = agentResp.agent;
+        appState.currentAgent = a;
+        appState.currentRuns = runsResp.runs || [];
+
+        const meta = TEMPLATE_META[a.template] || {};
+        const tmpl = appState.templates.find(t => t.id === a.template);
+        const balance = a.balance ? `${a.balance.balance_stx.toFixed(6)} STX` : '—';
+
+        root.innerHTML = `
+          <div class="card p-8 mb-6">
+            <div class="flex items-start justify-between mb-6 gap-4">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-3">
+                  ${templateBadge(a.template)}
+                  ${a.active
+                    ? '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-600">● Active</span>'
+                    : '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-gray-500">⏸ Paused</span>'}
+                  ${a.is_public ? `<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-fuchsia-50 text-fuchsia-600">Public · /${esc(a.public_slug)}</span>` : ''}
+                </div>
+                <h2 class="text-3xl font-black text-gray-900 mb-1">${esc(a.name)}</h2>
+                ${a.description ? `<p class="text-sm text-gray-500">${esc(a.description)}</p>` : ''}
+              </div>
+              <div class="flex items-center gap-2 flex-shrink-0">
+                <button id="btn-toggle-active" class="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-bold transition">${a.active ? 'Pause' : 'Resume'}</button>
+                <button id="btn-toggle-public" class="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-bold transition">${a.is_public ? 'Make private' : 'Publish'}</button>
+                <button id="btn-delete-agent" class="px-4 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 text-sm font-bold transition">Delete</button>
+              </div>
+            </div>
+            <div class="grid md:grid-cols-4 gap-3 mb-6 pt-6 border-t border-gray-100">
+              <div><div class="text-xs text-gray-400 uppercase tracking-wider mb-1">Total Runs</div><div class="text-xl font-black text-gray-900">${a.stats.total_runs}</div></div>
+              <div><div class="text-xs text-gray-400 uppercase tracking-wider mb-1">Triggers Fired</div><div class="text-xl font-black text-orange-500">${a.stats.total_triggered}</div></div>
+              <div><div class="text-xs text-gray-400 uppercase tracking-wider mb-1">Queries Made</div><div class="text-xl font-black text-gray-900">${a.stats.total_queries}</div></div>
+              <div><div class="text-xs text-gray-400 uppercase tracking-wider mb-1">STX Spent</div><div class="text-xl font-black text-gray-900">${fmtStx(a.stats.total_spent_microstx)}</div></div>
+            </div>
+            <div class="grid md:grid-cols-2 gap-4 pt-6 border-t border-gray-100">
+              <div class="p-4 rounded-xl bg-gray-50 border border-gray-100">
+                <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Agent Wallet</div>
+                <div class="font-mono text-xs break-all text-gray-700 mb-2">${esc(a.wallet_address)}</div>
+                <div class="flex items-center justify-between">
+                  <div>
+                    <div class="text-[10px] text-gray-400">Balance</div>
+                    <div class="text-base font-black text-gray-900">${balance}</div>
+                  </div>
+                  <a href="https://explorer.hiro.so/address/${encodeURIComponent(a.wallet_address)}?chain=mainnet" target="_blank" class="text-xs text-orange-600 hover:underline">View on explorer →</a>
+                </div>
+              </div>
+              <div class="p-4 rounded-xl bg-gray-50 border border-gray-100">
+                <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Configuration</div>
+                <div class="space-y-1 text-xs text-gray-700">
+                  <div><span class="text-gray-400">Schedule:</span> <span class="font-mono">${esc(a.schedule_cron)}</span></div>
+                  <div><span class="text-gray-400">Webhook:</span> <span class="font-mono break-all">${a.webhook_url ? esc(a.webhook_url) : '(none)'}</span></div>
+                  ${tmpl ? tmpl.config_fields.map(f => `<div><span class="text-gray-400">${esc(f.label)}:</span> <span class="font-semibold">${esc(a.config[f.key])}${f.suffix ? ' ' + esc(f.suffix) : ''}</span></div>`).join('') : ''}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card p-6">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-bold text-gray-900">Run History</h3>
+              <span class="text-xs text-gray-400">${appState.currentRuns.length} most recent</span>
+            </div>
+            ${appState.currentRuns.length === 0
+              ? '<div class="py-12 text-center text-gray-400 text-sm">No runs yet. The cron will pick this up within a minute.</div>'
+              : `
+                <div class="overflow-x-auto">
+                  <table class="w-full text-sm">
+                    <thead>
+                      <tr class="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
+                        <th class="pb-3 pr-4">Time</th>
+                        <th class="pb-3 pr-4">Status</th>
+                        <th class="pb-3 pr-4">Queries</th>
+                        <th class="pb-3 pr-4">Triggered</th>
+                        <th class="pb-3 pr-4">Webhook</th>
+                        <th class="pb-3">Detail</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${appState.currentRuns.map(r => `
+                        <tr class="border-b border-gray-50 last:border-0">
+                          <td class="py-3 pr-4 whitespace-nowrap text-gray-600">${esc(fmtRel(r.started_at))}</td>
+                          <td class="py-3 pr-4">${statusBadge(r.status)}</td>
+                          <td class="py-3 pr-4 text-gray-700">${r.queries_made}</td>
+                          <td class="py-3 pr-4">${r.triggered ? '<span class="text-orange-500 font-bold">✓</span>' : '<span class="text-gray-300">—</span>'}</td>
+                          <td class="py-3 pr-4">${r.webhook_called ? `<span class="font-mono text-xs ${r.webhook_status >= 200 && r.webhook_status < 300 ? 'text-emerald-600' : 'text-red-600'}">${r.webhook_status}</span>` : '<span class="text-gray-300">—</span>'}</td>
+                          <td class="py-3 text-xs text-gray-500 max-w-md">${r.trigger_snapshot ? esc(JSON.parse(r.trigger_snapshot).reason || '').slice(0, 80) : (r.error_message ? `<span class="text-red-600">${esc(r.error_message).slice(0, 80)}</span>` : '—')}</td>
+                        </tr>
+                      `).join('')}
+                    </tbody>
+                  </table>
+                </div>
+              `}
+          </div>
+        `;
+
+        // Wire up action buttons
+        document.getElementById('btn-toggle-active').addEventListener('click', async () => {
+          try {
+            const updated = await apiFetch('/agents/' + a.id, { method: 'PATCH', body: JSON.stringify({ active: !a.active }) });
+            renderApp();
+          } catch (err) { alert('Failed: ' + err.message); }
+        });
+        document.getElementById('btn-toggle-public').addEventListener('click', async () => {
+          try {
+            await apiFetch('/agents/' + a.id, { method: 'PATCH', body: JSON.stringify({ is_public: !a.is_public }) });
+            renderApp();
+          } catch (err) { alert('Failed: ' + err.message); }
+        });
+        document.getElementById('btn-delete-agent').addEventListener('click', async () => {
+          if (!confirm('Delete "' + a.name + '" permanently? STX in the agent wallet will become unrecoverable.')) return;
+          try {
+            await apiFetch('/agents/' + a.id, { method: 'DELETE' });
+            window.location.hash = '#/agents';
+          } catch (err) { alert('Failed: ' + err.message); }
+        });
+      } catch (err) {
+        root.innerHTML = `<div class="p-6 rounded-xl bg-red-50 border border-red-200 text-red-700">Failed to load agent: ${esc(err.message)}</div>`;
+      }
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // Render: discover marketplace
+    // ──────────────────────────────────────────────────────────────────────
+    async function renderDiscover() {
+      const chipsEl = document.getElementById('discover-filter-chips');
+      const root = document.getElementById('discover-content');
+      root.innerHTML = `<div class="text-center py-12 text-gray-400">Loading public agents...</div>`;
+      try {
+        await ensureTemplates();
+        const params = new URLSearchParams();
+        if (appState.activeDiscoverFilter !== 'all') params.set('template', appState.activeDiscoverFilter);
+        const resp = await apiFetch('/discover/agents?' + params.toString());
+        appState.publicAgents = resp.agents || [];
+
+        // Filter chips: All + 5 templates
+        chipsEl.innerHTML = renderDiscoverChips();
+
+        if (appState.publicAgents.length === 0) {
+          root.innerHTML = `
+            <div class="text-center py-20 px-6 rounded-2xl border-2 border-dashed border-gray-200">
+              <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-50 flex items-center justify-center">
+                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+              </div>
+              <h3 class="text-xl font-bold text-gray-900 mb-2">No public agents${appState.activeDiscoverFilter !== 'all' ? ' in this category' : ' yet'}</h3>
+              <p class="text-gray-500">Be the first — <a href="#/agents/new" class="text-orange-500 font-bold hover:underline">create one</a> and publish it.</p>
+            </div>
+          `;
+          return;
+        }
+
+        root.innerHTML = `<div class="grid md:grid-cols-3 gap-4">${appState.publicAgents.map(renderPublicAgentCard).join('')}</div>`;
+      } catch (err) {
+        root.innerHTML = `<div class="p-6 rounded-xl bg-red-50 border border-red-200 text-red-700">Failed to load: ${esc(err.message)}</div>`;
+      }
+    }
+
+    function renderDiscoverChips() {
+      const cats = [{ key: 'all', label: 'All' }, ...appState.templates.map(t => ({ key: t.id, label: t.emoji + ' ' + t.name }))];
+      return cats.map(c => {
+        const active = appState.activeDiscoverFilter === c.key;
+        return `<button data-filter="${esc(c.key)}" class="discover-chip inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition cursor-pointer border ${active ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200 hover:border-orange-300 hover:text-orange-600'}">${esc(c.label)}</button>`;
+      }).join('');
+    }
+
+    function renderPublicAgentCard(agent) {
+      const meta = TEMPLATE_META[agent.template] || {};
+      return `
+        <a href="#/discover/${esc(agent.public_slug)}" class="card p-6 hover:border-orange-200 transition group block">
+          <div class="flex items-center gap-2 mb-3">${templateBadge(agent.template)}</div>
+          <h3 class="text-lg font-bold text-gray-900 mb-1 group-hover:text-orange-600 transition truncate">${esc(agent.name)}</h3>
+          ${agent.description ? `<p class="text-xs text-gray-500 mb-4 line-clamp-2">${esc(agent.description)}</p>` : '<div class="mb-4"></div>'}
+          <div class="grid grid-cols-3 gap-2 pt-3 border-t border-gray-100 text-center">
+            <div><div class="text-base font-black text-gray-900">${agent.stats.total_runs}</div><div class="text-[10px] text-gray-400 uppercase">runs</div></div>
+            <div><div class="text-base font-black text-orange-500">${agent.stats.total_triggered}</div><div class="text-[10px] text-gray-400 uppercase">fired</div></div>
+            <div><div class="text-base font-black text-gray-900">${fmtRel(agent.stats.last_run_at)}</div><div class="text-[10px] text-gray-400 uppercase">last run</div></div>
+          </div>
+        </a>
+      `;
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // Render: public agent profile
+    // ──────────────────────────────────────────────────────────────────────
+    async function renderPublicAgent(slug) {
+      const root = document.getElementById('public-agent-content');
+      root.innerHTML = `<div class="text-center py-12 text-gray-400">Loading...</div>`;
+      try {
+        const [resp, runsResp] = await Promise.all([
+          apiFetch('/discover/agents/' + encodeURIComponent(slug)),
+          apiFetch('/agents/' + encodeURIComponent(slug) + '/runs?limit=20').catch(() => ({ runs: [] })),
+          ensureTemplates(),
+        ]);
+        const a = resp.agent;
+        const meta = TEMPLATE_META[a.template] || {};
+        const tmpl = appState.templates.find(t => t.id === a.template);
+
+        root.innerHTML = `
+          <div class="card p-8 mb-6">
+            <div class="flex items-center gap-2 mb-4">${templateBadge(a.template)}<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-fuchsia-50 text-fuchsia-600">Public</span></div>
+            <h2 class="text-3xl font-black text-gray-900 mb-2">${esc(a.name)}</h2>
+            ${a.description ? `<p class="text-gray-500 mb-6">${esc(a.description)}</p>` : ''}
+            <div class="grid grid-cols-3 gap-4 pt-4 border-t border-gray-100 text-center">
+              <div><div class="text-2xl font-black text-gray-900">${a.stats.total_runs}</div><div class="text-xs text-gray-400 uppercase tracking-wider mt-1">Total Runs</div></div>
+              <div><div class="text-2xl font-black text-orange-500">${a.stats.total_triggered}</div><div class="text-xs text-gray-400 uppercase tracking-wider mt-1">Triggers Fired</div></div>
+              <div><div class="text-2xl font-black text-gray-900">${fmtRel(a.stats.last_run_at)}</div><div class="text-xs text-gray-400 uppercase tracking-wider mt-1">Last Run</div></div>
+            </div>
+            <div class="mt-6 pt-6 border-t border-gray-100">
+              <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Configuration</div>
+              <div class="space-y-1 text-sm text-gray-700">
+                <div><span class="text-gray-400">Schedule:</span> <span class="font-mono">${esc(a.schedule_cron)}</span></div>
+                ${tmpl ? tmpl.config_fields.map(f => `<div><span class="text-gray-400">${esc(f.label)}:</span> <span class="font-semibold">${esc(a.config[f.key])}${f.suffix ? ' ' + esc(f.suffix) : ''}</span></div>`).join('') : ''}
+              </div>
+            </div>
+            <div class="mt-6 pt-6 border-t border-gray-100">
+              <a href="#/agents/new?template=${encodeURIComponent(a.template)}" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-bold transition shadow-lg">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                Build your own ${esc(tmpl?.name || a.template)}
+              </a>
+            </div>
+          </div>
+        `;
+      } catch (err) {
+        root.innerHTML = `<div class="p-6 rounded-xl bg-red-50 border border-red-200 text-red-700">Failed to load: ${esc(err.message)}</div>`;
+      }
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // Auth gate (used in views that require sign-in)
+    // ──────────────────────────────────────────────────────────────────────
+    function renderAuthGate(message) {
+      return `
+        <div class="text-center py-20 px-6 rounded-2xl bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-100">
+          <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-white flex items-center justify-center shadow-lg">
+            <svg class="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"/></svg>
+          </div>
+          <h3 class="text-2xl font-bold text-gray-900 mb-2">Sign in required</h3>
+          <p class="text-gray-600 mb-6 max-w-md mx-auto">${esc(message)}</p>
+          <button onclick="shadowfeedSignIn()" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-bold transition shadow-lg">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+            Sign in with Stacks
+          </button>
+        </div>
+      `;
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // Router
+    // ──────────────────────────────────────────────────────────────────────
+    function parseHash() {
+      // window.location.hash starts with '#'. App routes are #/something.
+      const raw = window.location.hash.slice(1);
+      const [path] = raw.split('?');
+      return path && path.startsWith('/') ? path : '';
+    }
+
+    function showSection(targetId) {
+      document.querySelectorAll('.app-section').forEach(s => s.classList.remove('active'));
+      if (targetId) {
+        const el = document.getElementById(targetId);
+        if (el) el.classList.add('active');
+        document.body.classList.add('app-mode');
+      } else {
+        document.body.classList.remove('app-mode');
+      }
+    }
+
+    function renderApp() {
+      const path = parseHash();
+      // Marketing page is the default — hide all app sections.
+      if (!path) {
+        showSection(null);
+        appState.currentRoute = { path: '', params: {} };
+        updateNavbarState();
+        return;
+      }
+      // Match against app routes.
+      for (const route of ROUTES) {
+        const m = path.match(route.pattern);
+        if (m) {
+          showSection(route.id);
+          appState.currentRoute = { path, params: m };
+          updateNavbarState();
+          // Render is async but we don't await — sections show a loading state.
+          Promise.resolve(route.render(m)).catch(err => console.error('[render]', err));
+          return;
+        }
+      }
+      // Unknown app route — fall back to marketing.
+      window.location.hash = '';
+      showSection(null);
+    }
+
+    function updateNavbarState() {
+      // Reflect auth state in the wallet/sign-in button area.
+      // We don't replace the existing wallet UI — we add a small "Account" pill
+      // next to it when the user is signed in.
+      let pill = document.getElementById('siws-account-pill');
+      if (appState.session) {
+        if (!pill) {
+          pill = document.createElement('button');
+          pill.id = 'siws-account-pill';
+          pill.className = 'hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold transition border border-emerald-200';
+          pill.onclick = () => { if (confirm('Sign out?')) shadowfeedSignOut(); };
+          const navActions = document.querySelector('.nav-actions');
+          if (navActions) navActions.insertBefore(pill, navActions.firstChild);
+        }
+        pill.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>${esc(shortAddr(appState.session.user?.wallet_address))}`;
+      } else if (pill) {
+        pill.remove();
+      }
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // Discover filter chip click handler (event delegation)
+    // ──────────────────────────────────────────────────────────────────────
+    document.addEventListener('click', (e) => {
+      const chip = e.target.closest('.discover-chip');
+      if (!chip) return;
+      appState.activeDiscoverFilter = chip.dataset.filter;
+      renderDiscover();
+    });
+
+    // ──────────────────────────────────────────────────────────────────────
+    // Wire up navigation events + bootstrap
+    // ──────────────────────────────────────────────────────────────────────
+    window.addEventListener('hashchange', renderApp);
+
+    // Restore session if any
+    appState.session = loadSession();
+
+    // Initial render
+    renderApp();
+
+    // Expose loadSatsConnect to global so SIWS can reuse the marketing page's
+    // sats-connect loader (defined in the older script block).
+    if (!window.loadSatsConnect && typeof loadSatsConnect !== 'undefined') {
+      window.loadSatsConnect = loadSatsConnect;
+    }
+  })();
   </script>
 </body>
 </html>
