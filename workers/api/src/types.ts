@@ -9,6 +9,7 @@ export interface Env {
   HIRO_API_KEY?: string;
   DEMO_MODE?: string;
   GEMINI_API_KEY?: string;
+  AGENT_MASTER_KEY?: string;
 }
 
 export interface QueryRow {

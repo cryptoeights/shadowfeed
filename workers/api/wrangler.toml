@@ -3,6 +3,11 @@ main = "src/index.ts"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
+# Cron triggers — fire every minute. The scheduled() handler picks up
+# any agents whose schedule_cron matches the current minute and runs them.
+[triggers]
+crons = ["* * * * *"]
+
 [vars]
 NETWORK = "mainnet"
 FACILITATOR_URL = "https://api.shadowfeed.app"

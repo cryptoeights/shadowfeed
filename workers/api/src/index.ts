@@ -29,6 +29,9 @@ import { generateAlexTvlFlows } from './feeds/alex-tvl-flows';
 import { generateAlexSwapActivity } from './feeds/alex-swap-activity';
 import { generateAlexPairsOverview } from './feeds/alex-pairs-overview';
 import { enhanceFeedData } from './lib/enhance-feed';
+import { agentRoutes } from './lib/agent-routes';
+import { findActiveAgents } from './lib/agents-repo';
+import { cronMatches, executeAgent, defaultWebhookDelivery } from './lib/agent-engine';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -804,7 +807,48 @@ app.get('/demo/feeds/:feedId', async (c) => {
   });
 });
 
+// ============================================
+// AGENT PLATFORM — auth, CRUD, public discovery
+// ============================================
+app.route('/', agentRoutes);
+
 // Dismiss .well-known probes
 app.get('/.well-known/*', (c) => c.text('', 404));
 
-export default app;
+// ============================================
+// CRON HANDLER — runs every minute, executes due agents
+// ============================================
+//
+// We over-fetch active agents and filter by cron in JS (D1 has no cron parser).
+// Each agent's run is wrapped in waitUntil so failures don't tank the batch.
+export default {
+  fetch: app.fetch,
+  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
+    const now = new Date(event.scheduledTime);
+    const agents = await findActiveAgents(env.DB, 500);
+    const due = agents.filter(a => cronMatches(a.schedule_cron, now));
+    console.log(`[cron] tick at ${now.toISOString()} — ${due.length}/${agents.length} agents due`);
+
+    // Internal feed fetcher — bypasses x402 (we own this request).
+    const fetchFeed = async (feedId: string) => {
+      return generateFeedById(feedId, env.CACHE, env.NANSEN_API_KEY);
+    };
+
+    // Execute each agent in parallel but bounded (avoid blowing CPU budget).
+    const BATCH = 10;
+    for (let i = 0; i < due.length; i += BATCH) {
+      const slice = due.slice(i, i + BATCH);
+      await Promise.allSettled(
+        slice.map(agent =>
+          executeAgent(agent, {
+            env,
+            fetchFeed,
+            deliverWebhook: defaultWebhookDelivery,
+          }).catch(err => {
+            console.error(`[cron] agent ${agent.id} crashed:`, err?.message ?? err);
+          }),
+        ),
+      );
+    }
+  },
+};

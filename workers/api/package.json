@@ -10,13 +10,20 @@
     "d1:init": "wrangler d1 execute shadowfeed --file=./d1/schema.sql",
     "d1:init:local": "wrangler d1 execute shadowfeed --file=./d1/schema.sql --local"
   },
-  "keywords": ["shadowfeed", "x402", "stacks", "cloudflare-workers"],
+  "keywords": [
+    "shadowfeed",
+    "x402",
+    "stacks",
+    "cloudflare-workers"
+  ],
   "author": "Pebri Ansyah",
   "license": "MIT",
   "dependencies": {
+    "@stacks/encryption": "^7.4.0",
     "@stacks/network": "^7.3.1",
     "@stacks/transactions": "^7.4.0",
     "hono": "^4.12.12",
+    "workerd": "^1.20260426.1",
     "x402-stacks": "^2.0.1"
   },
   "devDependencies": {
