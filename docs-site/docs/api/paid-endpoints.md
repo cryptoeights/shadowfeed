@@ -69,9 +69,9 @@ BTC market sentiment from Alternative.me Fear & Greed Index, Binance 24h ticker,
 
 ## GET /feeds/defi-scores
 
-DeFi protocol risk/opportunity scores with composite ratings.
+DeFi protocol risk/opportunity scores from live DeFiLlama TVL data. Note: `smart_contract_age_days` and `unique_users_24h` are approximated in v1.
 
-**Price:** 0.01 STX | **Category:** analytics | **Source:** DeFiLlama
+**Price:** 0.01 STX | **Category:** analytics | **Source:** DeFiLlama (TVL live; age/users estimated)
 
 ```json
 {

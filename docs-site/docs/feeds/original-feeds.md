@@ -37,7 +37,7 @@ const result = await sf.buy('whale-alerts');
 | **Feed ID** | `btc-sentiment` |
 | **Price** | 0.003 STX |
 | **Category** | social |
-| **Sources** | Alternative.me (Fear & Greed Index), CoinGecko (price/dominance) |
+| **Sources** | Alternative.me (Fear & Greed Index), Binance (24h ticker), CoinPaprika (global market) |
 | **Update** | Every 5 minutes |
 
 Computes a composite BTC sentiment score from three live data sources: Alternative.me Fear & Greed Index (primary signal), Binance 24h BTC/USDT ticker, and CoinPaprika global market data. Does not include Twitter or Reddit data.
@@ -66,12 +66,12 @@ const result = await sf.buy('btc-sentiment');
 | **Sources** | DeFiLlama (10 top protocols) |
 | **Update** | Every 15 minutes |
 
-Computes risk/opportunity scores for the top 10 DeFi protocols based on TVL, growth, and audit data.
+Computes risk/opportunity scores for the top 10 DeFi protocols based on live TVL and growth data from DeFiLlama. Note: `smart_contract_age_days` and `unique_users_24h` fields are approximated in v1 — TVL, 24h change, and composite scores are from live data.
 
 **Key data points:**
 - Per-protocol: TVL, 24h change, composite score, recommendation
 - Recommendations: `strong_buy`, `favorable`, `neutral`, `caution`, `strong_avoid`
-- Audit counts and chain info
+- Audit counts and chain info (age/users are estimated)
 
 ```typescript
 const result = await sf.buy('defi-scores');

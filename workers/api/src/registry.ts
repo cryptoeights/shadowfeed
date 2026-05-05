@@ -44,7 +44,7 @@ const FEED_DEFINITIONS: Omit<FeedInfo, 'stats'>[] = [
     endpoint: '/feeds/defi-scores',
     price_stx: 0.01,
     price_display: '0.01 STX',
-    description: 'DeFi protocol risk/opportunity scores with composite ratings',
+    description: 'DeFi protocol risk/opportunity scores from DeFiLlama TVL data; smart_contract_age_days and unique_users_24h are estimated/approximated in v1',
     category: 'analytics',
     update_frequency: 'every 15 minutes',
     response_format: 'application/json',
