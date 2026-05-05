@@ -12,9 +12,9 @@ Use the SDK (`shadowfeed-agent`) to handle payments automatically. These docs sh
 
 ## GET /feeds/whale-alerts
 
-Real-time whale movements — transfers >100 BTC across exchanges and wallets.
+Generates whale-style alerts using live BTC price and block height. Alert events (addresses, amounts, types) are synthetic in v1; real on-chain tracking planned for v2.
 
-**Price:** 0.005 STX | **Category:** on-chain | **Source:** CoinGecko + Blockchain.info
+**Price:** 0.005 STX | **Category:** on-chain | **Source:** CoinGecko (price) + Blockchain.info (block height); alerts are synthetic
 
 ```bash
 curl https://api.shadowfeed.app/feeds/whale-alerts
@@ -46,9 +46,9 @@ Response (after payment):
 
 ## GET /feeds/btc-sentiment
 
-BTC social sentiment aggregated from Twitter, Reddit, and news.
+BTC market sentiment from Alternative.me Fear & Greed Index, Binance 24h ticker, and CoinPaprika global market data. Does not include Twitter or Reddit signals.
 
-**Price:** 0.003 STX | **Category:** social | **Source:** Alternative.me + CoinGecko
+**Price:** 0.003 STX | **Category:** social | **Source:** Alternative.me + Binance + CoinPaprika
 
 ```json
 {

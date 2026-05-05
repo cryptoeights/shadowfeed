@@ -26,7 +26,8 @@ export type FeedCategory =
   | 'governance'
   | 'security'
   | 'development'
-  | 'cross-chain';
+  | 'cross-chain'
+  | 'stacks-defi';
 
 /** Feed information from the registry */
 export interface FeedInfo {
@@ -96,4 +97,9 @@ export type FeedId =
   | 'stablecoin-flows'
   | 'security-alerts'
   | 'dev-activity'
-  | 'bridge-flows';
+  | 'bridge-flows'
+  | 'alex-price-feed'
+  | 'alex-pool-analytics'
+  | 'alex-tvl-flows'
+  | 'alex-swap-activity'
+  | 'alex-pairs-overview';

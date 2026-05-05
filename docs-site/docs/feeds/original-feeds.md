@@ -16,7 +16,7 @@ These are the original 3 feeds that launched with ShadowFeed, powered by free pu
 | **Sources** | CoinGecko (BTC price), Blockchain.info (recent blocks) |
 | **Update** | Real-time |
 
-Tracks large Bitcoin transfers (>100 BTC) across exchanges and wallets. Identifies accumulation and distribution patterns.
+Generates whale-style alerts using live BTC price (CoinGecko) and block height (Blockchain.info). Alert events are synthetic in v1 — addresses, amounts, and types are simulated using real market data as context. Real on-chain tracking is planned for v2.
 
 **Key data points:**
 - Individual whale alerts with amount, from/to labels, and significance level
@@ -40,13 +40,13 @@ const result = await sf.buy('whale-alerts');
 | **Sources** | Alternative.me (Fear & Greed Index), CoinGecko (price/dominance) |
 | **Update** | Every 5 minutes |
 
-Aggregates social sentiment from Twitter, Reddit, and news into a composite score.
+Computes a composite BTC sentiment score from three live data sources: Alternative.me Fear & Greed Index (primary signal), Binance 24h BTC/USDT ticker, and CoinPaprika global market data. Does not include Twitter or Reddit data.
 
 **Key data points:**
-- Fear & Greed Index (0-100)
-- Per-source sentiment scores (Twitter, Reddit, News)
-- BTC price, 24h change, dominance
-- Market trend (bullish/bearish/neutral)
+- Fear & Greed Index (0-100) from Alternative.me
+- BTC price, 24h change, high/low, volume from Binance
+- BTC dominance, total market cap, market cap change from CoinPaprika
+- Market trend (bullish/bearish/sideways)
 
 ```typescript
 const result = await sf.buy('btc-sentiment');

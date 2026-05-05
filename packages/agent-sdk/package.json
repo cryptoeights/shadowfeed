@@ -1,6 +1,6 @@
 {
   "name": "shadowfeed-agent",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "SDK for AI agents to discover and purchase data feeds from ShadowFeed marketplace via x402 micropayments on Stacks",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
