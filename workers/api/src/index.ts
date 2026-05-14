@@ -4,7 +4,7 @@ import { paymentMiddleware, STXtoMicroSTX, getPayment } from 'x402-stacks';
 import { deserializeTransaction, addressFromVersionHash, addressToString, AddressVersion } from '@stacks/transactions';
 
 import type { Env } from './types';
-import { initDb, ensureFeedStats, recordQuery, getRecentQueries, getUniqueAgents, getAgentLeaderboard, getTotalRevenue, getQueryById } from './db';
+import { initDb, ensureFeedStats, recordQuery, getRecentQueries, getUniqueAgents, getAgentLeaderboard, getTotalRevenue, getQueryById, getRecentProviderQueries, getProviderUniquePayers, getProviderTotalGross, getProviderAgentLeaderboard, getProviderFeedStats } from './db';
 import { getRegistry } from './registry';
 import { getProviderReputation } from './reputation';
 import { generateWhaleAlerts } from './feeds/whale-alerts';
@@ -321,44 +321,108 @@ app.get('/stats', async (c) => {
 
 app.get('/activity', async (c) => {
   const limit = Math.min(parseInt(c.req.query('limit') || '50'), 200);
-  const queries = await getRecentQueries(c.env.DB, limit);
-  const [uniqueAgents, totalRevenue] = await Promise.all([
+
+  // Pull from both platform queries AND external provider proxy queries,
+  // merge by timestamp, and surface a single chronological feed. Each row
+  // carries a `source` flag so the UI can label/badge them.
+  const [platformQ, providerQ, uniqueAgentsPlatform, uniqueAgentsProvider, totalRevenuePlatform, totalGrossProvider] = await Promise.all([
+    getRecentQueries(c.env.DB, limit),
+    getRecentProviderQueries(c.env.DB, limit),
     getUniqueAgents(c.env.DB),
+    getProviderUniquePayers(c.env.DB),
     getTotalRevenue(c.env.DB),
+    getProviderTotalGross(c.env.DB),
   ]);
 
-  // Resolve custom agent names from KV
-  const uniquePayers = [...new Set(queries.map(q => q.payer).filter(Boolean))] as string[];
+  const network = c.env.NETWORK;
+
+  type ActivityItem = {
+    id: string;
+    source: 'platform' | 'provider';
+    feed: string;
+    agent: string | null;
+    tx_hash: string | null;
+    response_ms: number;
+    price_stx: number;
+    created_at: number;
+  };
+
+  const items: ActivityItem[] = [
+    ...platformQ.map((q): ActivityItem => ({
+      id: `p:${q.id}`,
+      source: 'platform',
+      feed: q.feed_id,
+      agent: q.payer,
+      tx_hash: q.tx_hash,
+      response_ms: q.response_ms,
+      price_stx: FEED_PRICES[q.feed_id] ?? 0,
+      created_at: q.created_at,
+    })),
+    ...providerQ.map((q): ActivityItem => ({
+      id: `e:${q.id}`,
+      source: 'provider',
+      feed: q.feed_id,                       // composite "<handle>/<slug>"
+      agent: q.payer,
+      tx_hash: q.tx_hash,
+      response_ms: q.response_ms,
+      price_stx: q.price_stx,
+      created_at: q.created_at,
+    })),
+  ];
+
+  items.sort((a, b) => b.created_at - a.created_at);
+  const merged = items.slice(0, limit);
+
+  // Resolve custom agent names once across the merged set.
+  const uniquePayers = [...new Set(merged.map((q) => q.agent).filter(Boolean))] as string[];
   const agentNames: Record<string, string> = {};
   await Promise.all(uniquePayers.map(async (addr) => {
     const name = await c.env.CACHE.get(`agent-name:${addr}`);
     if (name) agentNames[addr] = name;
   }));
 
+  // Unique buyers across both sources requires a separate query since the
+  // counts above don't tell us about the intersection. Pull the union.
+  const allBuyersRow = await c.env.DB
+    .prepare(`
+      SELECT COUNT(DISTINCT payer) AS n FROM (
+        SELECT payer FROM queries WHERE payer IS NOT NULL
+        UNION
+        SELECT payer FROM provider_query_log WHERE payer IS NOT NULL
+      )
+    `)
+    .first<{ n: number }>();
+  const uniqueAgentsAll = allBuyersRow?.n ?? Math.max(uniqueAgentsPlatform, uniqueAgentsProvider);
+
   return c.json({
-    activity: queries.map(q => {
+    activity: merged.map((q) => {
       const isDemo = q.tx_hash?.startsWith('demo_') || false;
-      const isReal = q.tx_hash && !isDemo;
-      const customName = q.payer ? agentNames[q.payer] : null;
+      const isReal = !!(q.tx_hash && !isDemo);
+      const customName = q.agent ? agentNames[q.agent] : null;
       return {
         id: q.id,
-        feed: q.feed_id,
-        agent: q.payer,
-        agent_name: customName || getAgentName(q.payer || ''),
-        agent_short: q.payer ? `${q.payer.slice(0, 8)}...${q.payer.slice(-6)}` : 'unknown',
+        source: q.source,
+        feed: q.feed,
+        agent: q.agent,
+        agent_name: customName || getAgentName(q.agent || ''),
+        agent_short: q.agent ? `${q.agent.slice(0, 8)}...${q.agent.slice(-6)}` : 'unknown',
         tx_hash: q.tx_hash,
-        tx_explorer: isReal ? `https://explorer.hiro.so/txid/${q.tx_hash}?chain=${c.env.NETWORK}` : null,
+        tx_explorer: isReal ? `https://explorer.hiro.so/txid/${q.tx_hash}?chain=${network}` : null,
         is_demo: isDemo,
         is_onchain: isReal,
-        price_stx: FEED_PRICES[q.feed_id] || 0,
+        price_stx: q.price_stx,
         response_ms: q.response_ms,
         timestamp: q.created_at * 1000,
         time_ago: formatTimeAgo(q.created_at * 1000),
       };
     }),
-    total_queries: queries.length,
-    unique_agents: uniqueAgents,
-    total_revenue_stx: Math.round(totalRevenue * 1000) / 1000,
+    total_queries: merged.length,
+    unique_agents: uniqueAgentsAll,
+    unique_agents_platform: uniqueAgentsPlatform,
+    unique_agents_provider: uniqueAgentsProvider,
+    total_revenue_stx: Math.round((totalRevenuePlatform + totalGrossProvider) * 1000) / 1000,
+    total_revenue_stx_platform: Math.round(totalRevenuePlatform * 1000) / 1000,
+    total_revenue_stx_provider: Math.round(totalGrossProvider * 1000) / 1000,
   });
 });
 
@@ -386,33 +450,110 @@ app.get('/activity/:id/data', async (c) => {
 });
 
 app.get('/leaderboard', async (c) => {
-  const agents = await getAgentLeaderboard(c.env.DB, 20);
+  const limit = Math.min(parseInt(c.req.query('limit') || '20'), 100);
+
+  // Build a unified leaderboard from both platform queries and external
+  // provider proxy queries. Same wallet appearing in both gets merged.
+  const [platformAgents, providerAgents] = await Promise.all([
+    getAgentLeaderboard(c.env.DB, 200),
+    getProviderAgentLeaderboard(c.env.DB, 200),
+  ]);
+
+  interface Aggregate {
+    address: string;
+    total_queries: number;
+    total_spent_microstx: number;
+    platform_queries: number;
+    provider_queries: number;
+    whale_queries: number;
+    sentiment_queries: number;
+    defi_queries: number;
+    response_ms_sum: number;
+    response_ms_count: number;
+    first_seen: number;
+    last_seen: number;
+  }
+
+  const byAddr = new Map<string, Aggregate>();
+
+  for (const a of platformAgents) {
+    const spentStx =
+      a.whale_queries * (FEED_PRICES['whale-alerts'] ?? 0) +
+      a.sentiment_queries * (FEED_PRICES['btc-sentiment'] ?? 0) +
+      a.defi_queries * (FEED_PRICES['defi-scores'] ?? 0);
+    byAddr.set(a.address, {
+      address: a.address,
+      total_queries: a.total_queries,
+      total_spent_microstx: Math.round(spentStx * 1_000_000),
+      platform_queries: a.total_queries,
+      provider_queries: 0,
+      whale_queries: a.whale_queries,
+      sentiment_queries: a.sentiment_queries,
+      defi_queries: a.defi_queries,
+      response_ms_sum: a.avg_response_ms * a.total_queries,
+      response_ms_count: a.total_queries,
+      first_seen: a.first_seen,
+      last_seen: a.last_seen,
+    });
+  }
+
+  for (const p of providerAgents) {
+    const existing = byAddr.get(p.address);
+    if (existing) {
+      existing.total_queries += p.total_queries;
+      existing.provider_queries = p.total_queries;
+      existing.total_spent_microstx += p.total_spent_microstx;
+      existing.response_ms_sum += p.avg_response_ms * p.total_queries;
+      existing.response_ms_count += p.total_queries;
+      existing.first_seen = Math.min(existing.first_seen, p.first_seen);
+      existing.last_seen = Math.max(existing.last_seen, p.last_seen);
+    } else {
+      byAddr.set(p.address, {
+        address: p.address,
+        total_queries: p.total_queries,
+        total_spent_microstx: p.total_spent_microstx,
+        platform_queries: 0,
+        provider_queries: p.total_queries,
+        whale_queries: 0,
+        sentiment_queries: 0,
+        defi_queries: 0,
+        response_ms_sum: p.avg_response_ms * p.total_queries,
+        response_ms_count: p.total_queries,
+        first_seen: p.first_seen,
+        last_seen: p.last_seen,
+      });
+    }
+  }
+
+  const ranked = [...byAddr.values()]
+    .sort((a, b) => b.total_queries - a.total_queries)
+    .slice(0, limit);
 
   // Resolve custom names
   const leaderNames: Record<string, string> = {};
-  await Promise.all(agents.map(async (a) => {
+  await Promise.all(ranked.map(async (a) => {
     const name = await c.env.CACHE.get(`agent-name:${a.address}`);
     if (name) leaderNames[a.address] = name;
   }));
 
   return c.json({
-    agents: agents.map((a, idx) => ({
+    agents: ranked.map((a, idx) => ({
       rank: idx + 1,
       address: a.address,
       agent_name: leaderNames[a.address] || getAgentName(a.address),
       address_short: `${a.address.slice(0, 8)}...${a.address.slice(-6)}`,
       total_queries: a.total_queries,
-      total_spent_stx: Math.round(
-        (a.whale_queries * FEED_PRICES['whale-alerts'] +
-         a.sentiment_queries * FEED_PRICES['btc-sentiment'] +
-         a.defi_queries * FEED_PRICES['defi-scores']) * 1000
-      ) / 1000,
+      total_spent_stx: Math.round((a.total_spent_microstx / 1_000_000) * 1000) / 1000,
+      platform_queries: a.platform_queries,
+      provider_queries: a.provider_queries,
       feeds: {
         whale_alerts: a.whale_queries,
         btc_sentiment: a.sentiment_queries,
         defi_scores: a.defi_queries,
       },
-      avg_response_ms: a.avg_response_ms,
+      avg_response_ms: a.response_ms_count > 0
+        ? Math.round(a.response_ms_sum / a.response_ms_count)
+        : 0,
       first_seen: a.first_seen * 1000,
       last_seen: a.last_seen * 1000,
     })),

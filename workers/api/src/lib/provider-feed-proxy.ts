@@ -20,7 +20,12 @@
 // two recipient transfers without a smart contract. Doing it bookkeeping-only
 // lets us batch settlement, save fees, and reconcile cleanly.
 
-import { deserializeTransaction } from '@stacks/transactions';
+import {
+  deserializeTransaction,
+  addressFromVersionHash,
+  addressToString,
+  AddressVersion,
+} from '@stacks/transactions';
 import { STXtoMicroSTX } from 'x402-stacks';
 import type { Context } from 'hono';
 import type { Env } from '../types';
@@ -56,14 +61,16 @@ function getStacksApiHeaders(env: Env): Record<string, string> {
 function extractPayer(tx: any, isMainnet: boolean): string {
   try {
     const signer = tx.auth?.spendingCondition?.signer;
-    if (!signer) return 'unknown';
-    // Same address derivation logic the existing platform handler uses.
-    // We avoid importing addressFromVersionHash here to keep this module slim;
-    // the signer hex itself is what the leaderboard groups on anyway.
-    return typeof signer === 'string' ? signer : String(signer);
-  } catch {
-    return 'unknown';
-  }
+    if (signer) {
+      const version = isMainnet
+        ? AddressVersion.MainnetSingleSig
+        : AddressVersion.TestnetSingleSig;
+      const addr = addressFromVersionHash(version, signer);
+      return addressToString(addr);
+    }
+    if (tx.auth?.spendingCondition?.address) return tx.auth.spendingCondition.address;
+  } catch {}
+  return 'unknown';
 }
 
 function splitFee(grossMicrostx: number): { fee: number; net: number } {

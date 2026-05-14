@@ -107,6 +107,123 @@ export async function getAgentLeaderboard(db: D1Database, limit: number = 10): P
   return results;
 }
 
+// ────────────────────────────────────────────────────────────────────────
+// External provider query log helpers — same shape concept as platform
+// queries, but stored in provider_query_log with explicit revenue split.
+// Used so /activity, /leaderboard, /stats can include external traffic.
+// ────────────────────────────────────────────────────────────────────────
+
+export interface ProviderActivityRow {
+  readonly id: number;
+  readonly feed_id: string;       // composite: '<handle>/<feed-slug>'
+  readonly payer: string | null;
+  readonly tx_hash: string | null;
+  readonly response_ms: number;
+  readonly created_at: number;
+  readonly price_stx: number;     // gross paid by buyer (not split)
+  readonly upstream_status: number | null;
+}
+
+export async function getRecentProviderQueries(
+  db: D1Database,
+  limit: number = 50,
+): Promise<ProviderActivityRow[]> {
+  const { results } = await db
+    .prepare(`
+      SELECT
+        pql.id,
+        p.handle || '/' || f.slug AS feed_id,
+        pql.payer,
+        pql.tx_hash,
+        pql.response_ms,
+        pql.created_at,
+        pql.gross_microstx / 1000000.0 AS price_stx,
+        pql.upstream_status
+      FROM provider_query_log pql
+      JOIN providers p ON p.id = pql.provider_id
+      JOIN provider_feeds f ON f.id = pql.feed_id
+      ORDER BY pql.created_at DESC, pql.id DESC
+      LIMIT ?
+    `)
+    .bind(limit)
+    .all<ProviderActivityRow>();
+  return results;
+}
+
+export async function getProviderUniquePayers(db: D1Database): Promise<number> {
+  const row = await db
+    .prepare(
+      'SELECT COUNT(DISTINCT payer) as count FROM provider_query_log WHERE payer IS NOT NULL',
+    )
+    .first<{ count: number }>();
+  return row?.count ?? 0;
+}
+
+export async function getProviderTotalGross(db: D1Database): Promise<number> {
+  const row = await db
+    .prepare('SELECT COALESCE(SUM(gross_microstx), 0) as total FROM provider_query_log')
+    .first<{ total: number }>();
+  return (row?.total ?? 0) / 1_000_000;
+}
+
+export interface ProviderLeaderboardRow {
+  readonly address: string;
+  readonly total_queries: number;
+  readonly total_spent_microstx: number;
+  readonly avg_response_ms: number;
+  readonly first_seen: number;
+  readonly last_seen: number;
+}
+
+export async function getProviderAgentLeaderboard(
+  db: D1Database,
+  limit: number = 50,
+): Promise<ProviderLeaderboardRow[]> {
+  const { results } = await db
+    .prepare(`
+      SELECT
+        payer AS address,
+        COUNT(*) AS total_queries,
+        SUM(gross_microstx) AS total_spent_microstx,
+        ROUND(AVG(response_ms), 0) AS avg_response_ms,
+        MIN(created_at) AS first_seen,
+        MAX(created_at) AS last_seen
+      FROM provider_query_log
+      WHERE payer IS NOT NULL
+      GROUP BY payer
+      ORDER BY total_queries DESC
+      LIMIT ?
+    `)
+    .bind(limit)
+    .all<ProviderLeaderboardRow>();
+  return results;
+}
+
+export interface ProviderFeedStatsRow {
+  readonly feed_id: string;        // composite handle/slug
+  readonly total_queries: number;
+  readonly avg_response_ms: number;
+  readonly error_rate: number;
+}
+
+export async function getProviderFeedStats(db: D1Database): Promise<ProviderFeedStatsRow[]> {
+  const { results } = await db
+    .prepare(`
+      SELECT
+        p.handle || '/' || f.slug AS feed_id,
+        COUNT(*) AS total_queries,
+        ROUND(AVG(pql.response_ms), 0) AS avg_response_ms,
+        AVG(CASE WHEN pql.upstream_status >= 400 THEN 1.0 ELSE 0.0 END) AS error_rate
+      FROM provider_query_log pql
+      JOIN providers p ON p.id = pql.provider_id
+      JOIN provider_feeds f ON f.id = pql.feed_id
+      GROUP BY p.handle, f.slug
+      ORDER BY total_queries DESC
+    `)
+    .all<ProviderFeedStatsRow>();
+  return results;
+}
+
 export async function getTotalRevenue(db: D1Database): Promise<number> {
   const feedPrices: Record<string, number> = {
     'whale-alerts': 0.005,
