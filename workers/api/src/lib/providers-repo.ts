@@ -25,6 +25,8 @@ export interface ProviderRow {
   readonly mode: ProviderMode;
   readonly partner_endpoint: string | null;
   readonly hmac_secret_hash: string | null;
+  readonly hmac_encrypted_secret: string | null;
+  readonly hmac_secret_iv: string | null;
   readonly hmac_rotated_at: number | null;
   readonly status: ProviderStatus;
   readonly verified: number;
@@ -88,6 +90,8 @@ export interface CreateProviderInput {
   readonly mode: ProviderMode;
   readonly partner_endpoint?: string;
   readonly hmac_secret_hash?: string;
+  readonly hmac_encrypted_secret?: string;
+  readonly hmac_secret_iv?: string;
   readonly custodial_address: string;
   readonly custodial_encrypted_key: string;
   readonly custodial_iv: string;
@@ -106,9 +110,10 @@ export async function insertProvider(
         id, user_id, handle, name, description, logo_url, website,
         twitter_handle, contact_email,
         custodial_address, custodial_encrypted_key, custodial_iv,
-        mode, partner_endpoint, hmac_secret_hash, hmac_rotated_at,
+        mode, partner_endpoint, hmac_secret_hash, hmac_encrypted_secret,
+        hmac_secret_iv, hmac_rotated_at,
         status, created_at, activated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, NULL)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, NULL)
     `)
     .bind(
       id,
@@ -126,6 +131,8 @@ export async function insertProvider(
       input.mode,
       input.partner_endpoint ?? null,
       input.hmac_secret_hash ?? null,
+      input.hmac_encrypted_secret ?? null,
+      input.hmac_secret_iv ?? null,
       input.hmac_secret_hash ? now : null,
       now,
     )
@@ -207,8 +214,24 @@ export async function updateHmacSecret(
   db: D1Database,
   providerId: string,
   secretHash: string,
+  encryptedSecret?: string,
+  iv?: string,
 ): Promise<void> {
   const now = Math.floor(Date.now() / 1000);
+  if (encryptedSecret !== undefined && iv !== undefined) {
+    await db
+      .prepare(`
+        UPDATE providers
+        SET hmac_secret_hash = ?,
+            hmac_encrypted_secret = ?,
+            hmac_secret_iv = ?,
+            hmac_rotated_at = ?
+        WHERE id = ?
+      `)
+      .bind(secretHash, encryptedSecret, iv, now, providerId)
+      .run();
+    return;
+  }
   await db
     .prepare(`UPDATE providers SET hmac_secret_hash = ?, hmac_rotated_at = ? WHERE id = ?`)
     .bind(secretHash, now, providerId)
@@ -348,7 +371,8 @@ export async function getProviderFeedBySlug(
         p.logo_url, p.website, p.twitter_handle, p.contact_email,
         p.custodial_address, p.custodial_encrypted_key, p.custodial_iv,
         p.linked_withdrawal_address, p.linked_at,
-        p.mode, p.partner_endpoint, p.hmac_secret_hash, p.hmac_rotated_at,
+        p.mode, p.partner_endpoint, p.hmac_secret_hash,
+        p.hmac_encrypted_secret, p.hmac_secret_iv, p.hmac_rotated_at,
         p.status, p.verified,
         p.pending_revenue_microstx, p.total_earned_microstx, p.total_withdrawn_microstx,
         p.created_at as p_created_at, p.activated_at,
@@ -386,6 +410,8 @@ export async function getProviderFeedBySlug(
       mode: row.mode as ProviderMode,
       partner_endpoint: row.partner_endpoint as string | null,
       hmac_secret_hash: row.hmac_secret_hash as string | null,
+      hmac_encrypted_secret: row.hmac_encrypted_secret as string | null,
+      hmac_secret_iv: row.hmac_secret_iv as string | null,
       hmac_rotated_at: row.hmac_rotated_at as number | null,
       status: row.status as ProviderStatus,
       verified: row.verified as number,

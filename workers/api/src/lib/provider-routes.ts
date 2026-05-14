@@ -17,6 +17,7 @@ import {
 import { createProviderWallet, getProviderBalance } from './provider-wallet';
 import { generatePartnerSecret, hashPartnerSecret, signPartnerRequest } from './hmac';
 import { discoverFeeds } from './provider-discovery';
+import { encryptWithMasterKey, decryptWithMasterKey } from './crypto';
 import {
   activateProvider,
   getFeedsByProvider,
@@ -68,6 +69,30 @@ const RESERVED_HANDLES = new Set([
 ]);
 
 // Public view — strips secret/encrypted fields, ready to ship to client.
+// Resolve the platform-side HMAC secret for a provider. Tries the encrypted
+// DB column first (migration 003+); falls back to a per-provider worker env
+// var named PARTNER_SECRET_<HANDLE> for legacy compatibility.
+//
+// Returns null when neither source is available.
+export async function loadPlatformHmacSecret(
+  env: Env,
+  provider: ProviderRow,
+): Promise<string | null> {
+  if (provider.hmac_encrypted_secret && provider.hmac_secret_iv && env.AGENT_MASTER_KEY) {
+    try {
+      return await decryptWithMasterKey(
+        { ciphertext: provider.hmac_encrypted_secret, iv: provider.hmac_secret_iv },
+        env.AGENT_MASTER_KEY,
+      );
+    } catch {
+      // Fall through to env var fallback if decryption fails for any reason.
+    }
+  }
+  const envKey = `PARTNER_SECRET_${provider.handle.toUpperCase().replace(/-/g, '_')}`;
+  const fromEnv = (env as unknown as Record<string, string | undefined>)[envKey];
+  return fromEnv || null;
+}
+
 function publicProviderView(row: ProviderRow, includePrivate = false) {
   const base = {
     id: row.id,
@@ -182,10 +207,14 @@ providerRoutes.post('/providers', async (c) => {
   }
 
   // Partner bridge requires endpoint URL + we generate the HMAC secret here
-  // and return the plaintext exactly once.
+  // and return the plaintext exactly once. Also store an encrypted copy in
+  // the DB so the platform can sign requests without anyone manually re-
+  // pasting it as a Worker secret.
   let partnerEndpoint: string | undefined;
   let plaintextSecret: string | undefined;
   let secretHash: string | undefined;
+  let secretEncrypted: string | undefined;
+  let secretIv: string | undefined;
   if (mode === 'partner_bridge') {
     const ep = String(body.partner_endpoint ?? '').trim();
     if (!/^https:\/\/[^\s]+/.test(ep)) {
@@ -194,6 +223,9 @@ providerRoutes.post('/providers', async (c) => {
     partnerEndpoint = ep.replace(/\/+$/, '');  // trim trailing slash
     plaintextSecret = generatePartnerSecret();
     secretHash = await hashPartnerSecret(plaintextSecret);
+    const enc = await encryptWithMasterKey(plaintextSecret, c.env.AGENT_MASTER_KEY);
+    secretEncrypted = enc.ciphertext;
+    secretIv = enc.iv;
   }
 
   const network = (c.env.NETWORK === 'mainnet' ? 'mainnet' : 'testnet') as 'mainnet' | 'testnet';
@@ -211,6 +243,8 @@ providerRoutes.post('/providers', async (c) => {
     mode,
     partner_endpoint: partnerEndpoint,
     hmac_secret_hash: secretHash,
+    hmac_encrypted_secret: secretEncrypted,
+    hmac_secret_iv: secretIv,
     custodial_address: wallet.address,
     custodial_encrypted_key: wallet.encryptedKey,
     custodial_iv: wallet.iv,
@@ -548,15 +582,17 @@ providerRoutes.post('/providers/id/:id/hmac/test', async (c) => {
     }, 400);
   }
 
-  // Fetch the platform-side copy of the HMAC secret from worker env.
-  const envKey = `PARTNER_SECRET_${provider.handle.toUpperCase().replace(/-/g, '_')}`;
-  const secret = (c.env as unknown as Record<string, string | undefined>)[envKey];
+  // Load the platform-side copy of the HMAC secret. Prefer the encrypted copy
+  // stored alongside the provider record (M2.5+); fall back to a worker env
+  // var for providers created before migration 003 (M2 legacy).
+  const secret = await loadPlatformHmacSecret(c.env, provider);
   if (!secret) {
+    const envKey = `PARTNER_SECRET_${provider.handle.toUpperCase().replace(/-/g, '_')}`;
     return c.json({
       ok: false,
       stage: 'platform_secret_missing',
       env_key: envKey,
-      reason: `Platform HMAC secret not configured. Set it via: wrangler secret put ${envKey} (on the ShadowFeed worker), pasting the secret you saved when this provider was created.`,
+      reason: `No platform HMAC secret found. Rotate the secret from this dashboard so we can store it encrypted; you'll only need to paste it once on your partner endpoint.`,
     }, 200);
   }
 
@@ -650,10 +686,14 @@ providerRoutes.post('/providers/id/:id/hmac/rotate', async (c) => {
   if (result.provider.mode !== 'partner_bridge') {
     return c.json({ error: 'HMAC only applies to partner_bridge mode' }, 400);
   }
+  if (!c.env.AGENT_MASTER_KEY) {
+    return c.json({ error: 'AGENT_MASTER_KEY not configured on server' }, 500);
+  }
 
   const plaintext = generatePartnerSecret();
   const hash = await hashPartnerSecret(plaintext);
-  await updateHmacSecret(c.env.DB, result.provider.id, hash);
+  const enc = await encryptWithMasterKey(plaintext, c.env.AGENT_MASTER_KEY);
+  await updateHmacSecret(c.env.DB, result.provider.id, hash, enc.ciphertext, enc.iv);
   await logAudit(c.env.DB, result.provider.id, 'hmac_rotated');
 
   return c.json({

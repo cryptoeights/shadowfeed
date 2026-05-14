@@ -25,6 +25,7 @@ import { STXtoMicroSTX } from 'x402-stacks';
 import type { Context } from 'hono';
 import type { Env } from '../types';
 import { signPartnerRequest } from './hmac';
+import { loadPlatformHmacSecret } from './provider-routes';
 import {
   creditProviderRevenue,
   getFeedCache,
@@ -93,14 +94,14 @@ async function callPartnerEndpoint(opts: {
     return { status: 500, body: { error: 'provider misconfigured' }, latencyMs: 0 };
   }
 
-  // Fetch the partner secret from Worker bindings. We expect a custom env var
-  // named `PARTNER_SECRET_<HANDLE>` per provider (set via wrangler secret).
-  const envKey = `PARTNER_SECRET_${provider.handle.toUpperCase().replace(/-/g, '_')}`;
-  const secret = (env as unknown as Record<string, string | undefined>)[envKey];
+  // Load HMAC secret from encrypted DB column (preferred) or worker env (fallback).
+  const secret = await loadPlatformHmacSecret(env, provider);
   if (!secret) {
     return {
       status: 500,
-      body: { error: `partner secret not configured (set ${envKey})` },
+      body: {
+        error: 'platform partner secret not configured — rotate from the provider dashboard to store it encrypted',
+      },
       latencyMs: 0,
     };
   }
