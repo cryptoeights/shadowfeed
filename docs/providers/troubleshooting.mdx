@@ -1,0 +1,246 @@
+---
+title: Troubleshooting
+description: "Common errors when integrating as a ShadowFeed provider, and how to fix them fast."
+---
+
+# Troubleshooting
+
+Common issues, what they mean, and how to fix them. If something isn't covered here, ping us via the contact channels at the bottom of the page.
+
+## HMAC errors
+
+### 401 invalid HMAC signature on every request
+
+**Most common cause:** secret mismatch between ShadowFeed and your server.
+
+<Steps>
+  <Step title="Check the env var name on your server">
+    From the dashboard → **View setup guide** → the placeholder env var line shows the name your server expects (`SHADOWFEED_PARTNER_SECRET`).
+  </Step>
+  <Step title="Verify it's set">
+    On your server: `echo $SHADOWFEED_PARTNER_SECRET` (or your platform's equivalent — Worker secret, Vercel env, etc.).
+  </Step>
+  <Step title="Rotate if unsure">
+    If the secret might be wrong or lost, **rotate from the dashboard**. Update your server's env var with the new value and redeploy.
+  </Step>
+</Steps>
+
+If both sides have the same secret and it still fails, see the next section.
+
+### Some calls succeed, some return 401
+
+**Likely cause:** clock drift > 5 minutes between your server and ShadowFeed.
+
+```bash
+# On your server
+date -u
+# Compare to https://time.is
+```
+
+**Fix:**
+- Linux: enable systemd-timesyncd or ntpd
+- Cloud platforms (Cloudflare Workers, Vercel, Render, Railway) sync time automatically — if you're on one of these and seeing drift, something else is wrong
+
+### 401 on POST requests but GET works
+
+**Cause:** middleware reads the body to verify HMAC, then it's already consumed when the route handler runs (or vice versa).
+
+| Stack | Fix |
+|-------|-----|
+| TypeScript / Fetch API | Use `req.clone().text()` so original body remains readable |
+| Express | Install `body-parser`, then access `req.rawBody` |
+| FastAPI | Use `await request.body()` once in middleware, store on `request.state` |
+| Go | Read body in middleware, then `r.Body = io.NopCloser(strings.NewReader(...))` |
+
+### Worked yesterday, all 401 today
+
+**Likely cause:** you rotated the secret in the dashboard but didn't update your server's env var.
+
+**Fix:** pull the latest secret (or rotate again if you didn't save it) → redeploy your server with the new value.
+
+### Replay attack rejection: nonce already used
+
+If your verifier returns this for legitimate requests, your nonce cache is too aggressive or there's a retry happening.
+
+<Note>
+  The nonce should expire after 5 minutes. Each ShadowFeed request uses a fresh UUID v4. If you're behind a proxy that retries on timeout, the proxy may be sending the SAME signed request twice — increase your upstream timeout to 30s+.
+</Note>
+
+## Onboarding errors
+
+### "handle already taken"
+
+Pick a different handle. URLs are unique. Once chosen, the handle is permanent for that provider record.
+
+### "invalid or reserved handle"
+
+Reserved handles (`admin`, `api`, `auth`, `dashboard`, `system`, etc.) are blocked.
+
+- Allowed characters: lowercase letters, numbers, hyphens
+- Length: 3-32 chars
+- Must start and end with alphanumeric
+
+### "partner_endpoint must be https://..."
+
+We only proxy to HTTPS endpoints. Set up TLS on your API (Cloudflare proxy, Let's Encrypt) or use a managed runtime that handles it (Workers, Vercel, Render).
+
+### Wizard step 4 didn't show me the HMAC secret
+
+<Tabs>
+  <Tab title="If Hosted Mirror mode">
+    There's no HMAC secret in this mode — we host your data, no signed requests needed.
+  </Tab>
+  <Tab title="If Partner Bridge mode">
+    The wizard may have crashed mid-flow. Check the dashboard — if the provider was created without a secret, click **Rotate secret** to generate one.
+  </Tab>
+</Tabs>
+
+## Withdrawal errors
+
+### "no linked withdrawal wallet"
+
+You must link a Stacks wallet before withdrawing. See [Withdrawals → Linking a withdrawal wallet](/providers/withdrawals#linking-a-withdrawal-wallet).
+
+### "destination must match your linked withdrawal wallet"
+
+Withdrawals can only go to the wallet you linked. To send elsewhere, re-link with the new address first (signature challenge).
+
+<Warning>
+  This is a security guard — without it, a session hijack could drain funds to an attacker's wallet.
+</Warning>
+
+### "minimum withdrawal is 1 STX"
+
+We have a 1 STX floor to avoid dust transactions. Accumulate more revenue first, or contact us if you have a strong use case for a smaller withdrawal.
+
+### "insufficient pending balance"
+
+You're trying to withdraw more than your current `pending_revenue`. Check the dashboard — pending balance updates ~immediately after each paid query but may have small lag during high traffic.
+
+### Withdrawal stuck in `broadcast` state
+
+The cron poller checks pending withdrawals every minute. Most Stacks blocks land within 10 minutes.
+
+If after 30+ minutes the status hasn't changed:
+
+<Steps>
+  <Step title="Click the TX hash">
+    Opens Hiro Explorer.
+  </Step>
+  <Step title="Check status">
+    If `success` → wait a few more minutes for our poller to catch up.
+  </Step>
+  <Step title="If failed">
+    `abort_by_response` or `abort_by_post_condition` means the tx failed on-chain (rare; usually a platform wallet nonce conflict). Funds are auto-restored to pending revenue, withdrawal marked `failed`. Retry.
+  </Step>
+</Steps>
+
+### "broadcast failed — funds restored to pending balance"
+
+Your withdrawal was rolled back. Check the error detail (returned in the API response). Common causes:
+
+- Platform wallet low on STX (we'll catch this and resolve)
+- Hiro API rate limit (auto-retry will kick in)
+- Network glitch (try again)
+
+Your `pending_revenue` is back where it was. Just retry.
+
+## Feed errors
+
+### My feed returns 503 "provider inactive"
+
+Your provider is in `pending` or `paused` state.
+
+- **pending:** you haven't added a feed yet. Add at least one feed to auto-activate.
+- **paused:** you (or platform admin) manually paused. Click **Resume** in the dashboard.
+
+### Feed returns 503 "feed paused"
+
+You paused this individual feed. Click **Resume** in the feed list.
+
+### Feed returns 502 with upstream error
+
+Your `partner_endpoint` returned a 5xx, or wasn't reachable. Common causes:
+
+- Endpoint URL is wrong (typo, missing path, http vs https)
+- Your server is down
+- DNS resolution failed
+- TLS certificate expired
+- Firewall blocking incoming traffic from Cloudflare
+
+<Note>
+  In this case, the buyer still paid 0.005 STX, but **we don't credit your revenue counter** (you didn't actually serve data). The platform fee is also waived for these failures.
+</Note>
+
+Test from your local machine:
+
+```bash
+curl -i https://your-api.com/your/feed/path
+```
+
+If your endpoint works locally but fails when called from ShadowFeed, check IP allowlists or geoblocking.
+
+### Hosted mirror feed shows "feed not yet populated"
+
+The cron poller hasn't fetched your data source yet. Wait up to one poll interval (default 5 minutes).
+
+If still empty after 2 intervals:
+- Check `last_poll_status` in your feed config (visible in dashboard)
+- Verify the source URL returns valid JSON: `curl https://your-source-url`
+- Check payload size — we cap at 1 MB per feed
+
+## Dashboard / SIWS errors
+
+### "Connect a Stacks wallet first"
+
+Your wallet provider (Leather or Xverse) isn't installed or not loaded yet.
+
+<Steps>
+  <Step title="Reload the page">
+    Sometimes the extension takes a moment to inject.
+  </Step>
+  <Step title="Check the extension">
+    Make sure Leather or Xverse is installed and unlocked.
+  </Step>
+  <Step title="Connect first, then sign in">
+    Click **Connect Wallet** in the top right BEFORE clicking **Sign in with Stacks**.
+  </Step>
+</Steps>
+
+### "signature verification failed"
+
+The signature doesn't match expected, or the nonce is stale.
+
+- Try signing again — Leather sometimes loses focus mid-flow
+- If using Xverse, make sure you're on the latest version
+- If persistent: sign out fully → reload → sign back in
+
+### Session expired
+
+We auto-clear sessions after 7 days. Sign in again — your provider account and revenue are unchanged.
+
+## Reach out
+
+If you're stuck:
+
+- DM us on X — [@shadow_agents](https://x.com/shadow_agents)
+- Open an issue on GitHub (link in footer)
+- Email — `grants@stacksendowment.co` (during M2 grant period)
+
+When asking for help, include:
+
+1. Your provider handle
+2. Stack you're integrating from (TS / Python / Go / etc.)
+3. Exact error message
+4. A request ID or timestamp if you have it (we can grep server logs)
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="HMAC Integration Guide" icon="code" href="/providers/hmac-integration">
+    Verifier code in TypeScript, Python, and Go.
+  </Card>
+  <Card title="Withdrawals & Revenue" icon="wallet" href="/providers/withdrawals">
+    How revenue accounting works.
+  </Card>
+</CardGroup>

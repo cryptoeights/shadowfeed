@@ -32,6 +32,11 @@ import { enhanceFeedData } from './lib/enhance-feed';
 import { agentRoutes } from './lib/agent-routes';
 import { findActiveAgents } from './lib/agents-repo';
 import { cronMatches, executeAgent, defaultWebhookDelivery } from './lib/agent-engine';
+import { providerRoutes } from './lib/provider-routes';
+import { providerWithdrawRoutes, pollPendingWithdrawals } from './lib/provider-withdraw';
+import { providerFeedHandler } from './lib/provider-feed-proxy';
+import { runHostedMirrorPoller } from './lib/provider-poller';
+import { sweepExpiredNonces } from './lib/hmac';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -812,6 +817,16 @@ app.get('/demo/feeds/:feedId', async (c) => {
 // ============================================
 app.route('/', agentRoutes);
 
+// ============================================
+// PROVIDER PORTAL — onboarding, dashboard, paid proxy feeds
+// ============================================
+app.route('/', providerRoutes);
+app.route('/', providerWithdrawRoutes);
+
+// Paid proxy feed for any registered external provider.
+// URL shape: /feeds/p/:providerHandle/:feedSlug
+app.get('/feeds/p/:providerHandle/:feedSlug', providerFeedHandler);
+
 // Dismiss .well-known probes
 app.get('/.well-known/*', (c) => c.text('', 404));
 
@@ -850,5 +865,19 @@ export default {
         ),
       );
     }
+
+    // Provider portal maintenance — runs every minute alongside agent cron.
+    // All independent of agent execution; failures here shouldn't crash agents.
+    await Promise.allSettled([
+      runHostedMirrorPoller(env).then((r) =>
+        console.log(`[cron] poller polled=${r.polled} ok=${r.ok} failed=${r.failed}`),
+      ),
+      pollPendingWithdrawals(env).then((r) =>
+        console.log(`[cron] withdrawals checked=${r.checked} confirmed=${r.confirmed}`),
+      ),
+      sweepExpiredNonces(env.DB).then((n) =>
+        n > 0 && console.log(`[cron] swept ${n} expired hmac nonces`),
+      ),
+    ]);
   },
 };

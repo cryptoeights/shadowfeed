@@ -211,6 +211,7 @@
         <a href="#try-it">Try It</a>
         <a href="#/agents" data-app-link>Agents</a>
         <a href="#/discover" data-app-link>Discover</a>
+        <a href="#/providers" data-app-link>Providers</a>
         <a href="#activity">Activity</a>
         <a href="#leaderboard">Leaderboard</a>
         <a href="/brand.html">Brand</a>
@@ -244,6 +245,7 @@
       <a href="#try-it" onclick="document.getElementById('mobile-menu').classList.remove('open')" class="block px-3 py-2.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg font-medium">Try It</a>
       <a href="#/agents" data-app-link onclick="document.getElementById('mobile-menu').classList.remove('open')" class="block px-3 py-2.5 text-sm text-orange-600 hover:bg-gray-50 rounded-lg font-bold">Agents</a>
       <a href="#/discover" data-app-link onclick="document.getElementById('mobile-menu').classList.remove('open')" class="block px-3 py-2.5 text-sm text-orange-600 hover:bg-gray-50 rounded-lg font-bold">Discover</a>
+      <a href="#/providers" data-app-link onclick="document.getElementById('mobile-menu').classList.remove('open')" class="block px-3 py-2.5 text-sm text-orange-600 hover:bg-gray-50 rounded-lg font-bold">Providers</a>
       <a href="#activity" onclick="document.getElementById('mobile-menu').classList.remove('open')" class="block px-3 py-2.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg font-medium">Activity</a>
       <a href="#leaderboard" onclick="document.getElementById('mobile-menu').classList.remove('open')" class="block px-3 py-2.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg font-medium">Leaderboard</a>
       <a href="/brand.html" class="block px-3 py-2.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg font-medium">Brand</a>
@@ -1013,6 +1015,98 @@ console.<span class="text-blue-400">log</span>(data);</pre>
         Back to discover
       </a>
       <div id="public-agent-content"></div>
+    </div>
+  </section>
+
+  <!-- /#/providers — Public provider marketplace + your providers if signed in -->
+  <section id="route-providers" class="app-section py-24 px-6 min-h-screen" data-route="/providers">
+    <div class="max-w-6xl mx-auto">
+      <div class="text-center mb-10">
+        <p class="text-sm font-semibold text-orange-500 uppercase tracking-widest mb-2">For Data Providers</p>
+        <h2 class="text-4xl font-extrabold text-gray-900">Sell your data to AI agents</h2>
+        <p class="text-gray-500 mt-3 max-w-2xl mx-auto">List your feed on ShadowFeed and earn STX every time an autonomous agent pays for a query. Keep 97% — settled on Bitcoin L2.</p>
+        <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+          <a href="#/providers/onboard" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-bold transition shadow-lg">
+            Become a Provider
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          </a>
+          <a href="#/providers/dashboard" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 text-sm font-bold transition">
+            My Dashboard
+          </a>
+        </div>
+      </div>
+
+      <!-- Value props -->
+      <div class="grid sm:grid-cols-3 gap-4 max-w-4xl mx-auto mb-12">
+        <div class="rounded-2xl border border-gray-100 bg-white p-5">
+          <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center mb-3">
+            <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <h3 class="font-bold text-gray-900 mb-1">97% revenue share</h3>
+          <p class="text-sm text-gray-500">3% platform fee. Withdraw to your wallet any time.</p>
+        </div>
+        <div class="rounded-2xl border border-gray-100 bg-white p-5">
+          <div class="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center mb-3">
+            <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          </div>
+          <h3 class="font-bold text-gray-900 mb-1">x402 native</h3>
+          <p class="text-sm text-gray-500">Agents pay per call. No subscriptions, no API keys.</p>
+        </div>
+        <div class="rounded-2xl border border-gray-100 bg-white p-5">
+          <div class="w-10 h-10 rounded-xl bg-fuchsia-50 flex items-center justify-center mb-3">
+            <svg class="w-5 h-5 text-fuchsia-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+          </div>
+          <h3 class="font-bold text-gray-900 mb-1">Bitcoin-secured</h3>
+          <p class="text-sm text-gray-500">Every query is an on-chain Stacks tx anchored to BTC.</p>
+        </div>
+      </div>
+
+      <h3 class="text-lg font-bold text-gray-900 mb-4">Active providers</h3>
+      <div id="providers-list-content"></div>
+    </div>
+  </section>
+
+  <!-- /#/providers/onboard — 3-step wizard -->
+  <section id="route-providers-onboard" class="app-section py-24 px-6 min-h-screen" data-route="/providers/onboard">
+    <div class="max-w-3xl mx-auto">
+      <a href="#/providers" class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 mb-6">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        Back to providers
+      </a>
+      <div class="mb-8">
+        <p class="text-sm font-semibold text-orange-500 uppercase tracking-widest mb-2">Onboard</p>
+        <h2 class="text-4xl font-extrabold text-gray-900">Become a Provider</h2>
+      </div>
+      <div id="provider-onboard-content"></div>
+    </div>
+  </section>
+
+  <!-- /#/providers/dashboard — Provider management dashboard -->
+  <section id="route-provider-dashboard" class="app-section py-24 px-6 min-h-screen" data-route="/providers/dashboard">
+    <div class="max-w-6xl mx-auto">
+      <div class="flex items-center justify-between mb-10">
+        <div>
+          <p class="text-sm font-semibold text-orange-500 uppercase tracking-widest mb-2">Provider Hub</p>
+          <h2 class="text-4xl font-extrabold text-gray-900">Dashboard</h2>
+          <p class="text-gray-500 mt-2">Manage your feeds, track revenue, withdraw earnings.</p>
+        </div>
+        <a href="#/providers/onboard" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-bold transition shadow-lg">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          New Provider
+        </a>
+      </div>
+      <div id="provider-dashboard-content"></div>
+    </div>
+  </section>
+
+  <!-- /#/providers/:handle — Public provider profile -->
+  <section id="route-provider-public" class="app-section py-24 px-6 min-h-screen" data-route="/providers/:handle">
+    <div class="max-w-4xl mx-auto">
+      <a href="#/providers" class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 mb-6">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        Back to providers
+      </a>
+      <div id="provider-public-content"></div>
     </div>
   </section>
 
@@ -2641,11 +2735,16 @@ console.<span class="text-blue-400">log</span>(data);</pre>
     // Map Hono-style template path patterns to regexes.
     // Order matters: more specific routes first so /agents/new doesn't match /agents/:id.
     const ROUTES = [
-      { id: 'route-agents-new',    pattern: /^\/agents\/new$/,           render: renderAgentCreate },
-      { id: 'route-agent-detail',  pattern: /^\/agents\/([^/]+)$/,       render: (m) => renderAgentDetail(m[1]) },
-      { id: 'route-agents',        pattern: /^\/agents$/,                render: renderAgentDashboard },
-      { id: 'route-public-agent',  pattern: /^\/discover\/([^/]+)$/,     render: (m) => renderPublicAgent(m[1]) },
-      { id: 'route-discover',      pattern: /^\/discover$/,              render: renderDiscover },
+      { id: 'route-agents-new',          pattern: /^\/agents\/new$/,           render: renderAgentCreate },
+      { id: 'route-agent-detail',        pattern: /^\/agents\/([^/]+)$/,       render: (m) => renderAgentDetail(m[1]) },
+      { id: 'route-agents',              pattern: /^\/agents$/,                render: renderAgentDashboard },
+      { id: 'route-public-agent',        pattern: /^\/discover\/([^/]+)$/,     render: (m) => renderPublicAgent(m[1]) },
+      { id: 'route-discover',            pattern: /^\/discover$/,              render: renderDiscover },
+      // Provider portal — order matters: specific paths before :handle catch-all.
+      { id: 'route-providers-onboard',   pattern: /^\/providers\/onboard$/,    render: renderProviderOnboard },
+      { id: 'route-provider-dashboard',  pattern: /^\/providers\/dashboard$/,  render: renderProviderDashboard },
+      { id: 'route-provider-public',     pattern: /^\/providers\/([^/]+)$/,    render: (m) => renderProviderPublic(m[1]) },
+      { id: 'route-providers',           pattern: /^\/providers$/,             render: renderProvidersLanding },
     ];
 
     // ──────────────────────────────────────────────────────────────────────
@@ -3423,6 +3522,1160 @@ console.<span class="text-blue-400">log</span>(data);</pre>
       appState.activeDiscoverFilter = chip.dataset.filter;
       renderDiscover();
     });
+
+    // ══════════════════════════════════════════════════════════════════════
+    // PROVIDER PORTAL — landing, onboarding wizard, dashboard, public profile
+    // ══════════════════════════════════════════════════════════════════════
+
+    // Module-state additions for providers. Mounted onto appState so existing
+    // helpers like apiFetch + session reuse work transparently.
+    appState.providers = [];           // public list
+    appState.myProviders = [];         // owned by current user
+    appState.currentProvider = null;   // for dashboard / public detail
+    appState.onboardStep = 1;          // wizard cursor
+
+    function providerCardHtml(p) {
+      const modeBadge = p.mode === 'partner_bridge'
+        ? '<span class="px-2 py-0.5 rounded-md bg-orange-50 text-orange-600 text-[10px] font-bold uppercase tracking-wider">Partner API</span>'
+        : '<span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase tracking-wider">Hosted Data</span>';
+      const verifiedBadge = p.verified
+        ? '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 text-blue-600 text-[10px] font-bold"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/></svg>Verified</span>'
+        : '';
+      return `
+        <a href="#/providers/${esc(p.handle)}" class="group block rounded-2xl border border-gray-100 bg-white p-5 hover:border-orange-200 hover:shadow-lg transition">
+          <div class="flex items-start justify-between gap-3 mb-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-white font-extrabold text-sm shrink-0">${esc((p.name || p.handle).charAt(0).toUpperCase())}</div>
+              <div class="min-w-0">
+                <h3 class="font-bold text-gray-900 truncate">${esc(p.name)}</h3>
+                <p class="text-xs text-gray-400 truncate">@${esc(p.handle)}</p>
+              </div>
+            </div>
+            <div class="flex flex-col items-end gap-1 shrink-0">${modeBadge}${verifiedBadge}</div>
+          </div>
+          <p class="text-sm text-gray-500 line-clamp-2 mb-3">${esc(p.description || 'External data provider on ShadowFeed.')}</p>
+          <div class="flex items-center justify-between text-xs text-gray-400">
+            <span>${p.website ? '<a class="hover:text-gray-700 truncate" href="' + esc(p.website) + '" target="_blank" rel="noopener">' + esc(p.website.replace(/^https?:\/\//, '')) + '</a>' : '&nbsp;'}</span>
+            <span class="text-orange-500 font-semibold group-hover:translate-x-0.5 transition">View →</span>
+          </div>
+        </a>
+      `;
+    }
+
+    async function renderProvidersLanding() {
+      const root = document.getElementById('providers-list-content');
+      if (!root) return;
+      root.innerHTML = '<div class="text-center py-12 text-gray-400">Loading…</div>';
+      try {
+        const data = await apiFetch('/providers');
+        appState.providers = data.providers || [];
+        if (appState.providers.length === 0) {
+          root.innerHTML = `
+            <div class="text-center py-16 rounded-2xl border border-dashed border-gray-200 bg-gray-50">
+              <p class="text-gray-500 mb-4">No external providers yet — be the first.</p>
+              <a href="#/providers/onboard" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-bold transition">Become a Provider</a>
+            </div>
+          `;
+          return;
+        }
+        root.innerHTML = `<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">${appState.providers.map(providerCardHtml).join('')}</div>`;
+      } catch (err) {
+        root.innerHTML = `<div class="text-center py-12 text-red-500">${esc(err.message || 'Failed to load providers')}</div>`;
+      }
+    }
+
+    async function renderProviderPublic(handle) {
+      const root = document.getElementById('provider-public-content');
+      if (!root) return;
+      root.innerHTML = '<div class="text-center py-12 text-gray-400">Loading…</div>';
+      try {
+        const data = await apiFetch('/providers/' + encodeURIComponent(handle));
+        const p = data.provider;
+        const feeds = data.feeds || [];
+        appState.currentProvider = p;
+        root.innerHTML = `
+          <div class="rounded-3xl border border-gray-100 bg-white p-8 mb-6">
+            <div class="flex items-start justify-between gap-4 mb-4">
+              <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-white font-extrabold text-xl">${esc((p.name||p.handle).charAt(0).toUpperCase())}</div>
+                <div>
+                  <h2 class="text-2xl font-extrabold text-gray-900">${esc(p.name)}</h2>
+                  <p class="text-sm text-gray-400">@${esc(p.handle)} · <span class="text-orange-500 font-semibold">${esc(p.mode === 'partner_bridge' ? 'Partner API' : 'Hosted Data')}</span></p>
+                </div>
+              </div>
+              ${p.verified ? '<span class="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold">✓ Verified</span>' : ''}
+            </div>
+            <p class="text-gray-600 mb-4">${esc(p.description || '')}</p>
+            <div class="flex flex-wrap gap-4 text-sm">
+              ${p.website ? `<a class="text-gray-700 hover:text-orange-500 inline-flex items-center gap-1" href="${esc(p.website)}" target="_blank" rel="noopener"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z M3.6 9h16.8 M3.6 15h16.8 M11.5 3a17 17 0 000 18 M12.5 3a17 17 0 010 18"/></svg>${esc(p.website.replace(/^https?:\/\//,''))}</a>` : ''}
+              ${p.twitter_handle ? `<a class="text-gray-700 hover:text-orange-500" href="https://x.com/${esc(p.twitter_handle.replace('@',''))}" target="_blank" rel="noopener">${esc(p.twitter_handle)}</a>` : ''}
+            </div>
+          </div>
+
+          <h3 class="text-lg font-bold text-gray-900 mb-3">Feeds (${feeds.length})</h3>
+          ${feeds.length === 0
+            ? '<div class="rounded-2xl border border-dashed border-gray-200 p-8 text-center text-gray-400">No active feeds yet.</div>'
+            : `<div class="space-y-3">${feeds.map(f => `
+                <div class="rounded-2xl border border-gray-100 bg-white p-5 flex items-center justify-between gap-4">
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-2 mb-1">
+                      <h4 class="font-bold text-gray-900">${esc(f.name)}</h4>
+                      ${f.category ? `<span class="px-2 py-0.5 rounded-md bg-gray-100 text-gray-500 text-[10px] font-semibold uppercase tracking-wider">${esc(f.category)}</span>` : ''}
+                    </div>
+                    <p class="text-xs text-gray-400 font-mono truncate">/feeds/p/${esc(p.handle)}/${esc(f.slug)}</p>
+                    <p class="text-sm text-gray-500 mt-1 line-clamp-2">${esc(f.description || '')}</p>
+                  </div>
+                  <div class="text-right shrink-0">
+                    <p class="text-xl font-extrabold text-gray-900">${f.price_stx} STX</p>
+                    <p class="text-[10px] text-gray-400">per query</p>
+                  </div>
+                </div>
+              `).join('')}</div>`}
+        `;
+      } catch (err) {
+        root.innerHTML = `<div class="text-center py-12 text-red-500">${esc(err.message || 'Provider not found')}</div>`;
+      }
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // Onboarding wizard — 3 steps: profile → mode → first feed
+    // ──────────────────────────────────────────────────────────────────────
+    function renderProviderOnboard() {
+      const root = document.getElementById('provider-onboard-content');
+      if (!root) return;
+      if (!appState.session) {
+        root.innerHTML = `
+          <div class="rounded-2xl border border-gray-100 bg-white p-8 text-center">
+            <h3 class="text-xl font-bold text-gray-900 mb-2">Sign in first</h3>
+            <p class="text-sm text-gray-500 mb-5">Provider accounts need a Stacks wallet identity. Connect Leather or Xverse to continue.</p>
+            <button onclick="shadowfeedSignIn()" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-bold transition">Sign in with Stacks</button>
+          </div>
+        `;
+        return;
+      }
+
+      // Step indicator
+      const step = appState.onboardStep || 1;
+      const dots = [1, 2, 3].map(n => `
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${n <= step ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-400'}">${n}</div>
+          ${n < 3 ? `<div class="w-12 h-0.5 ${n < step ? 'bg-orange-500' : 'bg-gray-100'}"></div>` : ''}
+        </div>
+      `).join('');
+
+      root.innerHTML = `
+        <div class="flex items-center justify-center mb-8">${dots}</div>
+        <div id="onboard-step-content"></div>
+      `;
+      renderOnboardStep();
+    }
+
+    function renderOnboardStep() {
+      const root = document.getElementById('onboard-step-content');
+      if (!root) return;
+      const step = appState.onboardStep || 1;
+      const draft = appState.onboardDraft || {};
+
+      if (step === 1) {
+        root.innerHTML = `
+          <div class="rounded-2xl border border-gray-100 bg-white p-6">
+            <h3 class="text-xl font-bold text-gray-900 mb-1">Profile</h3>
+            <p class="text-sm text-gray-500 mb-5">Tell agents who you are.</p>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Handle <span class="text-red-500">*</span></label>
+                <input id="ob-handle" type="text" value="${esc(draft.handle || '')}" placeholder="hyre" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none text-sm font-mono" />
+                <p class="text-[11px] text-gray-400 mt-1">URL slug — lowercase, 3-32 chars. shadowfeed.app/#/providers/<span class="font-mono">your-handle</span></p>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Display name <span class="text-red-500">*</span></label>
+                <input id="ob-name" type="text" value="${esc(draft.name || '')}" placeholder="Hyre Agent" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none text-sm" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Description</label>
+                <textarea id="ob-description" rows="2" placeholder="AI-interpreted DeFi data across 22 endpoints" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none text-sm resize-none">${esc(draft.description || '')}</textarea>
+              </div>
+              <div class="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Website</label>
+                  <input id="ob-website" type="url" value="${esc(draft.website || '')}" placeholder="https://example.com" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none text-sm" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">X (Twitter)</label>
+                  <input id="ob-twitter" type="text" value="${esc(draft.twitter_handle || '')}" placeholder="@handle" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none text-sm" />
+                </div>
+              </div>
+            </div>
+            <div id="ob-step1-error" class="mt-4 text-sm text-red-500"></div>
+            <div class="mt-6 flex justify-end">
+              <button onclick="onboardNext1()" class="px-5 py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-bold transition">Continue →</button>
+            </div>
+          </div>
+        `;
+      } else if (step === 2) {
+        root.innerHTML = `
+          <div class="rounded-2xl border border-gray-100 bg-white p-6">
+            <h3 class="text-xl font-bold text-gray-900 mb-1">Integration mode</h3>
+            <p class="text-sm text-gray-500 mb-5">How do you want to deliver data to ShadowFeed?</p>
+            <div class="space-y-3">
+              <label class="block rounded-2xl border-2 ${draft.mode === 'partner_bridge' ? 'border-orange-400 bg-orange-50/30' : 'border-gray-100 hover:border-gray-200'} p-5 cursor-pointer transition">
+                <input type="radio" name="ob-mode" value="partner_bridge" ${draft.mode === 'partner_bridge' ? 'checked' : ''} class="sr-only" onchange="onboardSetMode('partner_bridge')" />
+                <div class="flex items-start gap-3">
+                  <div class="w-5 h-5 rounded-full border-2 ${draft.mode === 'partner_bridge' ? 'border-orange-500 bg-orange-500' : 'border-gray-300'} shrink-0 mt-0.5 flex items-center justify-center">
+                    ${draft.mode === 'partner_bridge' ? '<div class="w-1.5 h-1.5 rounded-full bg-white"></div>' : ''}
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2 mb-1">
+                      <h4 class="font-bold text-gray-900">Connect Your API</h4>
+                      <span class="px-2 py-0.5 rounded-md bg-orange-100 text-orange-700 text-[10px] font-bold uppercase tracking-wider">Partner Bridge</span>
+                    </div>
+                    <p class="text-sm text-gray-500">You expose a partner endpoint. We sign HMAC requests; you verify with the shared secret. Best for established APIs (Hyre, DeFiLlama, ALEX).</p>
+                  </div>
+                </div>
+              </label>
+              <label class="block rounded-2xl border-2 ${draft.mode === 'hosted_mirror' ? 'border-orange-400 bg-orange-50/30' : 'border-gray-100 hover:border-gray-200'} p-5 cursor-pointer transition">
+                <input type="radio" name="ob-mode" value="hosted_mirror" ${draft.mode === 'hosted_mirror' ? 'checked' : ''} class="sr-only" onchange="onboardSetMode('hosted_mirror')" />
+                <div class="flex items-start gap-3">
+                  <div class="w-5 h-5 rounded-full border-2 ${draft.mode === 'hosted_mirror' ? 'border-orange-500 bg-orange-500' : 'border-gray-300'} shrink-0 mt-0.5 flex items-center justify-center">
+                    ${draft.mode === 'hosted_mirror' ? '<div class="w-1.5 h-1.5 rounded-full bg-white"></div>' : ''}
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2 mb-1">
+                      <h4 class="font-bold text-gray-900">Drop Your Data</h4>
+                      <span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-wider">Hosted Mirror</span>
+                    </div>
+                    <p class="text-sm text-gray-500">Give us an R2/S3/GitHub URL. We cache and serve. Zero infra on your side — perfect for solo devs and scrapers.</p>
+                  </div>
+                </div>
+              </label>
+            </div>
+            ${draft.mode === 'partner_bridge' ? `
+              <div class="mt-5">
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Partner endpoint URL <span class="text-red-500">*</span></label>
+                <input id="ob-partner-endpoint" type="url" value="${esc(draft.partner_endpoint || '')}" placeholder="https://partner.yourdomain.com" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none text-sm font-mono" />
+                <p class="text-[11px] text-gray-400 mt-1">We'll send HMAC-signed GET requests to this base URL. The HMAC secret will be generated when you finish onboarding (shown only once).</p>
+              </div>
+            ` : ''}
+            <div id="ob-step2-error" class="mt-4 text-sm text-red-500"></div>
+            <div class="mt-6 flex justify-between">
+              <button onclick="onboardBack(1)" class="px-5 py-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-bold transition">← Back</button>
+              <button onclick="onboardNext2()" class="px-5 py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-bold transition">Continue →</button>
+            </div>
+          </div>
+        `;
+      } else if (step === 3) {
+        const isPartner = draft.mode === 'partner_bridge';
+        root.innerHTML = `
+          <div class="rounded-2xl border border-gray-100 bg-white p-6">
+            <h3 class="text-xl font-bold text-gray-900 mb-1">Add your first feed</h3>
+            <p class="text-sm text-gray-500 mb-5">You can add more from the dashboard later.</p>
+            <div class="space-y-4">
+              <div class="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Feed slug <span class="text-red-500">*</span></label>
+                  <input id="ob-feed-slug" type="text" placeholder="pumpfun-launches" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none text-sm font-mono" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Price (STX) <span class="text-red-500">*</span></label>
+                  <input id="ob-feed-price" type="number" step="0.001" min="0.001" placeholder="0.005" value="0.005" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none text-sm" />
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Display name <span class="text-red-500">*</span></label>
+                <input id="ob-feed-name" type="text" placeholder="PumpFun Launches" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none text-sm" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Description</label>
+                <textarea id="ob-feed-description" rows="2" placeholder="Real-time new token launches with sniper detection" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none text-sm resize-none"></textarea>
+              </div>
+              ${isPartner ? `
+                <div>
+                  <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Source path on your API <span class="text-red-500">*</span></label>
+                  <input id="ob-feed-source-path" type="text" placeholder="/v1/trenches/new-tokens" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none text-sm font-mono" />
+                  <p class="text-[11px] text-gray-400 mt-1">Full request URL: <code class="bg-gray-50 px-1.5 py-0.5 rounded">${esc(draft.partner_endpoint || '')}<span class="text-orange-500">/v1/trenches/new-tokens</span></code></p>
+                </div>
+              ` : `
+                <div>
+                  <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Source URL (JSON) <span class="text-red-500">*</span></label>
+                  <input id="ob-feed-source-url" type="url" placeholder="https://raw.githubusercontent.com/you/repo/main/data.json" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none text-sm font-mono" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Source type</label>
+                  <select id="ob-feed-source-type" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none text-sm">
+                    <option value="github_raw">GitHub Raw URL</option>
+                    <option value="r2_url">R2 / S3 URL</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Refresh interval</label>
+                  <select id="ob-feed-poll" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none text-sm">
+                    <option value="60">Every 1 minute</option>
+                    <option value="300" selected>Every 5 minutes</option>
+                    <option value="900">Every 15 minutes</option>
+                    <option value="3600">Every hour</option>
+                  </select>
+                </div>
+              `}
+            </div>
+            <div id="ob-step3-error" class="mt-4 text-sm text-red-500"></div>
+            <div class="mt-6 flex justify-between">
+              <button onclick="onboardBack(2)" class="px-5 py-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-bold transition">← Back</button>
+              <button onclick="onboardSubmit()" id="ob-submit-btn" class="px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold transition shadow-lg">Create provider →</button>
+            </div>
+          </div>
+        `;
+      } else if (step === 4) {
+        // Success state — show the secret (if partner_bridge) ONE TIME.
+        const created = appState.onboardCreated || {};
+        const secret = appState.onboardSecret;
+        root.innerHTML = `
+          <div class="rounded-2xl border-2 border-emerald-200 bg-emerald-50/50 p-6 mb-6">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+              </div>
+              <div>
+                <h3 class="text-xl font-bold text-gray-900">You're live!</h3>
+                <p class="text-sm text-gray-600">Provider <span class="font-mono">@${esc(created.handle)}</span> created.</p>
+              </div>
+            </div>
+          </div>
+          ${secret ? `
+            <div class="rounded-2xl border-2 border-orange-300 bg-orange-50 p-6 mb-6">
+              <div class="flex items-start gap-3 mb-4">
+                <svg class="w-6 h-6 text-orange-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                <div>
+                  <h4 class="font-bold text-gray-900 mb-1">Save your HMAC secret now</h4>
+                  <p class="text-sm text-gray-600">This is shown <strong>only once</strong>. We store only a hash — if you lose it, you'll need to rotate.</p>
+                </div>
+              </div>
+              <div class="rounded-xl bg-gray-900 text-emerald-300 font-mono text-sm p-4 break-all mb-3">${esc(secret)}</div>
+              <button onclick="onboardCopySecret()" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-xs font-bold transition">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+                <span id="ob-copy-label">Copy secret</span>
+              </button>
+            </div>
+            ${renderHmacGuide(secret, created.handle)}
+          ` : ''}
+          <div class="flex gap-3">
+            <a href="#/providers/dashboard" class="flex-1 text-center px-5 py-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-bold transition">Go to dashboard →</a>
+            <a href="#/providers/${esc(created.handle)}" class="px-5 py-3 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-bold transition">View public profile</a>
+          </div>
+        `;
+      }
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // HMAC integration guide — shown after secret generation + in dashboard.
+    // Returns an HTML string that can be embedded inline or in a modal.
+    // Pass `secret` when known (post-creation / post-rotation); pass null in
+    // contexts where we no longer have the plaintext (dashboard "view guide").
+    // ──────────────────────────────────────────────────────────────────────
+    function renderHmacGuide(secret, providerHandle) {
+      const secretLine = secret
+        ? `SHADOWFEED_PARTNER_SECRET=${secret}`
+        : 'SHADOWFEED_PARTNER_SECRET=<your-saved-secret>';
+      const secretNote = secret
+        ? ''
+        : '<p class="text-[11px] text-amber-600 mt-1">Use the secret you saved when this provider was created. We only store a hash — if you lost it, rotate to generate a new one.</p>';
+      const guideId = 'hmac-guide-' + Math.random().toString(36).slice(2, 8);
+
+      const tsSnippet = `// Cloudflare Workers / Hono example.
+// Add this BEFORE your x402 middleware so partner requests bypass payment.
+import { Hono } from 'hono';
+
+const app = new Hono();
+
+async function verifyShadowfeedHmac(req, secret) {
+  const ts = parseInt(req.headers.get('X-Sf-Timestamp') ?? '', 10);
+  const nonce = req.headers.get('X-Sf-Nonce') ?? '';
+  const sig   = req.headers.get('X-Sf-Signature') ?? '';
+  if (!ts || !nonce || !sig) return false;
+
+  // 5-minute window — rejects replay of old, leaked signatures.
+  if (Math.abs(Date.now() / 1000 - ts) > 300) return false;
+
+  // TODO: persist nonce in KV or Redis to block exact replays inside window.
+  //   await env.NONCES.put(nonce, '1', { expirationTtl: 300 });
+
+  const enc = new TextEncoder();
+  const body = req.method === 'GET' ? '' : await req.clone().text();
+  const bodyHash = body
+    ? [...new Uint8Array(await crypto.subtle.digest('SHA-256', enc.encode(body)))]
+        .map(b => b.toString(16).padStart(2, '0')).join('')
+    : '';
+  const canonical = [
+    req.method.toUpperCase(),
+    new URL(req.url).pathname,
+    String(ts), nonce, bodyHash,
+  ].join('\\n');
+
+  const key = await crypto.subtle.importKey(
+    'raw', enc.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+  );
+  const expected = [...new Uint8Array(
+    await crypto.subtle.sign('HMAC', key, enc.encode(canonical))
+  )].map(b => b.toString(16).padStart(2, '0')).join('');
+
+  return sig.toLowerCase() === expected.toLowerCase();
+}
+
+app.use('*', async (c, next) => {
+  if (c.req.header('X-Sf-Partner') === 'shadowfeed') {
+    const ok = await verifyShadowfeedHmac(c.req.raw, c.env.SHADOWFEED_PARTNER_SECRET);
+    if (!ok) return c.json({ error: 'invalid HMAC' }, 401);
+    c.set('skipX402', true);   // your x402 middleware checks this flag
+  }
+  return next();
+});`;
+
+      const pySnippet = `# Python (FastAPI) example.
+import hmac, hashlib, time
+from fastapi import Request, HTTPException
+
+PARTNER_SECRET = os.environ["SHADOWFEED_PARTNER_SECRET"].encode()
+_seen_nonces: dict[str, float] = {}   # swap for redis in prod
+
+async def verify_shadowfeed_hmac(request: Request) -> bool:
+    ts    = request.headers.get("X-Sf-Timestamp", "")
+    nonce = request.headers.get("X-Sf-Nonce", "")
+    sig   = request.headers.get("X-Sf-Signature", "")
+    if not (ts and nonce and sig): return False
+    if abs(time.time() - int(ts)) > 300: return False
+
+    # Replay block within 5-min window
+    now = time.time()
+    _seen_nonces = {n: t for n, t in _seen_nonces.items() if now - t < 300}
+    if nonce in _seen_nonces: return False
+    _seen_nonces[nonce] = now
+
+    body = await request.body() if request.method != "GET" else b""
+    body_hash = hashlib.sha256(body).hexdigest() if body else ""
+    canonical = "\\n".join([
+        request.method.upper(),
+        request.url.path,
+        ts, nonce, body_hash
+    ]).encode()
+
+    expected = hmac.new(PARTNER_SECRET, canonical, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(sig.lower(), expected.lower())
+
+# In your route handler:
+@app.middleware("http")
+async def shadowfeed_partner_middleware(request: Request, call_next):
+    if request.headers.get("X-Sf-Partner") == "shadowfeed":
+        if not await verify_shadowfeed_hmac(request):
+            raise HTTPException(401, "invalid HMAC")
+        request.state.skip_x402 = True
+    return await call_next(request)`;
+
+      const goSnippet = `// Go (net/http) example.
+import (
+    "crypto/hmac"
+    "crypto/sha256"
+    "encoding/hex"
+    "io"
+    "net/http"
+    "os"
+    "strconv"
+    "strings"
+    "sync"
+    "time"
+)
+
+var partnerSecret = []byte(os.Getenv("SHADOWFEED_PARTNER_SECRET"))
+var nonceCache = sync.Map{} // map[string]int64 — nonce → expiresUnix
+
+func verifyShadowfeedHMAC(r *http.Request) bool {
+    tsStr := r.Header.Get("X-Sf-Timestamp")
+    nonce := r.Header.Get("X-Sf-Nonce")
+    sig   := r.Header.Get("X-Sf-Signature")
+    if tsStr == "" || nonce == "" || sig == "" { return false }
+
+    ts, err := strconv.ParseInt(tsStr, 10, 64)
+    if err != nil { return false }
+    now := time.Now().Unix()
+    if abs(now-ts) > 300 { return false }
+
+    // Replay protection
+    if _, seen := nonceCache.Load(nonce); seen { return false }
+    nonceCache.Store(nonce, now+300)
+
+    var bodyBytes []byte
+    if r.Method != "GET" {
+        bodyBytes, _ = io.ReadAll(r.Body)
+        r.Body = io.NopCloser(strings.NewReader(string(bodyBytes)))
+    }
+    bodyHash := ""
+    if len(bodyBytes) > 0 {
+        h := sha256.Sum256(bodyBytes)
+        bodyHash = hex.EncodeToString(h[:])
+    }
+    canonical := strings.Join([]string{
+        strings.ToUpper(r.Method), r.URL.Path,
+        tsStr, nonce, bodyHash,
+    }, "\\n")
+
+    mac := hmac.New(sha256.New, partnerSecret)
+    mac.Write([]byte(canonical))
+    expected := hex.EncodeToString(mac.Sum(nil))
+    return hmac.Equal([]byte(strings.ToLower(sig)), []byte(expected))
+}`;
+
+      // Test curl snippet — uses placeholder if no secret.
+      const testCurl = `# Try it locally (replace with your endpoint URL):
+curl -i "https://your-api.com/your-feed-path" \\
+  -H "X-Sf-Partner: shadowfeed" \\
+  -H "X-Sf-Timestamp: $(date +%s)" \\
+  -H "X-Sf-Nonce: $(uuidgen)" \\
+  -H "X-Sf-Signature: <hex>"
+#
+# Don't sign by hand — let ShadowFeed do that. After setup, hit your feed via:
+#   curl https://api.shadowfeed.app/feeds/p/${esc(providerHandle || 'your-handle')}/<feed-slug>
+# ShadowFeed will sign + forward. A 200 response means your verifier works.`;
+
+      return `
+        <div class="rounded-2xl border border-gray-200 bg-white p-5 mt-4">
+          <div class="flex items-center gap-2 mb-1">
+            <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+            <h4 class="font-bold text-gray-900">Integration guide — 3 steps to wire up your API</h4>
+          </div>
+          <p class="text-sm text-gray-500 mb-5">ShadowFeed will sign every request with this secret. Your API verifies the signature and serves data without requiring x402 payment for those calls.</p>
+
+          <!-- Step 1: env var -->
+          <div class="mb-5">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="w-6 h-6 rounded-full bg-orange-100 text-orange-700 font-bold text-xs flex items-center justify-center">1</span>
+              <p class="font-bold text-gray-900 text-sm">Set the secret as an environment variable on your API</p>
+            </div>
+            <div class="rounded-xl bg-gray-900 text-emerald-300 font-mono text-xs p-3 break-all relative pr-12">
+              ${esc(secretLine)}
+              <button onclick="copyToClipboard(\`${esc(secretLine)}\`, this)" class="absolute top-2 right-2 px-2 py-1 rounded bg-gray-800 hover:bg-gray-700 text-emerald-300 text-[10px] font-bold transition">Copy</button>
+            </div>
+            ${secretNote}
+          </div>
+
+          <!-- Step 2: middleware code with tabs -->
+          <div class="mb-5">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="w-6 h-6 rounded-full bg-orange-100 text-orange-700 font-bold text-xs flex items-center justify-center">2</span>
+              <p class="font-bold text-gray-900 text-sm">Add HMAC verifier middleware</p>
+            </div>
+            <p class="text-xs text-gray-500 mb-2">When valid signature is present, skip x402 payment and serve data. Otherwise fall through to your normal x402 flow.</p>
+            <div class="flex gap-1 mb-2 border-b border-gray-200">
+              <button onclick="switchHmacTab('${guideId}','ts')" id="${guideId}-tab-ts" class="hmac-tab px-3 py-1.5 text-xs font-bold text-orange-600 border-b-2 border-orange-500 -mb-px">TypeScript / Workers</button>
+              <button onclick="switchHmacTab('${guideId}','py')" id="${guideId}-tab-py" class="hmac-tab px-3 py-1.5 text-xs font-bold text-gray-500 hover:text-gray-700">Python / FastAPI</button>
+              <button onclick="switchHmacTab('${guideId}','go')" id="${guideId}-tab-go" class="hmac-tab px-3 py-1.5 text-xs font-bold text-gray-500 hover:text-gray-700">Go / net/http</button>
+            </div>
+            <div id="${guideId}-code-ts" class="hmac-code">
+              <div class="rounded-xl bg-gray-900 text-gray-100 font-mono text-[11px] leading-relaxed p-4 overflow-x-auto max-h-[420px] overflow-y-auto relative">
+                <button onclick="copyToClipboard(this.parentElement.querySelector('pre').innerText, this)" class="sticky top-0 float-right px-2 py-1 rounded bg-gray-800 hover:bg-gray-700 text-emerald-300 text-[10px] font-bold transition">Copy</button>
+                <pre class="whitespace-pre">${esc(tsSnippet)}</pre>
+              </div>
+            </div>
+            <div id="${guideId}-code-py" class="hmac-code hidden">
+              <div class="rounded-xl bg-gray-900 text-gray-100 font-mono text-[11px] leading-relaxed p-4 overflow-x-auto max-h-[420px] overflow-y-auto relative">
+                <button onclick="copyToClipboard(this.parentElement.querySelector('pre').innerText, this)" class="sticky top-0 float-right px-2 py-1 rounded bg-gray-800 hover:bg-gray-700 text-emerald-300 text-[10px] font-bold transition">Copy</button>
+                <pre class="whitespace-pre">${esc(pySnippet)}</pre>
+              </div>
+            </div>
+            <div id="${guideId}-code-go" class="hmac-code hidden">
+              <div class="rounded-xl bg-gray-900 text-gray-100 font-mono text-[11px] leading-relaxed p-4 overflow-x-auto max-h-[420px] overflow-y-auto relative">
+                <button onclick="copyToClipboard(this.parentElement.querySelector('pre').innerText, this)" class="sticky top-0 float-right px-2 py-1 rounded bg-gray-800 hover:bg-gray-700 text-emerald-300 text-[10px] font-bold transition">Copy</button>
+                <pre class="whitespace-pre">${esc(goSnippet)}</pre>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3: test -->
+          <div class="mb-4">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="w-6 h-6 rounded-full bg-orange-100 text-orange-700 font-bold text-xs flex items-center justify-center">3</span>
+              <p class="font-bold text-gray-900 text-sm">Verify by hitting your feed through ShadowFeed</p>
+            </div>
+            <p class="text-xs text-gray-500 mb-2">Once deployed, agents will pay STX → ShadowFeed signs HMAC → your API serves data. Test it:</p>
+            <div class="rounded-xl bg-gray-900 text-gray-100 font-mono text-[11px] leading-relaxed p-4 overflow-x-auto relative">
+              <button onclick="copyToClipboard(this.parentElement.querySelector('pre').innerText, this)" class="absolute top-2 right-2 px-2 py-1 rounded bg-gray-800 hover:bg-gray-700 text-emerald-300 text-[10px] font-bold transition">Copy</button>
+              <pre class="whitespace-pre">${esc(testCurl)}</pre>
+            </div>
+          </div>
+
+          <!-- Canonical reference -->
+          <details class="mt-3">
+            <summary class="cursor-pointer text-xs font-bold text-gray-500 hover:text-gray-900">Canonical string format (reference)</summary>
+            <div class="mt-2 rounded-lg bg-gray-50 border border-gray-100 p-3 text-xs text-gray-600">
+              <p class="font-mono text-[11px] mb-2">METHOD\\nPATH\\nTIMESTAMP\\nNONCE\\nSHA256(BODY)</p>
+              <ul class="space-y-1 text-[11px]">
+                <li>• <strong>METHOD</strong>: uppercase HTTP verb (GET, POST)</li>
+                <li>• <strong>PATH</strong>: URL pathname (no host, no query string)</li>
+                <li>• <strong>TIMESTAMP</strong>: Unix seconds, ±5min window</li>
+                <li>• <strong>NONCE</strong>: random UUID per request, unique within 5min window</li>
+                <li>• <strong>BODY HASH</strong>: SHA-256 hex of request body (empty string if GET)</li>
+                <li>• <strong>Signature</strong>: HMAC-SHA256(secret, canonical) → hex lowercase</li>
+              </ul>
+            </div>
+          </details>
+
+          <!-- Full docs link -->
+          <div class="mt-4 rounded-xl bg-orange-50 border border-orange-100 p-3 flex items-center justify-between gap-3">
+            <div>
+              <p class="text-sm font-bold text-gray-900">Want Claude or a teammate to walk through this?</p>
+              <p class="text-xs text-gray-600">Point them at the full docs — it includes the canonical reference + Claude Code prompt template.</p>
+            </div>
+            <a href="https://docs.shadowfeed.app/providers/hmac-integration" target="_blank" rel="noopener" class="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold transition">
+              Open docs
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </a>
+          </div>
+        </div>
+      `;
+    }
+
+    window.switchHmacTab = (guideId, lang) => {
+      ['ts', 'py', 'go'].forEach(l => {
+        const tab = document.getElementById(`${guideId}-tab-${l}`);
+        const code = document.getElementById(`${guideId}-code-${l}`);
+        if (!tab || !code) return;
+        if (l === lang) {
+          tab.classList.add('text-orange-600', 'border-b-2', 'border-orange-500', '-mb-px');
+          tab.classList.remove('text-gray-500');
+          code.classList.remove('hidden');
+        } else {
+          tab.classList.remove('text-orange-600', 'border-b-2', 'border-orange-500', '-mb-px');
+          tab.classList.add('text-gray-500');
+          code.classList.add('hidden');
+        }
+      });
+    };
+
+    window.copyToClipboard = (text, btn) => {
+      navigator.clipboard.writeText(text).then(() => {
+        if (!btn) return;
+        const original = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = original; }, 1500);
+      });
+    };
+
+    // Wizard helpers (exposed to global because of inline onclick handlers).
+    window.onboardSetMode = (mode) => {
+      appState.onboardDraft = { ...(appState.onboardDraft || {}), mode };
+      renderOnboardStep();
+    };
+
+    window.onboardBack = (step) => {
+      appState.onboardStep = step;
+      renderProviderOnboard();
+    };
+
+    window.onboardNext1 = () => {
+      const handle = document.getElementById('ob-handle').value.trim().toLowerCase();
+      const name = document.getElementById('ob-name').value.trim();
+      const description = document.getElementById('ob-description').value.trim();
+      const website = document.getElementById('ob-website').value.trim();
+      const twitter_handle = document.getElementById('ob-twitter').value.trim();
+      const err = document.getElementById('ob-step1-error');
+      if (!/^[a-z0-9](?:[a-z0-9-]{1,30}[a-z0-9])$/.test(handle)) {
+        err.textContent = 'Handle must be 3-32 chars, lowercase letters/numbers/hyphens.';
+        return;
+      }
+      if (!name) { err.textContent = 'Display name is required.'; return; }
+      appState.onboardDraft = { ...(appState.onboardDraft || {}), handle, name, description, website, twitter_handle };
+      appState.onboardStep = 2;
+      renderProviderOnboard();
+    };
+
+    window.onboardNext2 = () => {
+      const draft = appState.onboardDraft || {};
+      const err = document.getElementById('ob-step2-error');
+      if (!draft.mode) { err.textContent = 'Pick an integration mode.'; return; }
+      if (draft.mode === 'partner_bridge') {
+        const ep = document.getElementById('ob-partner-endpoint').value.trim();
+        if (!/^https:\/\/[^\s]+$/.test(ep)) { err.textContent = 'Partner endpoint must be https://...'; return; }
+        appState.onboardDraft = { ...draft, partner_endpoint: ep.replace(/\/+$/, '') };
+      }
+      appState.onboardStep = 3;
+      renderProviderOnboard();
+    };
+
+    window.onboardSubmit = async () => {
+      const draft = appState.onboardDraft || {};
+      const slug = document.getElementById('ob-feed-slug').value.trim().toLowerCase();
+      const name = document.getElementById('ob-feed-name').value.trim();
+      const price_stx = parseFloat(document.getElementById('ob-feed-price').value);
+      const description = document.getElementById('ob-feed-description').value.trim();
+      const err = document.getElementById('ob-step3-error');
+      const btn = document.getElementById('ob-submit-btn');
+      if (!/^[a-z0-9](?:[a-z0-9-]{1,30}[a-z0-9])$/.test(slug)) {
+        err.textContent = 'Feed slug must be 3-32 chars, lowercase.'; return;
+      }
+      if (!name) { err.textContent = 'Feed name is required.'; return; }
+      if (!(price_stx > 0)) { err.textContent = 'Price must be greater than 0.'; return; }
+
+      const feedBody = { slug, name, description, price_stx };
+      if (draft.mode === 'partner_bridge') {
+        const sp = document.getElementById('ob-feed-source-path').value.trim();
+        if (!sp.startsWith('/')) { err.textContent = 'Source path must start with /'; return; }
+        feedBody.source_path = sp;
+        feedBody.source_method = 'GET';
+      } else {
+        const su = document.getElementById('ob-feed-source-url').value.trim();
+        const st = document.getElementById('ob-feed-source-type').value;
+        const poll = parseInt(document.getElementById('ob-feed-poll').value, 10);
+        if (!/^https:\/\//.test(su)) { err.textContent = 'Source URL must be https://...'; return; }
+        feedBody.source_type = st;
+        feedBody.source_url = su;
+        feedBody.poll_interval_seconds = poll;
+      }
+
+      btn.disabled = true; btn.textContent = 'Creating…';
+      err.textContent = '';
+      try {
+        const providerBody = {
+          handle: draft.handle, name: draft.name,
+          description: draft.description, website: draft.website,
+          twitter_handle: draft.twitter_handle, mode: draft.mode,
+        };
+        if (draft.mode === 'partner_bridge') providerBody.partner_endpoint = draft.partner_endpoint;
+        const created = await apiFetch('/providers', { method: 'POST', body: JSON.stringify(providerBody) });
+        appState.onboardCreated = created.provider;
+        appState.onboardSecret = created.hmac_secret || null;
+        // Add first feed.
+        await apiFetch('/providers/id/' + created.provider.id + '/feeds', {
+          method: 'POST', body: JSON.stringify(feedBody),
+        });
+        appState.onboardStep = 4;
+        renderOnboardStep();
+      } catch (e) {
+        btn.disabled = false; btn.textContent = 'Create provider →';
+        err.textContent = e.message || 'Failed to create provider.';
+      }
+    };
+
+    window.onboardCopySecret = () => {
+      if (!appState.onboardSecret) return;
+      navigator.clipboard.writeText(appState.onboardSecret).then(() => {
+        const label = document.getElementById('ob-copy-label');
+        if (label) { label.textContent = 'Copied!'; setTimeout(() => label.textContent = 'Copy secret', 2000); }
+      });
+    };
+
+    // ──────────────────────────────────────────────────────────────────────
+    // Provider dashboard — list owned providers + per-provider detail
+    // ──────────────────────────────────────────────────────────────────────
+    async function renderProviderDashboard() {
+      const root = document.getElementById('provider-dashboard-content');
+      if (!root) return;
+      if (!appState.session) {
+        root.innerHTML = `
+          <div class="rounded-2xl border border-gray-100 bg-white p-8 text-center">
+            <h3 class="text-xl font-bold text-gray-900 mb-2">Sign in</h3>
+            <p class="text-sm text-gray-500 mb-5">Connect your Stacks wallet to manage providers.</p>
+            <button onclick="shadowfeedSignIn()" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-bold transition">Sign in with Stacks</button>
+          </div>
+        `;
+        return;
+      }
+      root.innerHTML = '<div class="text-center py-12 text-gray-400">Loading…</div>';
+      try {
+        const data = await apiFetch('/me/providers');
+        appState.myProviders = data.providers || [];
+        if (appState.myProviders.length === 0) {
+          root.innerHTML = `
+            <div class="rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-12 text-center">
+              <h3 class="text-xl font-bold text-gray-900 mb-2">No providers yet</h3>
+              <p class="text-sm text-gray-500 mb-6">Create your first provider to start earning STX from agent traffic.</p>
+              <a href="#/providers/onboard" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-bold transition">Become a Provider →</a>
+            </div>
+          `;
+          return;
+        }
+        // Render summary cards + dive into the first one (or selected) by default.
+        const detailHtml = `<div id="provider-dashboard-detail" class="mt-8"></div>`;
+        const cards = appState.myProviders.map(p => `
+          <button onclick="selectProvider('${esc(p.id)}')" class="text-left rounded-2xl border ${appState.currentProvider?.id === p.id ? 'border-orange-400 bg-orange-50/30' : 'border-gray-100 bg-white'} p-5 hover:border-orange-200 transition">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-bold text-gray-900 truncate">${esc(p.name)}</span>
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${p.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}">${esc(p.status)}</span>
+            </div>
+            <p class="text-xs text-gray-400 mb-3">@${esc(p.handle)}</p>
+            <div class="grid grid-cols-2 gap-2 text-sm">
+              <div>
+                <p class="text-[10px] text-gray-400 uppercase font-bold">Pending</p>
+                <p class="text-base font-extrabold text-gray-900">${(p.revenue?.pending_stx || 0).toFixed(4)} <span class="text-xs text-gray-400">STX</span></p>
+              </div>
+              <div>
+                <p class="text-[10px] text-gray-400 uppercase font-bold">Earned</p>
+                <p class="text-base font-extrabold text-gray-900">${(p.revenue?.total_earned_stx || 0).toFixed(4)} <span class="text-xs text-gray-400">STX</span></p>
+              </div>
+            </div>
+          </button>
+        `).join('');
+        root.innerHTML = `<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">${cards}</div>${detailHtml}`;
+        // Auto-select first (or the previously selected) provider.
+        const targetId = appState.currentProvider?.id && appState.myProviders.find(p => p.id === appState.currentProvider.id)
+          ? appState.currentProvider.id
+          : appState.myProviders[0].id;
+        await selectProvider(targetId);
+      } catch (err) {
+        root.innerHTML = `<div class="text-center py-12 text-red-500">${esc(err.message || 'Failed to load')}</div>`;
+      }
+    }
+
+    window.selectProvider = async (providerId) => {
+      const detail = document.getElementById('provider-dashboard-detail');
+      if (!detail) return;
+      detail.innerHTML = '<div class="text-center py-8 text-gray-400">Loading…</div>';
+      try {
+        const data = await apiFetch('/providers/id/' + providerId);
+        appState.currentProvider = data.provider;
+        const p = data.provider;
+        const feeds = data.feeds || [];
+        const analytics = data.analytics || {};
+        const balance = data.on_chain_balance;
+        const network = balance ? 'mainnet' : 'mainnet';
+        detail.innerHTML = `
+          <div class="rounded-3xl border border-gray-100 bg-white p-6 mb-6">
+            <div class="flex flex-wrap items-start justify-between gap-4 mb-6">
+              <div>
+                <div class="flex items-center gap-3 mb-2">
+                  <h3 class="text-2xl font-extrabold text-gray-900">${esc(p.name)}</h3>
+                  <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${p.status === 'active' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}">${esc(p.status)}</span>
+                  <span class="px-2 py-0.5 rounded-md bg-gray-100 text-gray-600 text-[10px] font-bold uppercase tracking-wider">${esc(p.mode === 'partner_bridge' ? 'Partner API' : 'Hosted Data')}</span>
+                </div>
+                <p class="text-xs text-gray-400">Custodial wallet: <a href="https://explorer.hiro.so/address/${esc(p.custodial_address)}?chain=mainnet" target="_blank" class="font-mono text-gray-600 hover:text-orange-500">${esc(p.custodial_address)}</a></p>
+                ${p.linked_withdrawal_address ? `<p class="text-xs text-gray-400 mt-1">Linked withdrawal: <span class="font-mono text-gray-600">${esc(p.linked_withdrawal_address)}</span></p>` : `<p class="text-xs text-amber-600 mt-1">⚠ No linked withdrawal wallet — <button onclick="linkWithdrawalWallet('${esc(p.id)}')" class="underline">link one</button> before withdrawing.</p>`}
+              </div>
+              <button onclick="openWithdrawModal()" ${(p.revenue.pending_microstx < 1000000) ? 'disabled' : ''} class="px-5 py-2.5 rounded-xl ${(p.revenue.pending_microstx >= 1000000) ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-gray-100 text-gray-400 cursor-not-allowed'} text-sm font-bold transition shadow">Withdraw</button>
+            </div>
+
+            <div class="grid sm:grid-cols-4 gap-3">
+              <div class="rounded-xl bg-gray-50 p-4">
+                <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Pending Revenue</p>
+                <p class="text-xl font-extrabold text-gray-900">${(p.revenue.pending_stx).toFixed(4)} <span class="text-xs text-gray-400">STX</span></p>
+              </div>
+              <div class="rounded-xl bg-gray-50 p-4">
+                <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Queries 7d</p>
+                <p class="text-xl font-extrabold text-gray-900">${analytics.queries_7d || 0}</p>
+              </div>
+              <div class="rounded-xl bg-gray-50 p-4">
+                <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Unique Buyers 7d</p>
+                <p class="text-xl font-extrabold text-gray-900">${analytics.unique_buyers_7d || 0}</p>
+              </div>
+              <div class="rounded-xl bg-gray-50 p-4">
+                <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Total Withdrawn</p>
+                <p class="text-xl font-extrabold text-gray-900">${(p.revenue.total_withdrawn_stx).toFixed(4)} <span class="text-xs text-gray-400">STX</span></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-lg font-bold text-gray-900">Feeds (${feeds.length})</h4>
+            <button onclick="openAddFeedModal()" class="text-sm font-bold text-orange-500 hover:text-orange-600">+ Add feed</button>
+          </div>
+          ${feeds.length === 0
+            ? '<div class="rounded-2xl border border-dashed border-gray-200 p-8 text-center text-gray-400">No feeds yet — add one to activate this provider.</div>'
+            : `<div class="space-y-2">${feeds.map(f => `
+                <div class="rounded-xl border border-gray-100 bg-white p-4 flex items-center justify-between gap-4">
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-2">
+                      <h5 class="font-bold text-gray-900">${esc(f.name)}</h5>
+                      <span class="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${f.active ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}">${f.active ? 'live' : 'paused'}</span>
+                    </div>
+                    <p class="text-xs text-gray-400 font-mono">/feeds/p/${esc(p.handle)}/${esc(f.slug)}</p>
+                  </div>
+                  <div class="text-right shrink-0">
+                    <p class="text-sm font-bold text-gray-900">${f.price_stx} STX</p>
+                    <p class="text-[10px] text-gray-400">${f.stats?.total_queries || 0} queries · ${(f.stats?.total_revenue_stx || 0).toFixed(4)} STX</p>
+                  </div>
+                  <button onclick="toggleFeed('${esc(p.id)}','${esc(f.id)}',${!f.active})" class="text-xs font-bold ${f.active ? 'text-gray-500 hover:text-gray-700' : 'text-emerald-500 hover:text-emerald-600'}">${f.active ? 'Pause' : 'Resume'}</button>
+                </div>
+              `).join('')}</div>`}
+
+          ${p.mode === 'partner_bridge' ? `
+            <div class="mt-6 rounded-2xl border border-gray-100 bg-gray-50 p-5">
+              <div class="flex items-center justify-between gap-3 mb-3">
+                <div>
+                  <h5 class="font-bold text-gray-900 mb-0.5">HMAC partner secret</h5>
+                  <p class="text-xs text-gray-500">Last rotated: ${p.hmac_rotated_at ? new Date(p.hmac_rotated_at * 1000).toLocaleString() : 'never'}</p>
+                </div>
+                <div class="flex gap-2 shrink-0">
+                  <button onclick="openHmacGuideModal('${esc(p.handle)}')" class="px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold transition">View setup guide</button>
+                  <button onclick="rotateHmac('${esc(p.id)}')" class="px-4 py-2 rounded-xl border border-gray-200 hover:bg-white text-gray-700 text-xs font-bold transition">Rotate secret</button>
+                </div>
+              </div>
+              <p class="text-xs text-gray-500">Need to wire up your endpoint? The setup guide has copy-pasteable middleware for TypeScript, Python, and Go. <a href="https://docs.shadowfeed.app/providers/hmac-integration" target="_blank" rel="noopener" class="text-orange-500 hover:underline font-semibold">Full docs →</a></p>
+            </div>
+          ` : ''}
+
+          <div id="withdraw-modal-container"></div>
+          <div id="addfeed-modal-container"></div>
+          <div id="secret-modal-container"></div>
+        `;
+      } catch (err) {
+        detail.innerHTML = `<div class="text-center py-8 text-red-500">${esc(err.message || 'Failed to load provider')}</div>`;
+      }
+    };
+
+    window.openWithdrawModal = () => {
+      const p = appState.currentProvider;
+      if (!p) return;
+      const container = document.getElementById('withdraw-modal-container');
+      if (!container) return;
+      container.innerHTML = `
+        <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onclick="closeModal(event, 'withdraw-modal-container')">
+          <div class="bg-white rounded-3xl p-6 max-w-md w-full" onclick="event.stopPropagation()">
+            <h3 class="text-xl font-extrabold text-gray-900 mb-1">Withdraw STX</h3>
+            <p class="text-sm text-gray-500 mb-5">Available: <strong>${p.revenue.pending_stx.toFixed(6)} STX</strong></p>
+            ${!p.linked_withdrawal_address ? `
+              <div class="rounded-xl bg-amber-50 border border-amber-200 p-3 mb-4 text-sm text-amber-800">
+                Link a withdrawal wallet first (we verify ownership via signature).
+                <button onclick="linkWithdrawalWallet('${esc(p.id)}')" class="block mt-2 text-amber-900 font-bold underline">Link wallet now →</button>
+              </div>
+            ` : `
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Amount (STX)</label>
+                  <div class="relative">
+                    <input id="wd-amount" type="number" step="0.000001" min="1" max="${p.revenue.pending_stx.toFixed(6)}" placeholder="1.0" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-orange-400 outline-none text-sm pr-20" />
+                    <button onclick="document.getElementById('wd-amount').value='${p.revenue.pending_stx.toFixed(6)}'" class="absolute right-2 top-2 px-3 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-xs font-bold text-gray-700">Max</button>
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Destination</label>
+                  <div class="rounded-xl bg-gray-50 border border-gray-200 px-4 py-2.5 text-sm font-mono text-gray-700 break-all">${esc(p.linked_withdrawal_address)}</div>
+                </div>
+                <div id="wd-error" class="text-sm text-red-500"></div>
+                <div class="flex gap-3 pt-2">
+                  <button onclick="closeModal(null, 'withdraw-modal-container')" class="flex-1 px-5 py-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-bold transition">Cancel</button>
+                  <button id="wd-submit" onclick="submitWithdraw('${esc(p.id)}')" class="flex-1 px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold transition shadow-lg">Confirm withdrawal</button>
+                </div>
+              </div>
+            `}
+          </div>
+        </div>
+      `;
+    };
+
+    window.submitWithdraw = async (providerId) => {
+      const p = appState.currentProvider;
+      const amount = parseFloat(document.getElementById('wd-amount').value);
+      const err = document.getElementById('wd-error');
+      const btn = document.getElementById('wd-submit');
+      if (!(amount >= 1)) { err.textContent = 'Minimum 1 STX.'; return; }
+      btn.disabled = true; btn.textContent = 'Submitting…'; err.textContent = '';
+      try {
+        const idempotency_key = crypto.randomUUID();
+        const result = await apiFetch('/providers/id/' + providerId + '/withdraw', {
+          method: 'POST',
+          body: JSON.stringify({
+            amount_microstx: Math.round(amount * 1_000_000),
+            destination_address: p.linked_withdrawal_address,
+            idempotency_key,
+          }),
+        });
+        const w = result.withdrawal;
+        document.getElementById('withdraw-modal-container').innerHTML = `
+          <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onclick="closeModal(event, 'withdraw-modal-container')">
+            <div class="bg-white rounded-3xl p-6 max-w-md w-full" onclick="event.stopPropagation()">
+              <div class="text-center mb-5">
+                <div class="w-14 h-14 rounded-full bg-emerald-500 text-white flex items-center justify-center mx-auto mb-3">
+                  <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <h3 class="text-xl font-extrabold text-gray-900 mb-1">Withdrawal submitted</h3>
+                <p class="text-sm text-gray-500">${w.amount_stx.toFixed(6)} STX sent. It usually confirms within ~10 minutes.</p>
+              </div>
+              ${result.explorer_url ? `<a href="${esc(result.explorer_url)}" target="_blank" class="block text-center px-5 py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-bold transition">View on Hiro Explorer →</a>` : ''}
+              <button onclick="closeModal(null, 'withdraw-modal-container'); selectProvider('${esc(providerId)}')" class="block w-full mt-3 px-5 py-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-bold transition">Done</button>
+            </div>
+          </div>
+        `;
+      } catch (e) {
+        btn.disabled = false; btn.textContent = 'Confirm withdrawal';
+        err.textContent = e.message || 'Withdrawal failed.';
+      }
+    };
+
+    window.openAddFeedModal = () => {
+      const p = appState.currentProvider;
+      if (!p) return;
+      const isPartner = p.mode === 'partner_bridge';
+      document.getElementById('addfeed-modal-container').innerHTML = `
+        <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 overflow-y-auto" onclick="closeModal(event, 'addfeed-modal-container')">
+          <div class="bg-white rounded-3xl p-6 max-w-lg w-full my-8" onclick="event.stopPropagation()">
+            <h3 class="text-xl font-extrabold text-gray-900 mb-5">Add a feed</h3>
+            <div class="space-y-3">
+              <div class="grid grid-cols-2 gap-3">
+                <div><label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Slug</label><input id="af-slug" type="text" placeholder="my-feed" class="w-full px-3 py-2 rounded-lg border border-gray-200 outline-none text-sm font-mono" /></div>
+                <div><label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Price STX</label><input id="af-price" type="number" step="0.001" value="0.005" class="w-full px-3 py-2 rounded-lg border border-gray-200 outline-none text-sm" /></div>
+              </div>
+              <div><label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Name</label><input id="af-name" type="text" class="w-full px-3 py-2 rounded-lg border border-gray-200 outline-none text-sm" /></div>
+              <div><label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Description</label><textarea id="af-description" rows="2" class="w-full px-3 py-2 rounded-lg border border-gray-200 outline-none text-sm resize-none"></textarea></div>
+              ${isPartner
+                ? `<div><label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Source path</label><input id="af-source-path" type="text" placeholder="/v1/path" class="w-full px-3 py-2 rounded-lg border border-gray-200 outline-none text-sm font-mono" /></div>`
+                : `<div><label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Source URL</label><input id="af-source-url" type="url" placeholder="https://..." class="w-full px-3 py-2 rounded-lg border border-gray-200 outline-none text-sm font-mono" /></div>
+                   <div class="grid grid-cols-2 gap-3">
+                     <div><label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Source type</label><select id="af-source-type" class="w-full px-3 py-2 rounded-lg border border-gray-200 outline-none text-sm"><option value="github_raw">GitHub Raw</option><option value="r2_url">R2/S3</option></select></div>
+                     <div><label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Poll interval</label><select id="af-poll" class="w-full px-3 py-2 rounded-lg border border-gray-200 outline-none text-sm"><option value="60">1 min</option><option value="300" selected>5 min</option><option value="900">15 min</option><option value="3600">1 hour</option></select></div>
+                   </div>`}
+            </div>
+            <div id="af-error" class="mt-3 text-sm text-red-500"></div>
+            <div class="flex gap-2 mt-4">
+              <button onclick="closeModal(null, 'addfeed-modal-container')" class="flex-1 px-4 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 text-sm font-bold">Cancel</button>
+              <button id="af-submit" onclick="submitAddFeed('${esc(p.id)}', ${isPartner})" class="flex-1 px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold">Add feed</button>
+            </div>
+          </div>
+        </div>
+      `;
+    };
+
+    window.submitAddFeed = async (providerId, isPartner) => {
+      const err = document.getElementById('af-error');
+      const btn = document.getElementById('af-submit');
+      const slug = document.getElementById('af-slug').value.trim().toLowerCase();
+      const name = document.getElementById('af-name').value.trim();
+      const price_stx = parseFloat(document.getElementById('af-price').value);
+      const description = document.getElementById('af-description').value.trim();
+      if (!slug || !name || !(price_stx > 0)) { err.textContent = 'Slug, name, and price required.'; return; }
+      const body = { slug, name, price_stx, description };
+      if (isPartner) {
+        body.source_path = document.getElementById('af-source-path').value.trim();
+        body.source_method = 'GET';
+      } else {
+        body.source_url = document.getElementById('af-source-url').value.trim();
+        body.source_type = document.getElementById('af-source-type').value;
+        body.poll_interval_seconds = parseInt(document.getElementById('af-poll').value, 10);
+      }
+      btn.disabled = true; btn.textContent = 'Adding…';
+      try {
+        await apiFetch('/providers/id/' + providerId + '/feeds', { method: 'POST', body: JSON.stringify(body) });
+        closeModal(null, 'addfeed-modal-container');
+        await selectProvider(providerId);
+      } catch (e) {
+        btn.disabled = false; btn.textContent = 'Add feed';
+        err.textContent = e.message || 'Failed.';
+      }
+    };
+
+    window.toggleFeed = async (providerId, feedId, active) => {
+      try {
+        await apiFetch(`/providers/id/${providerId}/feeds/${feedId}/state`, {
+          method: 'PATCH', body: JSON.stringify({ active }),
+        });
+        await selectProvider(providerId);
+      } catch (e) { alert('Failed: ' + (e.message || 'unknown')); }
+    };
+
+    window.rotateHmac = async (providerId) => {
+      if (!confirm('Rotate HMAC secret? Your partner endpoint will reject calls until you update the secret there.')) return;
+      try {
+        const r = await apiFetch(`/providers/id/${providerId}/hmac/rotate`, { method: 'POST' });
+        const handle = appState.currentProvider?.handle || '';
+        document.getElementById('secret-modal-container').innerHTML = `
+          <div class="fixed inset-0 bg-black/40 flex items-start justify-center z-50 p-4 overflow-y-auto" onclick="closeModal(event,'secret-modal-container')">
+            <div class="bg-white rounded-3xl p-6 max-w-2xl w-full my-8" onclick="event.stopPropagation()">
+              <div class="flex items-start justify-between gap-4 mb-4">
+                <div>
+                  <h3 class="text-xl font-extrabold text-gray-900 mb-1">New HMAC secret</h3>
+                  <p class="text-sm text-amber-600">Save this now. It's shown only once. Update your endpoint immediately — the old secret is invalidated.</p>
+                </div>
+                <button onclick="closeModal(null,'secret-modal-container'); selectProvider('${esc(providerId)}')" class="text-gray-400 hover:text-gray-700">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+              </div>
+              <div class="rounded-xl bg-gray-900 text-emerald-300 font-mono text-sm p-4 break-all mb-3 relative pr-12">
+                ${esc(r.hmac_secret)}
+                <button onclick="copyToClipboard(\`${esc(r.hmac_secret)}\`, this)" class="absolute top-2 right-2 px-2 py-1 rounded bg-gray-800 hover:bg-gray-700 text-emerald-300 text-[10px] font-bold transition">Copy</button>
+              </div>
+              ${renderHmacGuide(r.hmac_secret, handle)}
+              <div class="flex gap-2 mt-4 sticky bottom-0 bg-white pt-3 border-t border-gray-100">
+                <button onclick="closeModal(null,'secret-modal-container'); selectProvider('${esc(providerId)}')" class="flex-1 px-4 py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-bold">Done — I've updated my endpoint</button>
+              </div>
+            </div>
+          </div>
+        `;
+      } catch (e) { alert('Failed: ' + (e.message || 'unknown')); }
+    };
+
+    // Open the integration guide WITHOUT generating a new secret — for users
+    // who already saved their secret and just need to reference the snippets.
+    window.openHmacGuideModal = (providerHandle) => {
+      document.getElementById('secret-modal-container').innerHTML = `
+        <div class="fixed inset-0 bg-black/40 flex items-start justify-center z-50 p-4 overflow-y-auto" onclick="closeModal(event,'secret-modal-container')">
+          <div class="bg-white rounded-3xl p-6 max-w-2xl w-full my-8" onclick="event.stopPropagation()">
+            <div class="flex items-start justify-between gap-4 mb-2">
+              <div>
+                <h3 class="text-xl font-extrabold text-gray-900 mb-1">HMAC integration guide</h3>
+                <p class="text-sm text-gray-500">Wire your endpoint to accept signed requests from ShadowFeed.</p>
+              </div>
+              <button onclick="closeModal(null,'secret-modal-container')" class="text-gray-400 hover:text-gray-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+            ${renderHmacGuide(null, providerHandle)}
+            <div class="flex gap-2 mt-4 sticky bottom-0 bg-white pt-3 border-t border-gray-100">
+              <button onclick="closeModal(null,'secret-modal-container')" class="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-bold">Close</button>
+            </div>
+          </div>
+        </div>
+      `;
+    };
+
+    // Sign an arbitrary message with the currently-connected Stacks wallet.
+    // Mirrors the logic inside signInWithStacks() so we don't need to extract
+    // a shared util for one extra caller.
+    async function signMessageWithWallet(message) {
+      const walletType = window.walletProvider?.type || 'leather';
+      if (walletType === 'leather' && window.LeatherProvider) {
+        const resp = await window.LeatherProvider.request('stx_signMessage', { message });
+        return {
+          signature: resp?.result?.signature || resp?.signature,
+          publicKey: resp?.result?.publicKey || resp?.publicKey,
+        };
+      }
+      if (walletType === 'xverse' && window.loadSatsConnect) {
+        const mod = await window.loadSatsConnect();
+        const request = mod.request || mod.default?.request;
+        const resp = await request('stx_signMessage', { message });
+        if (resp?.status !== 'success') throw new Error(resp?.error?.message || 'Xverse signing failed');
+        return { signature: resp.result?.signature, publicKey: resp.result?.publicKey };
+      }
+      throw new Error('Unsupported wallet for signing');
+    }
+
+    window.linkWithdrawalWallet = async (providerId) => {
+      // Reuse the SIWS flow — provider proves ownership of destination wallet
+      // by signing a fresh nonce. We don't replace the session, just persist
+      // the linked address against this provider record.
+      try {
+        const session = appState.session;
+        if (!session) { alert('Sign in first.'); return; }
+        const wallet = session.user.wallet_address;
+        if (!confirm(`Link your signed-in wallet ${shortAddr(wallet)} as the withdrawal destination?\n\nFor a different wallet, sign out + sign in with that wallet first.`)) return;
+        const nonceResp = await apiFetch(`/providers/id/${providerId}/link-wallet/nonce`, {
+          method: 'POST', body: JSON.stringify({ wallet_address: wallet }),
+        });
+        const signed = await signMessageWithWallet(nonceResp.message);
+        if (!signed?.signature || !signed?.publicKey) { alert('Signature was cancelled.'); return; }
+        await apiFetch(`/providers/id/${providerId}/link-wallet`, {
+          method: 'POST',
+          body: JSON.stringify({
+            wallet_address: wallet,
+            nonce: nonceResp.nonce,
+            signature: signed.signature,
+            public_key: signed.publicKey,
+          }),
+        });
+        await selectProvider(providerId);
+      } catch (e) { alert('Link failed: ' + (e.message || 'unknown')); }
+    };
+
+    window.closeModal = (e, id) => {
+      if (e && e.target !== e.currentTarget) return;
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = '';
+    };
 
     // ──────────────────────────────────────────────────────────────────────
     // Wire up navigation events + bootstrap

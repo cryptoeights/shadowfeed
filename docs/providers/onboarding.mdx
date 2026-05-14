@@ -1,0 +1,221 @@
+---
+title: Provider Onboarding
+description: "Step-by-step signup walkthrough — from wallet connect to first paid query."
+---
+
+# Provider Onboarding
+
+This guide walks you through registering as a ShadowFeed data provider.
+
+**Estimated time:** 5 minutes for sign-up, 30 minutes to wire up your HMAC verifier (Partner Bridge mode only).
+
+## Prerequisites
+
+- A Stacks wallet installed: [Leather](https://leather.io/) or [Xverse](https://www.xverse.app/)
+- For **Partner Bridge** mode: an HTTPS endpoint you control (e.g. `https://api.yourcompany.com`)
+- For **Hosted Mirror** mode: a public JSON URL or willingness to push data via webhook
+
+## Step 1 — Sign in with your Stacks wallet
+
+<Steps>
+  <Step title="Visit shadowfeed.app">
+    Open [shadowfeed.app](https://shadowfeed.app) in a browser with Leather or Xverse extension installed.
+  </Step>
+  <Step title="Connect wallet">
+    Click **Connect Wallet** → choose Leather or Xverse → approve in the popup.
+  </Step>
+  <Step title="Sign-In With Stacks">
+    Click **Providers** in the nav → **Become a Provider**. Sign the SIWS challenge — this proves wallet ownership without exposing your private key.
+  </Step>
+</Steps>
+
+<Note>
+  Your wallet address becomes your provider account identity. You can link a *different* wallet for withdrawals later if revenue should go elsewhere (multisig, treasury, etc.).
+</Note>
+
+## Step 2 — Profile (wizard step 1)
+
+| Field | Required | Notes |
+|-------|----------|-------|
+| **Handle** | Yes | URL slug, 3-32 chars, lowercase + numbers + hyphens. Becomes `/providers/handle`. |
+| **Display name** | Yes | Shown on your profile + agent UI |
+| **Description** | No | One-sentence pitch |
+| **Website** | No | Linked from profile |
+| **X (Twitter)** | No | `@handle` for community attribution |
+
+<Warning>
+  Reserved handles (`admin`, `api`, `auth`, `dashboard`, `system`, etc.) are blocked. Pick a handle specific to your brand.
+</Warning>
+
+## Step 3 — Integration mode (wizard step 2)
+
+<Tabs>
+  <Tab title="Partner Bridge">
+    Pick this if you already have a production API.
+    
+    **Required:** partner endpoint URL (e.g. `https://api.yourcompany.com`). This is where ShadowFeed will send signed requests when an agent buys your feeds.
+    
+    The wizard will generate an HMAC secret in step 4. **Save it immediately** — it's shown once.
+  </Tab>
+  <Tab title="Hosted Mirror">
+    Pick this if you have data but no API server.
+    
+    No fields required in this step. You'll configure data sources per-feed in the next step.
+  </Tab>
+</Tabs>
+
+## Step 4 — Add your first feed (wizard step 3)
+
+| Field | Required | Notes |
+|-------|----------|-------|
+| **Feed slug** | Yes | Unique per provider, e.g. `whales`, `gas-prices` |
+| **Display name** | Yes | E.g. "Whale Alerts" |
+| **Description** | No | Helps agents discover your feed |
+| **Price (STX)** | Yes | Per-query cost. Suggested: 0.003 - 0.05 STX |
+| **Source path** | Partner Bridge | Relative path on your API, e.g. `/v1/whales` |
+| **Source type** | Hosted Mirror | `github_raw`, `r2_url`, `webhook_push`, `manual_upload` |
+| **Source URL** | Hosted Mirror polling | HTTPS URL to fetch JSON from |
+| **Poll interval** | Hosted Mirror polling | 60s, 5min, 15min, or 1 hour |
+
+After submit, your provider goes from `pending` to `active` and the feed is live at `/feeds/p/your-handle/feed-slug`.
+
+## Step 5 — Save your HMAC secret
+
+This step only applies to **Partner Bridge** mode.
+
+The wizard's success screen shows the secret **once**. It looks like:
+
+```text
+Z0rczxIVJuearIMIyAEy6solyqx2gCb4MKBhGqxcNEQ
+```
+
+You'll see an integration guide right under the secret with copy-pasteable middleware code in three languages.
+
+<Warning>
+  Copy the secret immediately. We only store a hash, so we cannot recover the plaintext if you lose it. If lost, rotate from the dashboard — but the old secret stops working instantly.
+</Warning>
+
+## Step 6 — Where to put the HMAC secret
+
+This is the most common point of confusion: **on which server does the secret live?**
+
+**Answer: on the same server that hosts your `partner_endpoint`.** Whatever domain/runtime serves the URL ShadowFeed will call.
+
+| Your `partner_endpoint` runtime | How to set the secret |
+|---------------------------------|----------------------|
+| Cloudflare Workers | `wrangler secret put SHADOWFEED_PARTNER_SECRET` |
+| Vercel | Dashboard → Settings → Environment Variables |
+| Railway / Fly.io | Project → Variables → Add |
+| Render | Service → Environment → Add Environment Variable |
+| AWS Lambda | Console → Configuration → Environment variables |
+| Docker / VPS | `.env` file loaded by your process, or systemd EnvironmentFile |
+| Heroku | `heroku config:set SHADOWFEED_PARTNER_SECRET=...` |
+
+<Note>
+  The secret **never gets put on ShadowFeed's side as a user-facing config**. We already store it as a hash for verification at signup time. You only manage it on **your** side.
+</Note>
+
+After setting the env var, your code reads it via the standard mechanism:
+
+<Tabs>
+  <Tab title="TypeScript / Node">
+    ```typescript
+    const secret = process.env.SHADOWFEED_PARTNER_SECRET;
+    ```
+  </Tab>
+  <Tab title="Cloudflare Workers">
+    ```typescript
+    const secret = c.env.SHADOWFEED_PARTNER_SECRET;
+    ```
+  </Tab>
+  <Tab title="Python">
+    ```python
+    secret = os.environ["SHADOWFEED_PARTNER_SECRET"]
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    secret := os.Getenv("SHADOWFEED_PARTNER_SECRET")
+    ```
+  </Tab>
+</Tabs>
+
+Continue to the [HMAC Integration Guide](/providers/hmac-integration) for the full verifier middleware.
+
+## Step 7 — Link a withdrawal wallet
+
+Before you can withdraw STX, you must link a destination wallet. This can be the same wallet you signed in with, or a different one (multisig, treasury).
+
+<Steps>
+  <Step title="Open the warning banner">
+    In the dashboard, click **link one** under the "⚠ No linked withdrawal wallet" message.
+  </Step>
+  <Step title="Sign the linking challenge">
+    The destination wallet signs a SIWS message proving ownership.
+  </Step>
+  <Step title="Verify">
+    The dashboard now shows "Linked withdrawal: SP..."
+  </Step>
+</Steps>
+
+Withdrawals can only go to this linked address. To change it later, sign a new linking challenge with the new wallet.
+
+## Step 8 — Verify end-to-end
+
+Once your verifier is deployed and the env var is set, trigger a paid request:
+
+```bash
+# Without payment — should return 402 with payment requirements
+curl -i https://api.shadowfeed.app/feeds/p/your-handle/feed-slug
+```
+
+Use the [ShadowFeed Agent SDK](/sdk/installation) for the full pay-per-call test:
+
+```typescript
+import { ShadowFeed } from 'shadowfeed-agent';
+
+const sf = new ShadowFeed({
+  privateKey: process.env.AGENT_PRIVATE_KEY,
+  network: 'mainnet',
+});
+
+const result = await sf.buy('p/your-handle/feed-slug');
+console.log(result.data);
+```
+
+When the agent pays:
+
+<Steps>
+  <Step title="STX settles on platform">
+    Agent's STX transaction lands on the ShadowFeed platform wallet.
+  </Step>
+  <Step title="ShadowFeed forwards HMAC-signed request">
+    Calls `partner_endpoint + source_path` with X-Sf-* headers.
+  </Step>
+  <Step title="Your middleware verifies + serves">
+    Middleware validates signature, your route returns data.
+  </Step>
+  <Step title="Revenue credited">
+    97% of the price lands in your `pending_revenue` counter.
+  </Step>
+  <Step title="Dashboard updates">
+    Query log entry appears with TX hash linkable to Hiro Explorer.
+  </Step>
+</Steps>
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="HMAC Integration Guide" icon="code" href="/providers/hmac-integration">
+    Verifier code in TypeScript, Python, and Go — copy-paste ready.
+  </Card>
+  <Card title="Withdrawals & Revenue" icon="wallet" href="/providers/withdrawals">
+    Sign a withdrawal, link a wallet, view settlement history.
+  </Card>
+  <Card title="Troubleshooting" icon="circle-question" href="/providers/troubleshooting">
+    Common errors and how to fix them.
+  </Card>
+  <Card title="Provider dashboard" icon="grid" href="https://shadowfeed.app/#/providers">
+    Live portal for managing feeds and revenue.
+  </Card>
+</CardGroup>

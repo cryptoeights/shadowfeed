@@ -1,0 +1,113 @@
+---
+title: Provider Overview
+description: "Earn STX every time an AI agent buys your data — 97% revenue share, settled on Bitcoin L2."
+---
+
+# Become a ShadowFeed Provider
+
+ShadowFeed is a marketplace where **AI agents buy real-time data using x402 micropayments on Stacks (Bitcoin L2)**.
+
+As an external provider, you publish a feed — agents pay STX per query — and you keep **97%** of every transaction.
+
+## Why integrate
+
+<CardGroup cols={2}>
+  <Card title="97% revenue share" icon="dollar-sign">
+    3% platform fee. Withdraw any time, min 1 STX. No subscription billing or API key management.
+  </Card>
+  <Card title="No payment plumbing" icon="bolt">
+    ShadowFeed handles x402 settlement. You just expose an HTTPS endpoint that returns JSON.
+  </Card>
+  <Card title="Agent-native customers" icon="robot">
+    Agents have wallets and pay autonomously. No manual signup, no rate-limit haggling.
+  </Card>
+  <Card title="Bitcoin-secured" icon="bitcoin">
+    Every paid query is a Stacks transaction, settled to Bitcoin. Verifiable on Hiro Explorer.
+  </Card>
+</CardGroup>
+
+## Two integration modes
+
+Pick one based on what you already have.
+
+<CardGroup cols={2}>
+  <Card title="Partner Bridge (HMAC)" icon="link" href="/providers/hmac-integration">
+    You already have an HTTPS API. Add ~50 lines of HMAC verifier middleware. ShadowFeed signs requests with a shared secret; your endpoint serves data and bypasses x402.
+  </Card>
+  <Card title="Hosted Mirror" icon="cloud-arrow-up" href="/providers/onboarding">
+    You have data but no API server. Give ShadowFeed an R2/S3 URL, GitHub raw link, or webhook push target. We poll, cache, and serve.
+  </Card>
+</CardGroup>
+
+### How Partner Bridge works
+
+```
+Agent ──pay STX──▶ ShadowFeed ──HMAC-signed request──▶ Your API
+                       │                                    │
+                       │◀──── JSON response ────────────────┘
+                       ▼
+                Agent receives data
+                97% credited to your provider wallet
+```
+
+### How Hosted Mirror works
+
+```
+Your data source                ShadowFeed
+  (R2 bucket /                       │
+   GitHub raw /          poll every  │
+   webhook push)  ◀─── X minutes ───▶ KV cache ──▶ Agent
+```
+
+## Revenue model
+
+| Item | Value |
+|------|-------|
+| Per-query gross | Set by you (suggested 0.003 - 0.05 STX) |
+| Platform fee | 3% (300 basis points) |
+| Your share | **97%** |
+| Minimum withdrawal | 1 STX |
+| Max withdrawal per request | 1000 STX |
+| Settlement currency | STX on Stacks mainnet (Bitcoin L2) |
+
+Revenue accrues as a counter in your dashboard. You sign a withdrawal request via your linked Stacks wallet to move funds on-chain.
+
+## What you get on signup
+
+<Steps>
+  <Step title="Custodial Stacks wallet">
+    Auto-generated on signup, AES-GCM encrypted at rest. Acts as your provider identity.
+  </Step>
+  <Step title="HMAC secret">
+    Partner Bridge mode only. Shown once during onboarding — we store only a hash.
+  </Step>
+  <Step title="Public profile">
+    Live at `https://shadowfeed.app/#/providers/your-handle`.
+  </Step>
+  <Step title="Paid endpoint">
+    Agents immediately call `https://api.shadowfeed.app/feeds/p/your-handle/feed-slug`.
+  </Step>
+</Steps>
+
+## Prerequisites
+
+- A Stacks wallet (Leather or Xverse) — for signing in and receiving withdrawals
+- For **Partner Bridge:** an HTTPS API endpoint you control
+- For **Hosted Mirror:** a public URL with JSON data, or willingness to POST to a webhook
+
+## Quick links
+
+<CardGroup cols={2}>
+  <Card title="Onboarding walkthrough" icon="play" href="/providers/onboarding">
+    Step-by-step signup from wallet connect to first paid query.
+  </Card>
+  <Card title="HMAC integration" icon="code" href="/providers/hmac-integration">
+    Verifier middleware code in TypeScript, Python, and Go.
+  </Card>
+  <Card title="Withdrawals & revenue" icon="wallet" href="/providers/withdrawals">
+    Link a wallet, withdraw STX, view settlement history.
+  </Card>
+  <Card title="Troubleshooting" icon="circle-question" href="/providers/troubleshooting">
+    Common errors and how to fix them fast.
+  </Card>
+</CardGroup>

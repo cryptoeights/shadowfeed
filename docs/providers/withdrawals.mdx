@@ -1,0 +1,212 @@
+---
+title: Withdrawals & Revenue
+description: "Revenue accounting, linking a withdrawal wallet, and cashing out accumulated STX."
+---
+
+# Withdrawals & Revenue
+
+How revenue flows from agent payments to your wallet — and how to move it on-chain.
+
+## Revenue lifecycle
+
+```
+Agent              ShadowFeed                  Your endpoint
+ │ pay 0.005 STX     │                                ▲
+ │─────────────────▶│ verify, broadcast               │
+ │                  │ ────HMAC signed call────────────┘
+ │                  │
+ │                  │ split:
+ │                  │   - 3% → platform fee wallet
+ │                  │   - 97% → provider pending_revenue (DB counter)
+ │                  │
+ │                  │ revenue accumulates per call
+ │                  │
+ │                  │ When you withdraw:
+ │                  │ ──────STX transfer────▶  Your linked wallet
+```
+
+<Note>
+  Revenue is tracked as a database counter on the platform — not as STX sitting on your custodial wallet. We batch settlements so you don't pay gas per query.
+</Note>
+
+## Your three wallets
+
+| Wallet | What it is | Source of funds |
+|--------|------------|-----------------|
+| **Custodial wallet** | Auto-generated on signup. Shown in dashboard as your provider identity. | Currently informational only. M3 will sweep STX here. |
+| **Linked withdrawal wallet** | Your personal Stacks wallet that you control with a private key. | Receives withdrawals from the platform wallet. |
+| **Platform wallet** | ShadowFeed's mainnet wallet (`SP1DV3T4...`). | Holds inbound x402 settlements until you withdraw. |
+
+<Warning>
+  You **must link a withdrawal wallet** before you can withdraw. The dashboard shows a warning banner until you do.
+</Warning>
+
+## Linking a withdrawal wallet
+
+The linked wallet is where withdrawals land. Can be the same wallet you signed in with, or any other Stacks mainnet address.
+
+### Link your signed-in wallet (simplest)
+
+<Steps>
+  <Step title="Open the dashboard">
+    Visit [shadowfeed.app/#/providers/dashboard](https://shadowfeed.app/#/providers/dashboard) and select your provider.
+  </Step>
+  <Step title="Click the warning banner">
+    In the warning "⚠ No linked withdrawal wallet", click **link one**.
+  </Step>
+  <Step title="Confirm and sign">
+    Your wallet signs a SIWS challenge proving ownership.
+  </Step>
+</Steps>
+
+### Link a different wallet (multisig, treasury, etc.)
+
+<Steps>
+  <Step title="Sign out">
+    Click your wallet pill → confirm sign out.
+  </Step>
+  <Step title="Sign in with destination wallet">
+    Connect the wallet you want to use as the withdrawal destination.
+  </Step>
+  <Step title="Navigate to your provider">
+    The original wallet is still the owner — you'll need to sign back in with it later to manage feeds.
+  </Step>
+  <Step title="Click link one and sign">
+    With the destination wallet active, sign the linking challenge.
+  </Step>
+</Steps>
+
+To change the linked wallet later, just sign a new linking challenge.
+
+## Making a withdrawal
+
+Once you have **≥ 1 STX** in `pending_revenue`:
+
+<Steps>
+  <Step title="Click Withdraw">
+    In your provider detail panel, click the **Withdraw** button (top right).
+  </Step>
+  <Step title="Enter amount">
+    Min 1 STX, max 1000 STX per request. Click **Max** to withdraw everything.
+  </Step>
+  <Step title="Confirm destination">
+    Pre-filled from your linked wallet — cannot be changed in this dialog.
+  </Step>
+  <Step title="Click Confirm withdrawal">
+    Server validates, signs, and broadcasts. You get back a TX hash and a Hiro Explorer link.
+  </Step>
+</Steps>
+
+### What happens server-side
+
+<Steps>
+  <Step title="Validation">
+    Amount ≥ min, ≤ max, ≤ pending balance, destination matches linked wallet.
+  </Step>
+  <Step title="Atomic SQL debit">
+    `pending_revenue` only decrements if balance check still passes — race-free.
+  </Step>
+  <Step title="Sign + broadcast">
+    Builds STX transfer (`platform → destination`), signs with platform private key, broadcasts via Hiro.
+  </Step>
+  <Step title="Track confirmation">
+    Cron poller checks the tx every minute until confirmed on-chain.
+  </Step>
+</Steps>
+
+<Note>
+  If broadcast fails (network error, rate limit, etc.) the `pending_revenue` is **automatically restored** so you never lose funds to platform-side errors.
+</Note>
+
+## Idempotency
+
+The dashboard sends a fresh `idempotency_key` (UUID) with every withdrawal request. If you hit "Confirm" twice or the request times out and retries, the server returns the original withdrawal — no double-spend.
+
+When calling the API directly, pass the key yourself:
+
+```bash
+curl -X POST https://api.shadowfeed.app/providers/id/your-id/withdraw \
+  -H "Authorization: Bearer your-session-token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount_microstx": 1000000,
+    "destination_address": "SPYOURADDR...",
+    "idempotency_key": "1d51bfa6-7c50-4f3e-9b27-..."
+  }'
+```
+
+## Limits & guards
+
+| Limit | Value | Why |
+|-------|-------|-----|
+| Min withdrawal | 1 STX | Avoid dust; bound per-tx blast radius |
+| Max withdrawal per request | 1000 STX | Anti-abuse cap; split larger amounts |
+| Destination must match linked wallet | Always | Prevents account takeover from draining funds |
+| Wallet relinking | Requires SIWS | Proves you control the new destination |
+
+If you need a one-off >1000 STX transfer, contact support.
+
+## Revenue analytics
+
+Each provider in your dashboard shows:
+
+- **Pending revenue (STX)** — what's available to withdraw
+- **Lifetime earned (STX)** — gross 97% across all queries
+- **Total withdrawn (STX)** — cumulative payouts to linked wallet
+- **Queries 7d** — count of paid calls in the last 7 days
+- **Unique buyers 7d** — distinct agent wallets that paid you
+
+Or fetch via API:
+
+```bash
+curl -H "Authorization: Bearer your-session" \
+  https://api.shadowfeed.app/providers/id/your-id/analytics
+```
+
+Returns: `queries_24h`, `queries_7d`, `revenue_24h_microstx`, `revenue_7d_microstx`, `unique_buyers_7d`, `avg_response_ms`, `error_rate`.
+
+## Withdrawal status flow
+
+| Status | Meaning |
+|--------|---------|
+| `pending` | Insert succeeded, broadcast not yet attempted |
+| `broadcast` | Tx sent to Stacks; awaiting block confirmation |
+| `confirmed` | Tx confirmed on-chain; visible on Hiro Explorer |
+| `failed` | Broadcast or on-chain execution failed; pending revenue restored |
+
+## On-chain proof
+
+Every withdrawal lands on Stacks mainnet. Click the TX hash in your settlement history to open Hiro Explorer:
+
+```
+https://explorer.hiro.so/txid/your-tx-hash?chain=mainnet
+```
+
+You'll see:
+- **Sender:** ShadowFeed platform wallet (`SP1DV3T4...`)
+- **Recipient:** your linked withdrawal address
+- **Amount:** in microSTX
+- **Memo:** `sf-w-first8-of-withdrawal-id` — useful for reconciliation
+
+## Tax considerations
+
+We don't issue 1099s or tax forms. You're responsible for reporting STX received as income at fair market value on the day of receipt. Keep your settlement history + on-chain TX hashes for records.
+
+Export your withdrawal history:
+
+```bash
+curl -H "Authorization: Bearer your-session" \
+  "https://api.shadowfeed.app/providers/id/your-id/withdrawals?limit=1000" \
+  > my-withdrawals.json
+```
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="HMAC Integration Guide" icon="code" href="/providers/hmac-integration">
+    Wire up your endpoint to accept signed requests.
+  </Card>
+  <Card title="Troubleshooting" icon="circle-question" href="/providers/troubleshooting">
+    Common withdrawal errors.
+  </Card>
+</CardGroup>

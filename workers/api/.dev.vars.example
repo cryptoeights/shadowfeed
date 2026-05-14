@@ -1,0 +1,19 @@
+# Copy this file to `.dev.vars` and fill in real values for local development.
+# `.dev.vars` is git-ignored.
+
+# 32-byte AES-GCM key (base64). Generate fresh per environment.
+# node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+AGENT_MASTER_KEY=""
+
+# Platform wallet for facilitator (signs verify/settle responses).
+# Use a testnet address + dummy key for local; production uses wrangler secrets.
+SERVER_ADDRESS=""
+SERVER_PRIVATE_KEY=""
+
+# Optional external API keys. Leave blank to disable.
+NANSEN_API_KEY=""
+HIRO_API_KEY=""
+GEMINI_API_KEY=""
+
+# Set to "true" to bypass x402 payment on /demo/feeds/* — useful for UI iteration.
+DEMO_MODE="true"

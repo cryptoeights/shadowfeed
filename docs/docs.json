@@ -47,6 +47,16 @@
               "architecture/x402-protocol",
               "architecture/facilitator"
             ]
+          },
+          {
+            "group": "For Providers",
+            "pages": [
+              "providers/overview",
+              "providers/onboarding",
+              "providers/hmac-integration",
+              "providers/withdrawals",
+              "providers/troubleshooting"
+            ]
           }
         ]
       },

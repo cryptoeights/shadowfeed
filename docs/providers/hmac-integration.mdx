@@ -1,0 +1,384 @@
+---
+title: HMAC Integration Guide
+description: "Add HMAC verifier middleware to your API. Copy-pasteable code for TypeScript, Python, and Go."
+---
+
+# HMAC Integration Guide
+
+This guide adds **HMAC request authentication** to your API so it accepts signed requests from ShadowFeed and skips x402 payment for those calls.
+
+<Note>
+  If you're using **Hosted Mirror** mode (we host your data, no API server on your side), skip this entire guide. HMAC is only needed for **Partner Bridge** mode.
+</Note>
+
+## TL;DR — 3 things to do
+
+<Steps>
+  <Step title="Grab your HMAC secret">
+    From the provider dashboard or the success screen after onboarding.
+  </Step>
+  <Step title="Set it on your server">
+    `SHADOWFEED_PARTNER_SECRET=...` as env var on **your API server** — not on ShadowFeed.
+  </Step>
+  <Step title="Paste the middleware">
+    Copy the snippet for your stack below. Mount BEFORE your x402 middleware.
+  </Step>
+</Steps>
+
+## How HMAC fits into the request flow
+
+```
+Agent buys data
+    │ pays STX
+    ▼
+ShadowFeed
+    │ signs canonical string with shared secret
+    │ adds 4 headers:
+    │   X-Sf-Partner:   shadowfeed
+    │   X-Sf-Timestamp: 1715616000
+    │   X-Sf-Nonce:     <uuid>
+    │   X-Sf-Signature: <hmac-hex>
+    │
+    ▼
+Your API
+    │ middleware checks:
+    │   ✓ timestamp within ±5 min
+    │   ✓ nonce not seen before
+    │   ✓ HMAC signature matches recomputed value
+    │
+    ▼
+Skip x402 payment requirement, serve data
+```
+
+The signature is computed from a **canonical string**:
+
+```text
+{METHOD}\n{PATH}\n{TIMESTAMP}\n{NONCE}\n{SHA256(BODY)}
+```
+
+Both sides must derive the **same** canonical string for the signature to verify. The body hash is empty string `""` for GET requests.
+
+## Setup checklist
+
+- [ ] HMAC secret saved (from onboarding success screen or **Rotate secret** button)
+- [ ] Decided which server hosts your `partner_endpoint`
+- [ ] Set `SHADOWFEED_PARTNER_SECRET=your-secret` as env var on that server
+- [ ] Confirmed your API can read the env var (`process.env`, `c.env`, `os.environ`, etc.)
+
+## Verifier middleware
+
+Pick the language tab matching your stack. All three implementations use the same canonical string format and are mutually compatible.
+
+<Tabs>
+  <Tab title="TypeScript / Workers">
+    ```typescript
+    import { Hono } from 'hono';
+
+    // Replace with your existing route file.
+    const app = new Hono<{ Bindings: { SHADOWFEED_PARTNER_SECRET: string } }>();
+
+    // Add this middleware BEFORE any x402 payment middleware so signed
+    // requests bypass the payment requirement.
+    app.use('*', async (c, next) => {
+      if (c.req.header('X-Sf-Partner') !== 'shadowfeed') {
+        return next();  // not a ShadowFeed call → continue normal x402 flow
+      }
+      const ok = await verifyShadowfeedHmac(c.req.raw, c.env.SHADOWFEED_PARTNER_SECRET);
+      if (!ok) return c.json({ error: 'invalid HMAC signature' }, 401);
+      c.set('skipX402', true);   // your x402 middleware reads this flag
+      return next();
+    });
+
+    async function verifyShadowfeedHmac(req: Request, secret: string): Promise<boolean> {
+      const ts    = parseInt(req.headers.get('X-Sf-Timestamp') ?? '', 10);
+      const nonce = req.headers.get('X-Sf-Nonce') ?? '';
+      const sig   = req.headers.get('X-Sf-Signature') ?? '';
+      if (!ts || !nonce || !sig) return false;
+
+      // 5-minute window — rejects replays of leaked signatures.
+      if (Math.abs(Date.now() / 1000 - ts) > 300) return false;
+
+      // Replay protection — store seen nonces in KV for 5 minutes.
+      // (Omit if you can't tolerate the extra KV write; the timestamp window
+      // already bounds the attack to 5 min after capture.)
+      //
+      //   const seen = await env.NONCES.get(nonce);
+      //   if (seen) return false;
+      //   await env.NONCES.put(nonce, '1', { expirationTtl: 300 });
+
+      const enc = new TextEncoder();
+      const body = req.method === 'GET' ? '' : await req.clone().text();
+      const bodyHash = body
+        ? [...new Uint8Array(await crypto.subtle.digest('SHA-256', enc.encode(body)))]
+            .map(b => b.toString(16).padStart(2, '0')).join('')
+        : '';
+      const canonical = [
+        req.method.toUpperCase(),
+        new URL(req.url).pathname,
+        String(ts), nonce, bodyHash,
+      ].join('\n');
+
+      const key = await crypto.subtle.importKey(
+        'raw', enc.encode(secret),
+        { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'],
+      );
+      const expected = [...new Uint8Array(
+        await crypto.subtle.sign('HMAC', key, enc.encode(canonical)),
+      )].map(b => b.toString(16).padStart(2, '0')).join('');
+
+      return sig.toLowerCase() === expected.toLowerCase();
+    }
+    ```
+
+    **Where to set the secret (Cloudflare Workers):**
+
+    ```bash
+    wrangler secret put SHADOWFEED_PARTNER_SECRET
+    # Paste the secret when prompted
+    ```
+
+    This stores it as a Worker secret — accessible at runtime via `c.env.SHADOWFEED_PARTNER_SECRET`, never visible in your code or logs.
+  </Tab>
+
+  <Tab title="Python / FastAPI">
+    ```python
+    import os, hmac, hashlib, time
+    from fastapi import FastAPI, Request, HTTPException
+
+    PARTNER_SECRET = os.environ["SHADOWFEED_PARTNER_SECRET"].encode()
+    _seen_nonces: dict[str, float] = {}    # swap for Redis in production
+
+    app = FastAPI()
+
+    async def verify_shadowfeed_hmac(request: Request) -> bool:
+        ts    = request.headers.get("X-Sf-Timestamp", "")
+        nonce = request.headers.get("X-Sf-Nonce", "")
+        sig   = request.headers.get("X-Sf-Signature", "")
+        if not (ts and nonce and sig):
+            return False
+        if abs(time.time() - int(ts)) > 300:
+            return False
+
+        # Replay protection — sweep + check
+        now = time.time()
+        expired = [n for n, t in _seen_nonces.items() if now - t > 300]
+        for n in expired:
+            _seen_nonces.pop(n, None)
+        if nonce in _seen_nonces:
+            return False
+        _seen_nonces[nonce] = now
+
+        body = await request.body() if request.method != "GET" else b""
+        body_hash = hashlib.sha256(body).hexdigest() if body else ""
+        canonical = "\n".join([
+            request.method.upper(),
+            request.url.path,
+            ts, nonce, body_hash,
+        ]).encode()
+
+        expected = hmac.new(PARTNER_SECRET, canonical, hashlib.sha256).hexdigest()
+        return hmac.compare_digest(sig.lower(), expected.lower())
+
+    @app.middleware("http")
+    async def shadowfeed_partner_middleware(request: Request, call_next):
+        if request.headers.get("X-Sf-Partner") == "shadowfeed":
+            if not await verify_shadowfeed_hmac(request):
+                raise HTTPException(401, "invalid HMAC signature")
+            request.state.skip_x402 = True
+        return await call_next(request)
+    ```
+
+    **Where to set the secret (typical Python deployments):**
+
+    | Platform | Command |
+    |----------|---------|
+    | Heroku | `heroku config:set SHADOWFEED_PARTNER_SECRET=...` |
+    | Render | Service → Environment → Add |
+    | Railway | Project → Variables → Add |
+    | Docker | `docker run -e SHADOWFEED_PARTNER_SECRET=... ...` |
+    | Local dev | `.env` file + `python-dotenv` |
+  </Tab>
+
+  <Tab title="Go / net/http">
+    ```go
+    package main
+
+    import (
+        "crypto/hmac"
+        "crypto/sha256"
+        "encoding/hex"
+        "io"
+        "net/http"
+        "os"
+        "strconv"
+        "strings"
+        "sync"
+        "time"
+    )
+
+    var (
+        partnerSecret = []byte(os.Getenv("SHADOWFEED_PARTNER_SECRET"))
+        nonceCache    = sync.Map{} // map[string]int64 — nonce → expiresUnix
+    )
+
+    func abs(n int64) int64 { if n < 0 { return -n }; return n }
+
+    func verifyShadowfeedHMAC(r *http.Request) bool {
+        tsStr := r.Header.Get("X-Sf-Timestamp")
+        nonce := r.Header.Get("X-Sf-Nonce")
+        sig   := r.Header.Get("X-Sf-Signature")
+        if tsStr == "" || nonce == "" || sig == "" { return false }
+
+        ts, err := strconv.ParseInt(tsStr, 10, 64)
+        if err != nil { return false }
+        if abs(time.Now().Unix() - ts) > 300 { return false }
+
+        // Replay protection
+        if _, seen := nonceCache.Load(nonce); seen { return false }
+        nonceCache.Store(nonce, time.Now().Unix() + 300)
+
+        var bodyBytes []byte
+        if r.Method != "GET" {
+            bodyBytes, _ = io.ReadAll(r.Body)
+            r.Body = io.NopCloser(strings.NewReader(string(bodyBytes)))
+        }
+        bodyHash := ""
+        if len(bodyBytes) > 0 {
+            h := sha256.Sum256(bodyBytes)
+            bodyHash = hex.EncodeToString(h[:])
+        }
+
+        canonical := strings.Join([]string{
+            strings.ToUpper(r.Method), r.URL.Path,
+            tsStr, nonce, bodyHash,
+        }, "\n")
+
+        mac := hmac.New(sha256.New, partnerSecret)
+        mac.Write([]byte(canonical))
+        expected := hex.EncodeToString(mac.Sum(nil))
+        return hmac.Equal([]byte(strings.ToLower(sig)), []byte(expected))
+    }
+
+    func shadowfeedMiddleware(next http.Handler) http.Handler {
+        return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+            if r.Header.Get("X-Sf-Partner") == "shadowfeed" {
+                if !verifyShadowfeedHMAC(r) {
+                    http.Error(w, "invalid HMAC signature", 401)
+                    return
+                }
+                // Mark context so downstream skips x402 payment requirement.
+            }
+            next.ServeHTTP(w, r)
+        })
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Verifying your implementation
+
+After deploying the middleware, trigger a paid request to your feed through ShadowFeed:
+
+```bash
+# This call returns 402 — that's expected. ShadowFeed responds with x402
+# payment requirements when there's no payment-signature header.
+curl -i https://api.shadowfeed.app/feeds/p/your-handle/your-feed-slug
+```
+
+To exercise the HMAC path end-to-end, use the [ShadowFeed Agent SDK](/sdk/installation):
+
+```typescript
+import { ShadowFeed } from 'shadowfeed-agent';
+
+const sf = new ShadowFeed({
+  privateKey: process.env.AGENT_PRIVATE_KEY,
+  network: 'mainnet',
+});
+
+const result = await sf.buy('p/your-handle/your-feed-slug');
+console.log(result.data);  // Your data, returned through HMAC-authenticated path
+```
+
+If your verifier is correctly deployed:
+
+- The agent pays STX
+- ShadowFeed signs HMAC + forwards to your endpoint
+- Your middleware verifies + skips payment
+- Your route returns data
+- Agent receives the response
+- 97% of the price is credited to your `pending_revenue` counter
+
+Check the dashboard or `GET /providers/id/your-id/analytics` to confirm the query landed.
+
+## Common pitfalls
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| Always 401 from your endpoint | Wrong secret on either side | Re-paste secret on your server; rotate from dashboard if unsure |
+| Some calls 401, others succeed | Clock drift > 5 min | Sync your server clock (NTP) |
+| 401 with body hash mismatch | Body modified by proxy/middleware before verifier sees it | Verify BEFORE any body parsing; use `req.clone().text()` (TS) |
+| Pre-paid calls work, post-paid agent calls fail | Middleware ordering | Place HMAC check BEFORE your x402 middleware |
+| Worked, then suddenly all 401s | Secret rotated but not deployed | Re-set the env var with the new secret |
+
+## Building with Claude Code
+
+If you use [Claude Code](https://claude.com/claude-code) to maintain your codebase, paste this prompt to bootstrap the integration:
+
+> I want to integrate my API as a ShadowFeed external data provider. My stack is **\[Cloudflare Workers / FastAPI / Go / etc.\]**. I have the HMAC secret saved as `SHADOWFEED_PARTNER_SECRET`. The full integration guide is at [docs.shadowfeed.app/providers/hmac-integration](https://docs.shadowfeed.app/providers/hmac-integration).
+>
+> Walk me through:
+> 1. Adding the HMAC verifier middleware to my existing routes (preserve current x402 / auth)
+> 2. Setting the env var on my deployment platform
+> 3. Testing the integration end-to-end
+>
+> My API base URL is `https://api.mycompany.com` and the feed I want to expose is at `/v1/whales`.
+
+Claude can read this doc, your codebase, and walk you through the wiring step-by-step.
+
+## Reference
+
+### Canonical string
+
+```text
+{METHOD}\n{PATH}\n{TIMESTAMP}\n{NONCE}\n{SHA256(BODY)}
+```
+
+Replace each placeholder with the actual values per request.
+
+| Component | Value |
+|-----------|-------|
+| `METHOD` | Uppercase HTTP verb: `GET`, `POST`, `PUT`, `DELETE`, `PATCH` |
+| `PATH` | URL pathname only — no host, no query string. Trailing slash matters. |
+| `TIMESTAMP` | Unix seconds (10 digits in 2026). Must be within ±300s of server clock. |
+| `NONCE` | Random unique string per request. Recommended: UUID v4. |
+| `SHA256(BODY)` | Lowercase hex SHA-256 of raw request body. Empty string `""` if no body. |
+
+### Headers sent by ShadowFeed
+
+| Header | Value |
+|--------|-------|
+| `X-Sf-Partner` | `shadowfeed` (constant marker) |
+| `X-Sf-Timestamp` | Unix seconds at signing time |
+| `X-Sf-Nonce` | Random nonce |
+| `X-Sf-Signature` | HMAC-SHA256(secret, canonical) — lowercase hex |
+
+### Signature algorithm
+
+```text
+signature = hex(HMAC_SHA256(secret_bytes, canonical_string_bytes))
+```
+
+<Warning>
+  Use **constant-time comparison** when verifying — never use plain string equality. Python: `hmac.compare_digest`. Go: `hmac.Equal`. TypeScript: compare byte-by-byte after equal-length check.
+</Warning>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Withdrawals & Revenue" icon="wallet" href="/providers/withdrawals">
+    How to cash out accumulated STX.
+  </Card>
+  <Card title="Troubleshooting" icon="circle-question" href="/providers/troubleshooting">
+    Debug HMAC failures, request issues.
+  </Card>
+</CardGroup>
