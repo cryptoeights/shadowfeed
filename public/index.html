@@ -4552,7 +4552,10 @@ curl -i "https://your-api.com/your-feed-path" \\
 
           <div class="flex items-center justify-between mb-3">
             <h4 class="text-lg font-bold text-gray-900">Feeds (${feeds.length})</h4>
-            <button onclick="openAddFeedModal()" class="text-sm font-bold text-orange-500 hover:text-orange-600">+ Add feed</button>
+            <div class="flex items-center gap-3">
+              ${p.mode === 'partner_bridge' && p.partner_endpoint ? `<button onclick="openDetectFeedsModal('${esc(p.id)}','${esc(p.partner_endpoint)}')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold transition shadow"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>Detect from endpoint</button>` : ''}
+              <button onclick="openAddFeedModal()" class="text-sm font-bold text-gray-600 hover:text-gray-900">+ Add manually</button>
+            </div>
           </div>
           ${feeds.length === 0
             ? '<div class="rounded-2xl border border-dashed border-gray-200 p-8 text-center text-gray-400">No feeds yet — add one to activate this provider.</div>'
@@ -4575,17 +4578,22 @@ curl -i "https://your-api.com/your-feed-path" \\
 
           ${p.mode === 'partner_bridge' ? `
             <div class="mt-6 rounded-2xl border border-gray-100 bg-gray-50 p-5">
-              <div class="flex items-center justify-between gap-3 mb-3">
-                <div>
+              <div class="flex items-start justify-between gap-3 mb-3">
+                <div class="min-w-0">
                   <h5 class="font-bold text-gray-900 mb-0.5">HMAC partner secret</h5>
                   <p class="text-xs text-gray-500">Last rotated: ${p.hmac_rotated_at ? new Date(p.hmac_rotated_at * 1000).toLocaleString() : 'never'}</p>
+                  <div id="hmac-test-status" class="mt-2 text-xs"></div>
                 </div>
-                <div class="flex gap-2 shrink-0">
-                  <button onclick="openHmacGuideModal('${esc(p.handle)}')" class="px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold transition">View setup guide</button>
-                  <button onclick="rotateHmac('${esc(p.id)}')" class="px-4 py-2 rounded-xl border border-gray-200 hover:bg-white text-gray-700 text-xs font-bold transition">Rotate secret</button>
+                <div class="flex gap-2 shrink-0 flex-wrap justify-end">
+                  <button onclick="testHmacConnection('${esc(p.id)}')" id="hmac-test-btn" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition shadow">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    Test connection
+                  </button>
+                  <button onclick="openHmacGuideModal('${esc(p.handle)}')" class="px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold transition">Setup guide</button>
+                  <button onclick="rotateHmac('${esc(p.id)}')" class="px-4 py-2 rounded-xl border border-gray-200 hover:bg-white text-gray-700 text-xs font-bold transition">Rotate</button>
                 </div>
               </div>
-              <p class="text-xs text-gray-500">Need to wire up your endpoint? The setup guide has copy-pasteable middleware for TypeScript, Python, and Go. <a href="https://docs.shadowfeed.app/providers/hmac-integration" target="_blank" rel="noopener" class="text-orange-500 hover:underline font-semibold">Full docs →</a></p>
+              <p class="text-xs text-gray-500">Click <strong>Test connection</strong> to verify your endpoint correctly verifies HMAC. <a href="https://docs.shadowfeed.app/providers/hmac-integration" target="_blank" rel="noopener" class="text-orange-500 hover:underline font-semibold">Full docs →</a></p>
             </div>
           ` : ''}
 
@@ -4745,6 +4753,191 @@ curl -i "https://your-api.com/your-feed-path" \\
         });
         await selectProvider(providerId);
       } catch (e) { alert('Failed: ' + (e.message || 'unknown')); }
+    };
+
+    // Send a signed handshake to the partner endpoint to confirm HMAC is
+    // correctly verifying on their side. Surfaces stage-specific guidance
+    // (platform secret missing, HMAC rejected, upstream error, network).
+    window.testHmacConnection = async (providerId) => {
+      const btn = document.getElementById('hmac-test-btn');
+      const statusEl = document.getElementById('hmac-test-status');
+      if (!btn || !statusEl) return;
+      btn.disabled = true; btn.innerHTML = '<span class="opacity-70">Testing…</span>';
+      statusEl.innerHTML = '<span class="text-gray-500">Sending HMAC-signed handshake…</span>';
+      try {
+        const r = await apiFetch(`/providers/id/${providerId}/hmac/test`, { method: 'POST' });
+        if (r.ok) {
+          statusEl.innerHTML = `
+            <div class="flex items-start gap-2 p-3 rounded-lg bg-emerald-50 border border-emerald-200">
+              <svg class="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+              <div>
+                <p class="font-bold text-emerald-700">✓ Connection verified</p>
+                <p class="text-emerald-700/80 mt-0.5">Probed <code class="bg-emerald-100 px-1 rounded text-[10px]">${esc(r.probed_path)}</code> · HTTP ${r.upstream_status} · ${r.latency_ms}ms</p>
+              </div>
+            </div>`;
+        } else {
+          const stageClass = r.stage === 'platform_secret_missing' ? 'amber' : 'red';
+          const stageLabel = ({
+            config: 'Configuration issue',
+            platform_secret_missing: 'Platform secret not set',
+            network: 'Cannot reach endpoint',
+            hmac_rejected: 'HMAC rejected',
+            upstream_error: 'Upstream error',
+            sign_failed: 'Signing failed',
+          })[r.stage] || 'Failed';
+          statusEl.innerHTML = `
+            <div class="p-3 rounded-lg bg-${stageClass}-50 border border-${stageClass}-200">
+              <p class="font-bold text-${stageClass}-700 mb-1">✗ ${esc(stageLabel)}</p>
+              <p class="text-${stageClass}-700/80 text-[11px] leading-relaxed">${esc(r.reason || '')}</p>
+              ${r.env_key ? `<div class="mt-2 rounded bg-${stageClass}-100 font-mono text-[10px] p-2"><strong>wrangler secret put ${esc(r.env_key)}</strong><br/>(run on the ShadowFeed worker, paste the saved secret)</div>` : ''}
+              ${r.upstream_status ? `<p class="text-[11px] text-gray-500 mt-2">Upstream: HTTP ${r.upstream_status} · ${r.latency_ms}ms · path <code>${esc(r.probed_path)}</code></p>` : ''}
+              ${r.body_preview ? `<details class="mt-2"><summary class="text-[10px] text-gray-500 cursor-pointer">Response body preview</summary><pre class="mt-1 text-[10px] bg-white p-2 rounded border border-gray-200 overflow-x-auto">${esc(r.body_preview)}</pre></details>` : ''}
+            </div>`;
+        }
+      } catch (e) {
+        statusEl.innerHTML = `<span class="text-red-500">${esc(e.message || 'Test failed')}</span>`;
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>Test connection';
+      }
+    };
+
+    // Open the detect-and-import modal from the dashboard. Reuses the same
+    // bulk-import API as the onboarding wizard, but only inserts feeds whose
+    // slugs don't already exist on this provider.
+    window.openDetectFeedsModal = async (providerId, endpoint) => {
+      const container = document.getElementById('addfeed-modal-container');
+      if (!container) return;
+      container.innerHTML = `
+        <div class="fixed inset-0 bg-black/40 flex items-start justify-center z-50 p-4 overflow-y-auto" onclick="closeModal(event,'addfeed-modal-container')">
+          <div class="bg-white rounded-3xl p-6 max-w-2xl w-full my-8" onclick="event.stopPropagation()">
+            <div class="flex items-start justify-between gap-4 mb-4">
+              <div>
+                <h3 class="text-xl font-extrabold text-gray-900 mb-1">Detect feeds from endpoint</h3>
+                <p class="text-sm text-gray-500">Probing <span class="font-mono text-gray-700">${esc(endpoint)}</span></p>
+              </div>
+              <button onclick="closeModal(null,'addfeed-modal-container')" class="text-gray-400 hover:text-gray-700"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+            </div>
+            <div id="detect-modal-body" class="text-center py-12 text-gray-400">Probing endpoint…</div>
+          </div>
+        </div>
+      `;
+      try {
+        const result = await apiFetch('/providers/discover', {
+          method: 'POST',
+          body: JSON.stringify({ endpoint: endpoint.replace(/\/+$/, '') }),
+        });
+        const feeds = result.feeds || [];
+        const body = document.getElementById('detect-modal-body');
+        if (feeds.length === 0) {
+          body.innerHTML = `
+            <div class="py-8 text-center">
+              <p class="text-amber-600 font-semibold mb-2">No feeds detected</p>
+              <p class="text-sm text-gray-500 mb-4">${esc(result.notes || 'No catalog or well-known manifest found.')}</p>
+              <button onclick="closeModal(null,'addfeed-modal-container'); openAddFeedModal()" class="px-5 py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 text-white text-sm font-bold">Add manually instead</button>
+            </div>`;
+          return;
+        }
+        // Save discovered feeds in a temporary state so the submit handler can read them.
+        appState.dashboardDiscovered = feeds;
+        appState.dashboardDiscoveredProviderId = providerId;
+        body.innerHTML = `
+          <div class="text-left">
+            <p class="text-xs text-emerald-600 font-semibold mb-3">${esc(result.notes || 'Catalog found')} — ${feeds.length} feeds</p>
+            <div class="flex items-center justify-between text-xs text-gray-500 mb-2">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="dd-select-all" checked onchange="dashDetectToggleAll(this.checked)" class="rounded border-gray-300" />
+                <span class="font-bold">Select all</span>
+              </label>
+              <span><span id="dd-selected-count">${feeds.length}</span> of ${feeds.length} selected</span>
+            </div>
+            <div class="space-y-2 max-h-[420px] overflow-y-auto pr-1">
+              ${feeds.map((f, idx) => `
+                <label class="flex items-start gap-3 p-3 rounded-xl border border-gray-100 hover:border-orange-200 cursor-pointer">
+                  <input type="checkbox" data-idx="${idx}" checked onchange="dashDetectOnToggle()" class="mt-1 rounded border-gray-300 dd-check" />
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-1">
+                      <span class="font-bold text-gray-900 text-sm">${esc(f.name)}</span>
+                      ${f.category ? `<span class="px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 text-[10px] font-bold uppercase">${esc(f.category)}</span>` : ''}
+                    </div>
+                    <p class="text-[11px] text-gray-400 font-mono mb-1">${esc(f.source_path)}</p>
+                    ${f.description ? `<p class="text-xs text-gray-500 line-clamp-2 mb-1">${esc(f.description)}</p>` : ''}
+                  </div>
+                  <div class="shrink-0">
+                    <label class="block text-[10px] text-gray-400 uppercase font-bold mb-0.5">Price (STX)</label>
+                    <input type="number" step="0.001" min="0.001" max="100" value="${f.suggested_price_stx}" data-price-idx="${idx}" class="w-24 px-2 py-1 rounded-lg border border-gray-200 text-xs text-right font-mono dd-price" />
+                  </div>
+                </label>
+              `).join('')}
+            </div>
+            <div id="dd-error" class="mt-3 text-sm text-red-500"></div>
+            <div class="mt-4 flex gap-2 pt-3 border-t border-gray-100">
+              <button onclick="closeModal(null,'addfeed-modal-container')" class="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 text-sm font-bold">Cancel</button>
+              <button onclick="dashDetectSubmit()" id="dd-submit" class="flex-1 px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold">Import <span id="dd-import-count">${feeds.length}</span> feeds</button>
+            </div>
+          </div>
+        `;
+      } catch (e) {
+        document.getElementById('detect-modal-body').innerHTML = `<div class="py-8 text-center text-red-500">${esc(e.message || 'Discovery failed')}</div>`;
+      }
+    };
+
+    window.dashDetectToggleAll = (checked) => {
+      document.querySelectorAll('.dd-check').forEach((cb) => { cb.checked = checked; });
+      dashDetectOnToggle();
+    };
+
+    window.dashDetectOnToggle = () => {
+      const checked = document.querySelectorAll('.dd-check:checked').length;
+      const c = document.getElementById('dd-selected-count');
+      const i = document.getElementById('dd-import-count');
+      if (c) c.textContent = checked;
+      if (i) i.textContent = checked;
+    };
+
+    window.dashDetectSubmit = async () => {
+      const providerId = appState.dashboardDiscoveredProviderId;
+      const discovered = appState.dashboardDiscovered || [];
+      const err = document.getElementById('dd-error');
+      const btn = document.getElementById('dd-submit');
+      const selected = [];
+      document.querySelectorAll('.dd-check').forEach((cb) => {
+        if (!cb.checked) return;
+        const idx = parseInt(cb.dataset.idx, 10);
+        const feed = discovered[idx];
+        if (!feed) return;
+        const priceEl = document.querySelector(`.dd-price[data-price-idx="${idx}"]`);
+        const price = parseFloat(priceEl?.value || feed.suggested_price_stx);
+        if (!(price > 0) || price > 100) return;
+        selected.push({
+          slug: feed.slug,
+          name: feed.name,
+          description: feed.description,
+          category: feed.category,
+          source_path: feed.source_path,
+          source_method: feed.source_method || 'GET',
+          price_stx: price,
+        });
+      });
+      if (selected.length === 0) {
+        err.textContent = 'Select at least one feed to import.';
+        return;
+      }
+      btn.disabled = true; btn.textContent = 'Importing…';
+      try {
+        const r = await apiFetch(`/providers/id/${providerId}/feeds/bulk`, {
+          method: 'POST',
+          body: JSON.stringify({ feeds: selected }),
+        });
+        closeModal(null, 'addfeed-modal-container');
+        // Show a small summary toast via alert for now (could become a toast component).
+        const msg = `Imported ${r.inserted?.length || 0} feeds${r.skipped?.length ? ' (' + r.skipped.length + ' skipped: ' + r.skipped.map(s => s.slug + ':' + s.reason).slice(0, 3).join(', ') + ')' : ''}.`;
+        await selectProvider(providerId);
+        if (r.skipped?.length) alert(msg);
+      } catch (e) {
+        btn.disabled = false; btn.textContent = `Import ${selected.length} feeds`;
+        err.textContent = e.message || 'Import failed';
+      }
     };
 
     window.rotateHmac = async (providerId) => {

@@ -15,7 +15,7 @@ import {
   verifyStacksSignature,
 } from './auth';
 import { createProviderWallet, getProviderBalance } from './provider-wallet';
-import { generatePartnerSecret, hashPartnerSecret } from './hmac';
+import { generatePartnerSecret, hashPartnerSecret, signPartnerRequest } from './hmac';
 import { discoverFeeds } from './provider-discovery';
 import {
   activateProvider,
@@ -509,6 +509,137 @@ providerRoutes.get('/providers/id/:id/analytics', async (c) => {
 
   const analytics = await getProviderAnalytics(c.env.DB, result.provider.id);
   return c.json({ analytics });
+});
+
+// HMAC connection handshake — signs a no-payment HEAD/GET against the first
+// active feed on the provider's endpoint to verify the partner's verifier is
+// wired up correctly.
+//
+// Returns a structured result the UI can show as ✓ / ⚠ / ✗ in the dashboard.
+//
+// NOTE: requires the platform admin to have set PARTNER_SECRET_<HANDLE> as a
+// Worker secret. If not set, returns a structured error explaining what to do.
+providerRoutes.post('/providers/id/:id/hmac/test', async (c) => {
+  const result = await getOwnedProvider(c, c.req.param('id'));
+  if ('error' in result) return c.json({ error: result.error }, result.status as 401 | 403 | 404);
+
+  const provider = result.provider;
+  if (provider.mode !== 'partner_bridge') {
+    return c.json({
+      ok: false,
+      stage: 'config',
+      reason: 'Only partner_bridge providers have HMAC. Hosted mirror needs no connection test.',
+    }, 400);
+  }
+  if (!provider.partner_endpoint) {
+    return c.json({ ok: false, stage: 'config', reason: 'partner_endpoint not configured' }, 400);
+  }
+
+  // Pick a feed to probe. Prefer the first active feed.
+  const probe = await c.env.DB
+    .prepare(`SELECT slug, source_path, source_method FROM provider_feeds WHERE provider_id = ? AND active = 1 ORDER BY created_at ASC LIMIT 1`)
+    .bind(provider.id)
+    .first<{ slug: string; source_path: string; source_method: string | null }>();
+  if (!probe || !probe.source_path) {
+    return c.json({
+      ok: false,
+      stage: 'config',
+      reason: 'No active feed to test. Add a feed first so we have a path to probe.',
+    }, 400);
+  }
+
+  // Fetch the platform-side copy of the HMAC secret from worker env.
+  const envKey = `PARTNER_SECRET_${provider.handle.toUpperCase().replace(/-/g, '_')}`;
+  const secret = (c.env as unknown as Record<string, string | undefined>)[envKey];
+  if (!secret) {
+    return c.json({
+      ok: false,
+      stage: 'platform_secret_missing',
+      env_key: envKey,
+      reason: `Platform HMAC secret not configured. Set it via: wrangler secret put ${envKey} (on the ShadowFeed worker), pasting the secret you saved when this provider was created.`,
+    }, 200);
+  }
+
+  const method = (probe.source_method === 'POST' ? 'POST' : 'GET') as 'GET' | 'POST';
+  const path = probe.source_path;
+
+  let signed: Record<string, string>;
+  try {
+    signed = (await signPartnerRequest({
+      method,
+      path,
+      body: '',
+      secret,
+      partnerName: 'shadowfeed',
+    })) as unknown as Record<string, string>;
+  } catch (e) {
+    return c.json({
+      ok: false,
+      stage: 'sign_failed',
+      reason: e instanceof Error ? e.message : 'failed to sign request',
+    }, 500);
+  }
+
+  const start = Date.now();
+  let upstreamStatus = 0;
+  let upstreamBody = '';
+  try {
+    const res = await fetch(`${provider.partner_endpoint}${path}`, {
+      method,
+      headers: { ...signed, accept: 'application/json' },
+    });
+    upstreamStatus = res.status;
+    upstreamBody = (await res.text()).slice(0, 500);
+  } catch (e) {
+    return c.json({
+      ok: false,
+      stage: 'network',
+      latency_ms: Date.now() - start,
+      reason: e instanceof Error ? e.message : 'fetch failed',
+    }, 200);
+  }
+  const latency_ms = Date.now() - start;
+
+  if (upstreamStatus >= 200 && upstreamStatus < 300) {
+    await logAudit(c.env.DB, provider.id, 'hmac_test_ok', {
+      feed_slug: probe.slug,
+      latency_ms,
+      upstream_status: upstreamStatus,
+    });
+    return c.json({
+      ok: true,
+      stage: 'ok',
+      probed_feed: probe.slug,
+      probed_path: path,
+      upstream_status: upstreamStatus,
+      latency_ms,
+      body_preview: upstreamBody.slice(0, 300),
+    });
+  }
+
+  if (upstreamStatus === 401 || upstreamStatus === 403) {
+    return c.json({
+      ok: false,
+      stage: 'hmac_rejected',
+      probed_feed: probe.slug,
+      probed_path: path,
+      upstream_status: upstreamStatus,
+      latency_ms,
+      body_preview: upstreamBody.slice(0, 300),
+      reason: `Partner rejected the signed request (HTTP ${upstreamStatus}). Most likely cause: SHADOWFEED_PARTNER_SECRET on your server doesn't match what's set on ShadowFeed. Rotate from this dashboard and update both sides.`,
+    }, 200);
+  }
+
+  return c.json({
+    ok: false,
+    stage: 'upstream_error',
+    probed_feed: probe.slug,
+    probed_path: path,
+    upstream_status: upstreamStatus,
+    latency_ms,
+    body_preview: upstreamBody.slice(0, 300),
+    reason: `Partner returned HTTP ${upstreamStatus}. Check your verifier middleware ordering and that the route exists.`,
+  }, 200);
 });
 
 // Rotate HMAC secret for partner_bridge providers.

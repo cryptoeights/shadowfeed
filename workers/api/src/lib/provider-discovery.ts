@@ -26,12 +26,15 @@ const COMMON_DISCOVERY_PATHS = [
   '/shadowfeed-feeds.json',
 ];
 
-// Static knowledge of well-known x402-native API endpoint catalogs.
+// Static knowledge of well-known x402-native API endpoint catalogs. Keys are
+// apex domains; we match by suffix so any subdomain (api., partner., v1., etc.)
+// resolves to the same catalog.
+//
 // Hyre is our flagship M2 partner; we ship a curated list so partners can
 // import in one click without standing up a `.well-known` file first.
 // Add more entries here as we onboard more APIs.
 const KNOWN_CATALOGS: Record<string, DiscoveredFeed[]> = {
-  'api.hyreagent.fun': [
+  'hyreagent.fun': [
     { slug: 'pumpfun-launches',    name: 'PumpFun Launches',       description: 'New PumpFun token launches with sniper detection and bonding curve analysis.', category: 'discovery',      source_path: '/v1/trenches/new-tokens',       suggested_price_stx: 0.005 },
     { slug: 'bonding-curve',       name: 'Bonding Curve State',    description: 'Bonding curve liquidity, market cap, and graduation probability for any PumpFun token.', category: 'on-chain', source_path: '/v1/trenches/bonding-curve', suggested_price_stx: 0.005 },
     { slug: 'token-snipers',       name: 'Sniper Detection',       description: 'Wallets sniping launches in the first N blocks with PnL tracking.', category: 'on-chain',           source_path: '/v1/trenches/snipers',          suggested_price_stx: 0.005 },
@@ -224,13 +227,18 @@ function tryKnownCatalog(endpoint: string): DiscoveryResult | null {
   } catch {
     return null;
   }
-  const catalog = KNOWN_CATALOGS[host];
-  if (!catalog) return null;
-  return {
-    source: 'known_catalog',
-    feeds: catalog,
-    notes: `Curated catalog for ${host}`,
-  };
+  // Match against any apex domain key by suffix — so api.example.com,
+  // partner.example.com, and example.com all resolve to KNOWN_CATALOGS['example.com'].
+  for (const apex of Object.keys(KNOWN_CATALOGS)) {
+    if (host === apex || host.endsWith('.' + apex)) {
+      return {
+        source: 'known_catalog',
+        feeds: KNOWN_CATALOGS[apex],
+        notes: `Curated catalog for ${apex} (matched ${host})`,
+      };
+    }
+  }
+  return null;
 }
 
 // ----- Main entry ------------------------------------------------------------
