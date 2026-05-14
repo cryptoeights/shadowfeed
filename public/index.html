@@ -3752,8 +3752,12 @@ console.<span class="text-blue-400">log</span>(data);</pre>
             ${draft.mode === 'partner_bridge' ? `
               <div class="mt-5">
                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Partner endpoint URL <span class="text-red-500">*</span></label>
-                <input id="ob-partner-endpoint" type="url" value="${esc(draft.partner_endpoint || '')}" placeholder="https://partner.yourdomain.com" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none text-sm font-mono" />
+                <div class="flex gap-2">
+                  <input id="ob-partner-endpoint" type="url" value="${esc(draft.partner_endpoint || '')}" placeholder="https://partner.yourdomain.com" class="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none text-sm font-mono" />
+                  <button onclick="onboardDetectFeeds()" id="ob-detect-btn" class="px-4 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-bold transition whitespace-nowrap">Detect feeds</button>
+                </div>
                 <p class="text-[11px] text-gray-400 mt-1">We'll send HMAC-signed GET requests to this base URL. The HMAC secret will be generated when you finish onboarding (shown only once).</p>
+                <div id="ob-detect-status" class="mt-2 text-xs"></div>
               </div>
             ` : ''}
             <div id="ob-step2-error" class="mt-4 text-sm text-red-500"></div>
@@ -3765,6 +3769,60 @@ console.<span class="text-blue-400">log</span>(data);</pre>
         `;
       } else if (step === 3) {
         const isPartner = draft.mode === 'partner_bridge';
+        const discovered = appState.onboardDiscovered;  // array | null
+
+        // When we have discovery results AND partner_bridge mode, render a
+        // multi-feed import UI instead of the single-feed form.
+        if (isPartner && discovered && discovered.length > 0) {
+          root.innerHTML = `
+            <div class="rounded-2xl border border-gray-100 bg-white p-6">
+              <div class="flex items-start justify-between gap-3 mb-1">
+                <div>
+                  <h3 class="text-xl font-bold text-gray-900 mb-1">Import detected feeds</h3>
+                  <p class="text-sm text-gray-500">We found ${discovered.length} feeds on your endpoint. Edit prices, deselect any you don't want to publish, then import.</p>
+                </div>
+                <button onclick="onboardClearDiscovery()" class="text-xs text-gray-500 hover:text-gray-900 underline shrink-0 mt-1">Add manually instead</button>
+              </div>
+              ${appState.onboardDiscoverySource ? `<p class="text-[11px] text-emerald-600 mt-1 mb-4">${esc(appState.onboardDiscoverySource)}</p>` : '<div class="mb-4"></div>'}
+              <div class="flex items-center justify-between text-xs text-gray-500 mb-2">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" id="ob-select-all" checked onchange="onboardToggleAll(this.checked)" class="rounded border-gray-300" />
+                  <span class="font-bold">Select all</span>
+                </label>
+                <span><span id="ob-selected-count">${discovered.length}</span> of ${discovered.length} selected</span>
+              </div>
+              <div class="space-y-2 max-h-[460px] overflow-y-auto pr-1">
+                ${discovered.map((f, idx) => `
+                  <label class="flex items-start gap-3 p-3 rounded-xl border border-gray-100 hover:border-orange-200 cursor-pointer">
+                    <input type="checkbox" data-idx="${idx}" checked onchange="onboardOnFeedToggle()" class="mt-1 rounded border-gray-300 ob-feed-check" />
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 mb-1">
+                        <span class="font-bold text-gray-900 text-sm">${esc(f.name)}</span>
+                        ${f.category ? `<span class="px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 text-[10px] font-bold uppercase">${esc(f.category)}</span>` : ''}
+                      </div>
+                      <p class="text-[11px] text-gray-400 font-mono mb-1">${esc(f.source_path)}</p>
+                      ${f.description ? `<p class="text-xs text-gray-500 line-clamp-2 mb-1">${esc(f.description)}</p>` : ''}
+                    </div>
+                    <div class="shrink-0">
+                      <label class="block text-[10px] text-gray-400 uppercase font-bold mb-0.5">Price (STX)</label>
+                      <input type="number" step="0.001" min="0.001" max="100" value="${f.suggested_price_stx}" data-price-idx="${idx}" onclick="event.preventDefault()" class="w-24 px-2 py-1 rounded-lg border border-gray-200 text-xs text-right font-mono ob-feed-price" />
+                    </div>
+                  </label>
+                `).join('')}
+              </div>
+              <div id="ob-step3-error" class="mt-4 text-sm text-red-500"></div>
+              <div class="mt-6 flex justify-between">
+                <button onclick="onboardBack(2)" class="px-5 py-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-bold transition">← Back</button>
+                <button onclick="onboardSubmitBulk()" id="ob-submit-btn" class="px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold transition shadow-lg">
+                  Create provider + import <span id="ob-import-count">${discovered.length}</span> feeds →
+                </button>
+              </div>
+            </div>
+          `;
+          return;
+        }
+
+        // Default single-feed form
         root.innerHTML = `
           <div class="rounded-2xl border border-gray-100 bg-white p-6">
             <h3 class="text-xl font-bold text-gray-900 mb-1">Add your first feed</h3>
@@ -3828,15 +3886,18 @@ console.<span class="text-blue-400">log</span>(data);</pre>
         // Success state — show the secret (if partner_bridge) ONE TIME.
         const created = appState.onboardCreated || {};
         const secret = appState.onboardSecret;
+        const summary = appState.onboardImportSummary;
+        const importedCount = summary?.inserted?.length || 0;
+        const skippedCount = summary?.skipped?.length || 0;
         root.innerHTML = `
           <div class="rounded-2xl border-2 border-emerald-200 bg-emerald-50/50 p-6 mb-6">
             <div class="flex items-center gap-3 mb-3">
               <div class="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
               </div>
-              <div>
+              <div class="flex-1">
                 <h3 class="text-xl font-bold text-gray-900">You're live!</h3>
-                <p class="text-sm text-gray-600">Provider <span class="font-mono">@${esc(created.handle)}</span> created.</p>
+                <p class="text-sm text-gray-600">Provider <span class="font-mono">@${esc(created.handle)}</span> created${importedCount > 0 ? ` with <strong>${importedCount} feeds</strong> imported` : ''}${skippedCount > 0 ? ` <span class="text-amber-600">(${skippedCount} skipped)</span>` : ''}.</p>
               </div>
             </div>
           </div>
@@ -4249,6 +4310,125 @@ curl -i "https://your-api.com/your-feed-path" \\
         renderOnboardStep();
       } catch (e) {
         btn.disabled = false; btn.textContent = 'Create provider →';
+        err.textContent = e.message || 'Failed to create provider.';
+      }
+    };
+
+    // Detect feeds button — fetches /providers/discover for the entered partner
+    // endpoint and stashes the result so step 3 can render the bulk-import UI.
+    window.onboardDetectFeeds = async () => {
+      const inputEl = document.getElementById('ob-partner-endpoint');
+      const statusEl = document.getElementById('ob-detect-status');
+      const btn = document.getElementById('ob-detect-btn');
+      const endpoint = (inputEl?.value || '').trim();
+      if (!/^https:\/\//.test(endpoint)) {
+        statusEl.innerHTML = '<span class="text-red-500">Enter an https:// URL first.</span>';
+        return;
+      }
+      btn.disabled = true; btn.textContent = 'Detecting…';
+      statusEl.innerHTML = '<span class="text-gray-500">Probing endpoint…</span>';
+      try {
+        const result = await apiFetch('/providers/discover', {
+          method: 'POST',
+          body: JSON.stringify({ endpoint: endpoint.replace(/\/+$/, '') }),
+        });
+        const feeds = result.feeds || [];
+        if (feeds.length === 0) {
+          statusEl.innerHTML = `<span class="text-amber-600">${esc(result.notes || 'No feeds detected — you can add them manually in the next step.')}</span>`;
+          appState.onboardDiscovered = null;
+        } else {
+          statusEl.innerHTML = `<span class="text-emerald-600 font-semibold">✓ Found ${feeds.length} feeds</span> <span class="text-gray-500">via ${esc(result.source.replace('_', ' '))}</span>`;
+          appState.onboardDiscovered = feeds;
+          appState.onboardDiscoverySource = result.notes;
+        }
+      } catch (e) {
+        statusEl.innerHTML = `<span class="text-red-500">${esc(e.message || 'Discovery failed')}</span>`;
+        appState.onboardDiscovered = null;
+      } finally {
+        btn.disabled = false; btn.textContent = 'Detect feeds';
+      }
+    };
+
+    // Step 3 helpers when discovery returned feeds.
+    window.onboardToggleAll = (checked) => {
+      document.querySelectorAll('.ob-feed-check').forEach((cb) => { cb.checked = checked; });
+      onboardOnFeedToggle();
+    };
+
+    window.onboardOnFeedToggle = () => {
+      const checked = document.querySelectorAll('.ob-feed-check:checked').length;
+      const countEl = document.getElementById('ob-selected-count');
+      const importEl = document.getElementById('ob-import-count');
+      if (countEl) countEl.textContent = checked;
+      if (importEl) importEl.textContent = checked;
+    };
+
+    window.onboardClearDiscovery = () => {
+      appState.onboardDiscovered = null;
+      appState.onboardDiscoverySource = null;
+      renderOnboardStep();
+    };
+
+    // Bulk submit — create provider, then POST /providers/id/:id/feeds/bulk
+    // with all selected discovered feeds.
+    window.onboardSubmitBulk = async () => {
+      const draft = appState.onboardDraft || {};
+      const discovered = appState.onboardDiscovered || [];
+      const err = document.getElementById('ob-step3-error');
+      const btn = document.getElementById('ob-submit-btn');
+
+      // Collect selected feeds with edited prices.
+      const selected = [];
+      document.querySelectorAll('.ob-feed-check').forEach((cb) => {
+        if (!cb.checked) return;
+        const idx = parseInt(cb.dataset.idx, 10);
+        const feed = discovered[idx];
+        if (!feed) return;
+        const priceEl = document.querySelector(`.ob-feed-price[data-price-idx="${idx}"]`);
+        const price = parseFloat(priceEl?.value || feed.suggested_price_stx);
+        if (!(price > 0) || price > 100) return;
+        selected.push({
+          slug: feed.slug,
+          name: feed.name,
+          description: feed.description,
+          category: feed.category,
+          source_path: feed.source_path,
+          source_method: feed.source_method || 'GET',
+          price_stx: price,
+        });
+      });
+
+      if (selected.length === 0) {
+        err.textContent = 'Select at least one feed (or use "Add manually instead").';
+        return;
+      }
+
+      btn.disabled = true; btn.textContent = 'Creating…';
+      err.textContent = '';
+      try {
+        const providerBody = {
+          handle: draft.handle, name: draft.name,
+          description: draft.description, website: draft.website,
+          twitter_handle: draft.twitter_handle, mode: draft.mode,
+          partner_endpoint: draft.partner_endpoint,
+        };
+        const created = await apiFetch('/providers', {
+          method: 'POST',
+          body: JSON.stringify(providerBody),
+        });
+        appState.onboardCreated = created.provider;
+        appState.onboardSecret = created.hmac_secret || null;
+
+        const bulkResp = await apiFetch(`/providers/id/${created.provider.id}/feeds/bulk`, {
+          method: 'POST',
+          body: JSON.stringify({ feeds: selected }),
+        });
+        appState.onboardImportSummary = bulkResp;
+
+        appState.onboardStep = 4;
+        renderOnboardStep();
+      } catch (e) {
+        btn.disabled = false; btn.textContent = `Create provider + import ${selected.length} feeds →`;
         err.textContent = e.message || 'Failed to create provider.';
       }
     };

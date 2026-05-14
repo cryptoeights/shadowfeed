@@ -16,6 +16,7 @@ import {
 } from './auth';
 import { createProviderWallet, getProviderBalance } from './provider-wallet';
 import { generatePartnerSecret, hashPartnerSecret } from './hmac';
+import { discoverFeeds } from './provider-discovery';
 import {
   activateProvider,
   getFeedsByProvider,
@@ -227,6 +228,131 @@ providerRoutes.post('/providers', async (c) => {
     hmac_warning: plaintextSecret
       ? 'Save this secret now. We do not store the plaintext and you cannot retrieve it later.'
       : undefined,
+  }, 201);
+});
+
+// Probe a partner endpoint for advertised feeds + pricing. Used by the
+// onboarding wizard so the user doesn't have to type each feed manually.
+//
+// Tries: well-known JSON manifest → curated catalog → x402 probing → manual.
+// Returns a DiscoveryResult including `source` so the UI can show provenance
+// ("Imported from .well-known/...", "Curated catalog for api.hyreagent.fun", etc.).
+providerRoutes.post('/providers/discover', async (c) => {
+  const me = await requireAuth(c);
+  if (!me) return c.json({ error: 'unauthenticated' }, 401);
+
+  const body = (await c.req.json().catch(() => ({}))) as Record<string, unknown>;
+  const endpoint = String(body.endpoint ?? '').trim();
+  if (!/^https:\/\/[^\s]+$/.test(endpoint)) {
+    return c.json({ error: 'endpoint must be https://...' }, 400);
+  }
+
+  const result = await discoverFeeds(endpoint);
+  return c.json(result);
+});
+
+// Bulk-import a set of feeds discovered via /providers/discover. Used by the
+// onboarding wizard to add 5-20 feeds at once after the partner enters their
+// endpoint URL.
+providerRoutes.post('/providers/id/:id/feeds/bulk', async (c) => {
+  const result = await getOwnedProvider(c, c.req.param('id'));
+  if ('error' in result) return c.json({ error: result.error }, result.status as 401 | 403 | 404);
+
+  const body = (await c.req.json().catch(() => ({}))) as Record<string, unknown>;
+  const rawFeeds = Array.isArray(body.feeds) ? body.feeds : [];
+  if (rawFeeds.length === 0) {
+    return c.json({ error: 'feeds[] required (non-empty)' }, 400);
+  }
+  if (rawFeeds.length > 50) {
+    return c.json({ error: 'max 50 feeds per request' }, 400);
+  }
+
+  const inserted: ProviderFeedRow[] = [];
+  const skipped: Array<{ slug: string; reason: string }> = [];
+
+  for (const raw of rawFeeds) {
+    const slug = String((raw as any)?.slug ?? '').toLowerCase().trim();
+    const name = String((raw as any)?.name ?? '').trim().slice(0, 100);
+    const priceStx = Number((raw as any)?.price_stx ?? 0);
+    if (!isValidSlug(slug)) { skipped.push({ slug, reason: 'invalid slug' }); continue; }
+    if (!name) { skipped.push({ slug, reason: 'name required' }); continue; }
+    if (!Number.isFinite(priceStx) || priceStx <= 0 || priceStx > 100) {
+      skipped.push({ slug, reason: 'invalid price' }); continue;
+    }
+    const price_microstx = Math.round(priceStx * 1_000_000);
+
+    // Mode-specific fields
+    let source_path: string | undefined;
+    let source_method: 'GET' | 'POST' | undefined;
+    let source_type: 'r2_url' | 'github_raw' | 'webhook_push' | 'manual_upload' | undefined;
+    let source_url: string | undefined;
+    let poll_interval_seconds: number | undefined;
+
+    if (result.provider.mode === 'partner_bridge') {
+      const path = String((raw as any)?.source_path ?? '').trim();
+      if (!path.startsWith('/')) {
+        skipped.push({ slug, reason: 'source_path must start with /' }); continue;
+      }
+      source_path = path;
+      const method = String((raw as any)?.source_method ?? 'GET').toUpperCase();
+      source_method = (method === 'POST' ? 'POST' : 'GET') as 'GET' | 'POST';
+    } else {
+      const stype = String((raw as any)?.source_type ?? '');
+      if (!['r2_url', 'github_raw', 'webhook_push', 'manual_upload'].includes(stype)) {
+        skipped.push({ slug, reason: 'invalid source_type' }); continue;
+      }
+      source_type = stype as typeof source_type;
+      if (stype === 'r2_url' || stype === 'github_raw') {
+        const url = String((raw as any)?.source_url ?? '').trim();
+        if (!/^https:\/\//.test(url)) {
+          skipped.push({ slug, reason: 'source_url must be https://...' }); continue;
+        }
+        source_url = url;
+        const poll = Number((raw as any)?.poll_interval_seconds ?? 300);
+        poll_interval_seconds = Math.max(60, Math.min(86400, Math.round(poll)));
+      }
+    }
+
+    // Skip duplicates rather than abort the whole batch.
+    const existing = await c.env.DB
+      .prepare('SELECT id FROM provider_feeds WHERE provider_id = ? AND slug = ?')
+      .bind(result.provider.id, slug)
+      .first();
+    if (existing) { skipped.push({ slug, reason: 'already exists' }); continue; }
+
+    try {
+      const feed = await insertProviderFeed(c.env.DB, {
+        provider_id: result.provider.id,
+        slug,
+        name,
+        description: (raw as any)?.description ? String((raw as any).description).slice(0, 500) : undefined,
+        category: (raw as any)?.category ? String((raw as any).category).slice(0, 50) : undefined,
+        price_microstx,
+        source_path,
+        source_method,
+        source_type,
+        source_url,
+        poll_interval_seconds,
+      });
+      inserted.push(feed);
+    } catch (e) {
+      skipped.push({ slug, reason: e instanceof Error ? e.message : 'insert failed' });
+    }
+  }
+
+  // Activate provider if it was pending and we inserted at least one feed.
+  if (inserted.length > 0 && result.provider.status === 'pending') {
+    await activateProvider(c.env.DB, result.provider.id);
+  }
+
+  await logAudit(c.env.DB, result.provider.id, 'feeds_bulk_imported', {
+    inserted_count: inserted.length,
+    skipped_count: skipped.length,
+  });
+
+  return c.json({
+    inserted: inserted.map(publicFeedView),
+    skipped,
   }, 201);
 });
 
