@@ -15,3 +15,5 @@ test-wallets.json
 client/.bot-wallets.json
 .bot-wallets.json
 funder-wallet.json
+client/revenue-bot.ts
+funder-wallet.json
