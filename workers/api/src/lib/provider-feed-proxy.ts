@@ -303,6 +303,16 @@ export async function providerFeedHandler(c: Context<{ Bindings: Env }>) {
     ]);
   }
 
+  // Cache the buyer's display name (parity with the platform x402 handler).
+  // Without this, wallets that only hit provider feeds keep a stale cached
+  // name and never reflect the x-agent-name they send.
+  const agentName = c.req.header('x-agent-name');
+  if (agentName && payer !== 'unknown') {
+    await env.CACHE.put(`agent-name:${payer}`, agentName, {
+      expirationTtl: 86400 * 365,
+    });
+  }
+
   await logProviderQuery(env.DB, {
     provider_id: provider.id,
     feed_id: feed.id,
