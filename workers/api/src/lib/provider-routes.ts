@@ -162,6 +162,256 @@ providerRoutes.get('/providers', async (c) => {
   return c.json({ providers: rows.map((r) => publicProviderView(r)) });
 });
 
+// ────────────────────────────────────────────────────────────────────────────
+// Public verification manifest — for grant committee and external auditors.
+//
+// Returns everything needed to independently confirm a provider's identity,
+// infrastructure independence, and operational state. No auth required —
+// designed to be curled anonymously by anyone (Stacks Endowment, press, etc.).
+//
+// Performs a live HEAD probe of the partner endpoint and fetches the provider's
+// well-known self-attestation manifest. Probe results are cached in KV for
+// ~60 s to avoid hammering the partner on rapid repeated requests.
+//
+// NEVER includes: hmac_secret_hash, encrypted keys, custodial private key,
+// contact_email (PII), or any internal token. Only public-facing identity
+// fields + operational stats.
+// ────────────────────────────────────────────────────────────────────────────
+
+const MANIFEST_PROBE_CACHE_TTL_S = 60;
+const PROBE_TIMEOUT_MS = 5_000;
+
+/** Perform a HEAD (falling back to GET) probe on a URL; return status + latency. */
+async function probeUrl(
+  url: string,
+): Promise<{ reachable: boolean; status: number; latency_ms: number; body_preview: string | null }> {
+  const start = Date.now();
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), PROBE_TIMEOUT_MS);
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        method: 'HEAD',
+        signal: controller.signal,
+        headers: { 'User-Agent': 'ShadowFeed-VerificationBot/1.0' },
+      });
+    } catch {
+      // HEAD blocked or timed out — fall back to GET with minimal read
+      res = await fetch(url, {
+        method: 'GET',
+        signal: controller.signal,
+        headers: { 'User-Agent': 'ShadowFeed-VerificationBot/1.0' },
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+    const latency_ms = Date.now() - start;
+    let body_preview: string | null = null;
+    if (res.body && res.headers.get('content-type')?.includes('json')) {
+      const text = await res.text().catch(() => '');
+      body_preview = text.slice(0, 500) || null;
+    }
+    return { reachable: res.status < 500, status: res.status, latency_ms, body_preview };
+  } catch (e) {
+    return {
+      reachable: false,
+      status: 0,
+      latency_ms: Date.now() - start,
+      body_preview: e instanceof Error ? e.message : 'probe failed',
+    };
+  }
+}
+
+providerRoutes.get('/providers/:handle/manifest', async (c) => {
+  const handle = c.req.param('handle');
+  if (!isValidSlug(handle)) {
+    return c.json({ error: 'invalid handle' }, 400);
+  }
+
+  const row = await getProviderByHandle(c.env.DB, handle);
+  if (!row || row.status === 'banned') {
+    return c.json({ error: 'provider not found' }, 404);
+  }
+
+  const feeds = await getFeedsByProvider(c.env.DB, row.id);
+  const allFeeds = feeds; // include inactive so auditors see full catalog
+
+  // ── Aggregate lifetime stats from DB counters ──────────────────────────
+  const totalQueriesAllFeeds = allFeeds.reduce((s, f) => s + f.total_queries, 0);
+  const totalRevenueMicrostx = allFeeds.reduce((s, f) => s + f.total_revenue_microstx, 0);
+
+  const queryLogStats = await c.env.DB
+    .prepare(`
+      SELECT
+        COUNT(DISTINCT payer) as unique_buyers,
+        MIN(created_at) as first_query_at,
+        MAX(created_at) as last_query_at
+      FROM provider_query_log
+      WHERE provider_id = ? AND payer IS NOT NULL
+    `)
+    .bind(row.id)
+    .first<{ unique_buyers: number; first_query_at: number | null; last_query_at: number | null }>();
+
+  // ── Live probe — use KV cache to avoid hammering partner ──────────────
+  const probeCacheKey = `manifest:probe:${handle}`;
+  type ProbeCache = {
+    checked_at: number;
+    endpoint_probed: string;
+    endpoint_status: number;
+    endpoint_latency_ms: number;
+    endpoint_reachable: boolean;
+    sample_response_truncated: string | null;
+    well_known_manifest_present: boolean;
+    well_known_manifest_body: unknown;
+    well_known_manifest_url: string | null;
+    partner_endpoint_reachable: boolean;
+    partner_endpoint_status: number;
+  };
+
+  const now = Math.floor(Date.now() / 1000);
+  let probeCache: ProbeCache | null = null;
+
+  if (c.env.CACHE) {
+    const cached = await c.env.CACHE.get(probeCacheKey);
+    if (cached) {
+      try { probeCache = JSON.parse(cached) as ProbeCache; } catch { /* ignore */ }
+    }
+  }
+
+  if (!probeCache) {
+    // ── Probe the partner endpoint ───────────────────────────────────────
+    // Pick the first active feed with a source_path; fall back to any feed.
+    const probeFeed =
+      allFeeds.find((f) => f.active && f.source_path) ??
+      allFeeds.find((f) => f.source_path);
+
+    const probeTargetUrl =
+      row.partner_endpoint && probeFeed?.source_path
+        ? `${row.partner_endpoint}${probeFeed.source_path}`
+        : row.partner_endpoint ?? null;
+
+    let endpointProbe = {
+      reachable: false, status: 0, latency_ms: 0, body_preview: null as string | null,
+    };
+    if (probeTargetUrl) {
+      endpointProbe = await probeUrl(probeTargetUrl);
+    }
+
+    // ── Fetch well-known manifest from provider's own domain ────────────
+    let wellKnownUrl: string | null = null;
+    let wellKnownPresent = false;
+    let wellKnownBody: unknown = null;
+
+    if (row.website) {
+      const base = row.website.replace(/\/+$/, '');
+      wellKnownUrl = `${base}/.well-known/shadowfeed-feeds.json`;
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), PROBE_TIMEOUT_MS);
+        const wkRes = await fetch(wellKnownUrl, {
+          signal: controller.signal,
+          headers: { 'User-Agent': 'ShadowFeed-VerificationBot/1.0' },
+        });
+        clearTimeout(timeoutId);
+        if (wkRes.ok) {
+          wellKnownPresent = true;
+          const text = await wkRes.text().catch(() => '');
+          try { wellKnownBody = JSON.parse(text); } catch { wellKnownBody = text.slice(0, 500); }
+        }
+      } catch { /* unreachable or timed out */ }
+    }
+
+    probeCache = {
+      checked_at: now,
+      endpoint_probed: probeTargetUrl ?? '(none)',
+      endpoint_status: endpointProbe.status,
+      endpoint_latency_ms: endpointProbe.latency_ms,
+      endpoint_reachable: endpointProbe.reachable,
+      sample_response_truncated: endpointProbe.body_preview,
+      partner_endpoint_reachable: endpointProbe.reachable,
+      partner_endpoint_status: endpointProbe.status,
+      well_known_manifest_url: wellKnownUrl,
+      well_known_manifest_present: wellKnownPresent,
+      well_known_manifest_body: wellKnownBody,
+    };
+
+    if (c.env.CACHE) {
+      await c.env.CACHE.put(probeCacheKey, JSON.stringify(probeCache), {
+        expirationTtl: MANIFEST_PROBE_CACHE_TTL_S,
+      });
+    }
+  }
+
+  // ── Assemble manifest — no PII, no secrets ────────────────────────────
+  const manifest = {
+    provider: {
+      handle: row.handle,
+      name: row.name,
+      description: row.description,
+      website: row.website,
+      twitter_handle: row.twitter_handle,
+      mode: row.mode,
+      status: row.status,
+      verified: !!row.verified,
+      onboarded_at: row.activated_at ?? row.created_at,
+      onboarded_at_iso: new Date((row.activated_at ?? row.created_at) * 1000).toISOString(),
+    },
+    independence_attestation: {
+      partner_endpoint: row.partner_endpoint,
+      partner_endpoint_reachable: probeCache.partner_endpoint_reachable,
+      partner_endpoint_status: probeCache.partner_endpoint_status,
+      well_known_manifest_url: probeCache.well_known_manifest_url,
+      well_known_manifest_present: probeCache.well_known_manifest_present,
+      well_known_manifest_body: probeCache.well_known_manifest_body,
+      notes:
+        `We proxy buyer queries to ${row.partner_endpoint ?? '(not configured)'}. ` +
+        `${row.name} is a separate team operating their own API on different infrastructure. ` +
+        `To verify independence: (1) visit ${row.website ?? 'their website'}, ` +
+        `(2) check Twitter ${row.twitter_handle ?? ''}, ` +
+        `(3) confirm partner_endpoint is hosted on infrastructure we do not control. ` +
+        `The well_known_manifest_url (if present) is published on the partner's own domain ` +
+        `and independently confirms they have opted into this marketplace.`,
+    },
+    feeds: allFeeds.map((f) => ({
+      slug: f.slug,
+      name: f.name,
+      category: f.category,
+      price_microstx: f.price_microstx,
+      price_stx: f.price_microstx / 1_000_000,
+      source_path: f.source_path,
+      active: !!f.active,
+      total_queries: f.total_queries,
+      total_revenue_stx: f.total_revenue_microstx / 1_000_000,
+      last_query_at: f.last_query_at,
+    })),
+    live_health_check: {
+      checked_at: probeCache.checked_at,
+      checked_at_iso: new Date(probeCache.checked_at * 1000).toISOString(),
+      endpoint_probed: probeCache.endpoint_probed,
+      endpoint_status: probeCache.endpoint_status,
+      endpoint_latency_ms: probeCache.endpoint_latency_ms,
+      sample_response_truncated: probeCache.sample_response_truncated,
+    },
+    stats: {
+      total_queries_all_feeds: totalQueriesAllFeeds,
+      total_revenue_stx: totalRevenueMicrostx / 1_000_000,
+      unique_buyers_count: queryLogStats?.unique_buyers ?? 0,
+      first_query_at: queryLogStats?.first_query_at ?? null,
+      last_query_at: queryLogStats?.last_query_at ?? null,
+    },
+  };
+
+  return new Response(JSON.stringify(manifest, null, 2), {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+      'Cache-Control': 'public, max-age=30',
+    },
+  });
+});
+
 providerRoutes.get('/providers/:handle', async (c) => {
   const handle = c.req.param('handle');
   const row = await getProviderByHandle(c.env.DB, handle);
