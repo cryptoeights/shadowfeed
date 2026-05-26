@@ -20,6 +20,8 @@ export interface QueryRow {
   response_ms: number;
   response_data: string | null;
   created_at: number;
+  /** Added by migration 004. May be undefined on rows written before the migration. */
+  source_type?: string;
 }
 
 export interface FeedStatRow {

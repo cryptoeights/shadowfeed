@@ -1,5 +1,20 @@
 import type { Env, QueryRow, FeedStatRow, LeaderboardRow } from './types';
 
+// Valid values for the source_type column on queries and provider_query_log.
+export type SourceType = 'real_onchain' | 'demo' | 'simulation' | 'unknown';
+
+/**
+ * Derive the source_type from a tx_hash value.
+ * Rules mirror the backfill SQL in 004_activity_source_tagging.sql exactly so
+ * newly inserted rows are consistent with the backfilled historical data.
+ */
+export function deriveSourceType(txHash: string | undefined | null): SourceType {
+  if (!txHash) return 'simulation';
+  if (txHash.startsWith('demo_')) return 'demo';
+  if (txHash.length >= 60 && /^[0-9a-fA-F]+$/.test(txHash)) return 'real_onchain';
+  return 'unknown';
+}
+
 export async function initDb(db: D1Database): Promise<void> {
   await db.batch([
     db.prepare(`
@@ -41,14 +56,16 @@ export async function recordQuery(
   payer: string | undefined,
   txHash: string | undefined,
   responseMs: number,
-  responseData?: unknown
+  responseData?: unknown,
+  sourceType?: SourceType,
 ): Promise<void> {
   const dataJson = responseData ? JSON.stringify(responseData) : null;
+  const resolvedSource: SourceType = sourceType ?? deriveSourceType(txHash);
 
   await db.batch([
     db.prepare(
-      'INSERT INTO queries (feed_id, payer, tx_hash, response_ms, response_data) VALUES (?, ?, ?, ?, ?)'
-    ).bind(feedId, payer ?? null, txHash ?? null, responseMs, dataJson),
+      'INSERT INTO queries (feed_id, payer, tx_hash, response_ms, response_data, source_type) VALUES (?, ?, ?, ?, ?, ?)'
+    ).bind(feedId, payer ?? null, txHash ?? null, responseMs, dataJson, resolvedSource),
     db.prepare(
       `UPDATE feed_stats SET
         total_queries = total_queries + 1,
@@ -69,10 +86,20 @@ export async function getTotalQueries(db: D1Database): Promise<number> {
   return row?.total ?? 0;
 }
 
-export async function getRecentQueries(db: D1Database, limit: number = 50): Promise<QueryRow[]> {
-  const { results } = await db.prepare(
-    'SELECT * FROM queries ORDER BY created_at DESC, id DESC LIMIT ?'
-  ).bind(limit).all<QueryRow>();
+export async function getRecentQueries(
+  db: D1Database,
+  limit: number = 50,
+  sourceTypeFilter: SourceType | 'all' = 'real_onchain',
+): Promise<QueryRow[]> {
+  const sql =
+    sourceTypeFilter === 'all'
+      ? 'SELECT * FROM queries ORDER BY created_at DESC, id DESC LIMIT ?'
+      : 'SELECT * FROM queries WHERE source_type = ? ORDER BY created_at DESC, id DESC LIMIT ?';
+
+  const { results } =
+    sourceTypeFilter === 'all'
+      ? await db.prepare(sql).bind(limit).all<QueryRow>()
+      : await db.prepare(sql).bind(sourceTypeFilter, limit).all<QueryRow>();
   return results;
 }
 
@@ -80,10 +107,19 @@ export async function getQueryById(db: D1Database, id: number): Promise<QueryRow
   return await db.prepare('SELECT * FROM queries WHERE id = ?').bind(id).first<QueryRow>();
 }
 
-export async function getUniqueAgents(db: D1Database): Promise<number> {
-  const row = await db.prepare(
-    'SELECT COUNT(DISTINCT payer) as count FROM queries WHERE payer IS NOT NULL'
-  ).first<{ count: number }>();
+export async function getUniqueAgents(
+  db: D1Database,
+  sourceTypeFilter: SourceType | 'all' = 'real_onchain',
+): Promise<number> {
+  const sql =
+    sourceTypeFilter === 'all'
+      ? 'SELECT COUNT(DISTINCT payer) as count FROM queries WHERE payer IS NOT NULL'
+      : 'SELECT COUNT(DISTINCT payer) as count FROM queries WHERE payer IS NOT NULL AND source_type = ?';
+
+  const row =
+    sourceTypeFilter === 'all'
+      ? await db.prepare(sql).first<{ count: number }>()
+      : await db.prepare(sql).bind(sourceTypeFilter).first<{ count: number }>();
   return row?.count ?? 0;
 }
 
@@ -122,47 +158,74 @@ export interface ProviderActivityRow {
   readonly created_at: number;
   readonly price_stx: number;     // gross paid by buyer (not split)
   readonly upstream_status: number | null;
+  readonly source_type: SourceType;
 }
 
 export async function getRecentProviderQueries(
   db: D1Database,
   limit: number = 50,
+  sourceTypeFilter: SourceType | 'all' = 'real_onchain',
 ): Promise<ProviderActivityRow[]> {
-  const { results } = await db
-    .prepare(`
-      SELECT
-        pql.id,
-        p.handle || '/' || f.slug AS feed_id,
-        pql.payer,
-        pql.tx_hash,
-        pql.response_ms,
-        pql.created_at,
-        pql.gross_microstx / 1000000.0 AS price_stx,
-        pql.upstream_status
-      FROM provider_query_log pql
-      JOIN providers p ON p.id = pql.provider_id
-      JOIN provider_feeds f ON f.id = pql.feed_id
-      ORDER BY pql.created_at DESC, pql.id DESC
-      LIMIT ?
-    `)
-    .bind(limit)
-    .all<ProviderActivityRow>();
+  const whereClause =
+    sourceTypeFilter === 'all'
+      ? ''
+      : 'AND pql.source_type = ?';
+
+  const sql = `
+    SELECT
+      pql.id,
+      p.handle || '/' || f.slug AS feed_id,
+      pql.payer,
+      pql.tx_hash,
+      pql.response_ms,
+      pql.created_at,
+      pql.gross_microstx / 1000000.0 AS price_stx,
+      pql.upstream_status,
+      pql.source_type
+    FROM provider_query_log pql
+    JOIN providers p ON p.id = pql.provider_id
+    JOIN provider_feeds f ON f.id = pql.feed_id
+    WHERE 1=1 ${whereClause}
+    ORDER BY pql.created_at DESC, pql.id DESC
+    LIMIT ?
+  `;
+
+  const { results } =
+    sourceTypeFilter === 'all'
+      ? await db.prepare(sql).bind(limit).all<ProviderActivityRow>()
+      : await db.prepare(sql).bind(sourceTypeFilter, limit).all<ProviderActivityRow>();
   return results;
 }
 
-export async function getProviderUniquePayers(db: D1Database): Promise<number> {
-  const row = await db
-    .prepare(
-      'SELECT COUNT(DISTINCT payer) as count FROM provider_query_log WHERE payer IS NOT NULL',
-    )
-    .first<{ count: number }>();
+export async function getProviderUniquePayers(
+  db: D1Database,
+  sourceTypeFilter: SourceType | 'all' = 'real_onchain',
+): Promise<number> {
+  const sql =
+    sourceTypeFilter === 'all'
+      ? 'SELECT COUNT(DISTINCT payer) as count FROM provider_query_log WHERE payer IS NOT NULL'
+      : 'SELECT COUNT(DISTINCT payer) as count FROM provider_query_log WHERE payer IS NOT NULL AND source_type = ?';
+
+  const row =
+    sourceTypeFilter === 'all'
+      ? await db.prepare(sql).first<{ count: number }>()
+      : await db.prepare(sql).bind(sourceTypeFilter).first<{ count: number }>();
   return row?.count ?? 0;
 }
 
-export async function getProviderTotalGross(db: D1Database): Promise<number> {
-  const row = await db
-    .prepare('SELECT COALESCE(SUM(gross_microstx), 0) as total FROM provider_query_log')
-    .first<{ total: number }>();
+export async function getProviderTotalGross(
+  db: D1Database,
+  sourceTypeFilter: SourceType | 'all' = 'real_onchain',
+): Promise<number> {
+  const sql =
+    sourceTypeFilter === 'all'
+      ? 'SELECT COALESCE(SUM(gross_microstx), 0) as total FROM provider_query_log'
+      : 'SELECT COALESCE(SUM(gross_microstx), 0) as total FROM provider_query_log WHERE source_type = ?';
+
+  const row =
+    sourceTypeFilter === 'all'
+      ? await db.prepare(sql).first<{ total: number }>()
+      : await db.prepare(sql).bind(sourceTypeFilter).first<{ total: number }>();
   return (row?.total ?? 0) / 1_000_000;
 }
 
@@ -224,7 +287,10 @@ export async function getProviderFeedStats(db: D1Database): Promise<ProviderFeed
   return results;
 }
 
-export async function getTotalRevenue(db: D1Database): Promise<number> {
+export async function getTotalRevenue(
+  db: D1Database,
+  sourceTypeFilter: SourceType | 'all' = 'real_onchain',
+): Promise<number> {
   const feedPrices: Record<string, number> = {
     'whale-alerts': 0.005,
     'btc-sentiment': 0.003,
@@ -243,10 +309,143 @@ export async function getTotalRevenue(db: D1Database): Promise<number> {
     'dev-activity': 0.003,
     'bridge-flows': 0.005,
   };
+
+  // For source-filtered revenue we need per-feed query counts by source_type.
+  // The feed_stats table aggregates all queries without source tag, so we query
+  // the queries table directly when filtering.
+  if (sourceTypeFilter !== 'all') {
+    const { results } = await db
+      .prepare(
+        'SELECT feed_id, COUNT(*) as n FROM queries WHERE source_type = ? GROUP BY feed_id',
+      )
+      .bind(sourceTypeFilter)
+      .all<{ feed_id: string; n: number }>();
+    let total = 0;
+    for (const row of results) {
+      total += row.n * (feedPrices[row.feed_id] ?? 0);
+    }
+    return total;
+  }
+
   const stats = await getFeedStats(db);
   let total = 0;
   for (const s of stats) {
     total += s.total_queries * (feedPrices[s.feed_id] ?? 0);
   }
   return total;
+}
+
+// ────────────────────────────────────────────────────────────────────────
+// CSV export helpers — real_onchain rows only across both tables.
+// ────────────────────────────────────────────────────────────────────────
+
+export interface CsvExportRow {
+  readonly timestamp_iso: string;
+  readonly buyer_wallet: string;
+  readonly feed: string;
+  readonly provider: string;
+  readonly price_microstx: number;
+  readonly price_stx: number;
+  readonly tx_hash: string;
+  readonly explorer_url: string;
+  readonly source_type: string;
+}
+
+export async function getRealOnchainSettlements(
+  db: D1Database,
+  network: string,
+): Promise<CsvExportRow[]> {
+  // Platform queries — real_onchain only.
+  const { results: platformRows } = await db
+    .prepare(`
+      SELECT
+        datetime(created_at, 'unixepoch') AS ts,
+        COALESCE(payer, 'unknown') AS payer,
+        feed_id,
+        tx_hash
+      FROM queries
+      WHERE source_type = 'real_onchain'
+        AND tx_hash IS NOT NULL
+        AND payer IS NOT NULL
+      ORDER BY created_at ASC
+    `)
+    .all<{ ts: string; payer: string; feed_id: string; tx_hash: string }>();
+
+  // Provider query log — real_onchain only, with feed composite name.
+  const { results: providerRows } = await db
+    .prepare(`
+      SELECT
+        datetime(pql.created_at, 'unixepoch') AS ts,
+        COALESCE(pql.payer, 'unknown') AS payer,
+        p.handle || '/' || f.slug AS feed_id,
+        p.handle AS provider_handle,
+        pql.tx_hash,
+        pql.gross_microstx
+      FROM provider_query_log pql
+      JOIN providers p ON p.id = pql.provider_id
+      JOIN provider_feeds f ON f.id = pql.feed_id
+      WHERE pql.source_type = 'real_onchain'
+        AND pql.tx_hash IS NOT NULL
+        AND pql.payer IS NOT NULL
+      ORDER BY pql.created_at ASC
+    `)
+    .all<{
+      ts: string;
+      payer: string;
+      feed_id: string;
+      provider_handle: string;
+      tx_hash: string;
+      gross_microstx: number;
+    }>();
+
+  const FEED_PRICES_MICROSTX: Record<string, number> = {
+    'whale-alerts': 5000,
+    'btc-sentiment': 3000,
+    'defi-scores': 10000,
+    'smart-money-flows': 80000,
+    'token-intel': 50000,
+    'wallet-profiler': 50000,
+    'smart-money-holdings': 50000,
+    'dex-trades': 80000,
+    'liquidation-alerts': 8000,
+    'gas-prediction': 3000,
+    'token-launches': 5000,
+    'governance': 5000,
+    'stablecoin-flows': 5000,
+    'security-alerts': 5000,
+    'dev-activity': 3000,
+    'bridge-flows': 5000,
+  };
+
+  const platformCsv: CsvExportRow[] = platformRows.map((r) => {
+    const priceMicrostx = FEED_PRICES_MICROSTX[r.feed_id] ?? 0;
+    return {
+      timestamp_iso: `${r.ts.replace(' ', 'T')}Z`,
+      buyer_wallet: r.payer,
+      feed: r.feed_id,
+      provider: 'shadowfeed',
+      price_microstx: priceMicrostx,
+      price_stx: priceMicrostx / 1_000_000,
+      tx_hash: r.tx_hash,
+      explorer_url: `https://explorer.hiro.so/txid/${r.tx_hash}?chain=${network}`,
+      source_type: 'real_onchain',
+    };
+  });
+
+  const providerCsv: CsvExportRow[] = providerRows.map((r) => ({
+    timestamp_iso: `${r.ts.replace(' ', 'T')}Z`,
+    buyer_wallet: r.payer,
+    feed: r.feed_id,
+    provider: r.provider_handle,
+    price_microstx: r.gross_microstx,
+    price_stx: r.gross_microstx / 1_000_000,
+    tx_hash: r.tx_hash,
+    explorer_url: `https://explorer.hiro.so/txid/${r.tx_hash}?chain=${network}`,
+    source_type: 'real_onchain',
+  }));
+
+  // Merge and sort chronologically.
+  return [...platformCsv, ...providerCsv].sort((a, b) =>
+    a.timestamp_iso.localeCompare(b.timestamp_iso),
+  );
 }

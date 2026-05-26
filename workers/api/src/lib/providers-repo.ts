@@ -3,6 +3,7 @@
 // engine share consistent shapes.
 
 import { newUuid } from './crypto';
+import { type SourceType, deriveSourceType } from '../db';
 
 export type ProviderMode = 'partner_bridge' | 'hosted_mirror';
 export type ProviderStatus = 'pending' | 'active' | 'paused' | 'banned';
@@ -561,19 +562,22 @@ export interface LogQueryInput {
   readonly provider_net_microstx: number;
   readonly response_ms: number;
   readonly upstream_status: number | null;
+  /** Explicit source classification. Derived from tx_hash when omitted. */
+  readonly source_type?: SourceType;
 }
 
 export async function logProviderQuery(
   db: D1Database,
   input: LogQueryInput,
 ): Promise<void> {
+  const resolvedSource: SourceType = input.source_type ?? deriveSourceType(input.tx_hash);
   await db
     .prepare(`
       INSERT INTO provider_query_log
         (provider_id, feed_id, payer, tx_hash,
          gross_microstx, platform_fee_microstx, provider_net_microstx,
-         response_ms, upstream_status, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, unixepoch())
+         response_ms, upstream_status, source_type, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, unixepoch())
     `)
     .bind(
       input.provider_id,
@@ -585,6 +589,7 @@ export async function logProviderQuery(
       input.provider_net_microstx,
       input.response_ms,
       input.upstream_status,
+      resolvedSource,
     )
     .run();
 }

@@ -4,7 +4,7 @@ import { paymentMiddleware, STXtoMicroSTX, getPayment } from 'x402-stacks';
 import { deserializeTransaction, addressFromVersionHash, addressToString, AddressVersion } from '@stacks/transactions';
 
 import type { Env } from './types';
-import { initDb, ensureFeedStats, recordQuery, getRecentQueries, getUniqueAgents, getAgentLeaderboard, getTotalRevenue, getQueryById, getRecentProviderQueries, getProviderUniquePayers, getProviderTotalGross, getProviderAgentLeaderboard, getProviderFeedStats } from './db';
+import { initDb, ensureFeedStats, recordQuery, getRecentQueries, getUniqueAgents, getAgentLeaderboard, getTotalRevenue, getQueryById, getRecentProviderQueries, getProviderUniquePayers, getProviderTotalGross, getProviderAgentLeaderboard, getProviderFeedStats, getRealOnchainSettlements, deriveSourceType, type SourceType } from './db';
 import { getRegistry } from './registry';
 import { getProviderReputation } from './reputation';
 import { generateWhaleAlerts } from './feeds/whale-alerts';
@@ -322,16 +322,23 @@ app.get('/stats', async (c) => {
 app.get('/activity', async (c) => {
   const limit = Math.min(parseInt(c.req.query('limit') || '50'), 200);
 
-  // Pull from both platform queries AND external provider proxy queries,
-  // merge by timestamp, and surface a single chronological feed. Each row
-  // carries a `source` flag so the UI can label/badge them.
-  const [platformQ, providerQ, uniqueAgentsPlatform, uniqueAgentsProvider, totalRevenuePlatform, totalGrossProvider] = await Promise.all([
-    getRecentQueries(c.env.DB, limit),
-    getRecentProviderQueries(c.env.DB, limit),
-    getUniqueAgents(c.env.DB),
-    getProviderUniquePayers(c.env.DB),
-    getTotalRevenue(c.env.DB),
-    getProviderTotalGross(c.env.DB),
+  // ?include=all shows every row (sim + demo + real), each tagged source_type.
+  // ?source=<value> filters to that specific source_type.
+  // Default (no params): only real_onchain rows.
+  const includeAll = c.req.query('include') === 'all';
+  const sourceParam = c.req.query('source') as SourceType | undefined;
+  const shownFilter: SourceType | 'all' =
+    includeAll ? 'all' : (sourceParam ?? 'real_onchain');
+
+  // Pull from both platform queries AND external provider proxy queries.
+  // Shown rows use the requested filter; totals always reflect real_onchain only.
+  const [platformQ, providerQ, realUniquePlatform, realUniqueProvider, realRevenuePlatform, realGrossProvider] = await Promise.all([
+    getRecentQueries(c.env.DB, limit, shownFilter),
+    getRecentProviderQueries(c.env.DB, limit, shownFilter),
+    getUniqueAgents(c.env.DB, 'real_onchain'),
+    getProviderUniquePayers(c.env.DB, 'real_onchain'),
+    getTotalRevenue(c.env.DB, 'real_onchain'),
+    getProviderTotalGross(c.env.DB, 'real_onchain'),
   ]);
 
   const network = c.env.NETWORK;
@@ -345,6 +352,7 @@ app.get('/activity', async (c) => {
     response_ms: number;
     price_stx: number;
     created_at: number;
+    source_type: SourceType;
   };
 
   const items: ActivityItem[] = [
@@ -352,21 +360,23 @@ app.get('/activity', async (c) => {
       id: `p:${q.id}`,
       source: 'platform',
       feed: q.feed_id,
-      agent: q.payer,
-      tx_hash: q.tx_hash,
+      agent: q.payer ?? null,
+      tx_hash: q.tx_hash ?? null,
       response_ms: q.response_ms,
       price_stx: FEED_PRICES[q.feed_id] ?? 0,
       created_at: q.created_at,
+      source_type: (q as any).source_type ?? deriveSourceType(q.tx_hash),
     })),
     ...providerQ.map((q): ActivityItem => ({
       id: `e:${q.id}`,
       source: 'provider',
-      feed: q.feed_id,                       // composite "<handle>/<slug>"
+      feed: q.feed_id,
       agent: q.payer,
       tx_hash: q.tx_hash,
       response_ms: q.response_ms,
       price_stx: q.price_stx,
       created_at: q.created_at,
+      source_type: q.source_type ?? deriveSourceType(q.tx_hash),
     })),
   ];
 
@@ -381,27 +391,27 @@ app.get('/activity', async (c) => {
     if (name) agentNames[addr] = name;
   }));
 
-  // Unique buyers across both sources requires a separate query since the
-  // counts above don't tell us about the intersection. Pull the union.
-  const allBuyersRow = await c.env.DB
+  // Real on-chain distinct buyer union (THE M2 traction number).
+  const realBuyersRow = await c.env.DB
     .prepare(`
       SELECT COUNT(DISTINCT payer) AS n FROM (
-        SELECT payer FROM queries WHERE payer IS NOT NULL
+        SELECT payer FROM queries WHERE source_type = 'real_onchain' AND payer IS NOT NULL
         UNION
-        SELECT payer FROM provider_query_log WHERE payer IS NOT NULL
+        SELECT payer FROM provider_query_log WHERE source_type = 'real_onchain' AND payer IS NOT NULL
       )
     `)
     .first<{ n: number }>();
-  const uniqueAgentsAll = allBuyersRow?.n ?? Math.max(uniqueAgentsPlatform, uniqueAgentsProvider);
+  const uniqueAgentsRealOnchain = realBuyersRow?.n ?? Math.max(realUniquePlatform, realUniqueProvider);
 
   return c.json({
     activity: merged.map((q) => {
-      const isDemo = q.tx_hash?.startsWith('demo_') || false;
-      const isReal = !!(q.tx_hash && !isDemo);
+      const isDemo = q.source_type === 'demo';
+      const isReal = q.source_type === 'real_onchain';
       const customName = q.agent ? agentNames[q.agent] : null;
       return {
         id: q.id,
         source: q.source,
+        source_type: q.source_type,
         feed: q.feed,
         agent: q.agent,
         agent_name: customName || getAgentName(q.agent || ''),
@@ -416,13 +426,63 @@ app.get('/activity', async (c) => {
         time_ago: formatTimeAgo(q.created_at * 1000),
       };
     }),
+    shown_count: merged.length,
+    shown_filter: shownFilter,
+    // Totals always reflect only real_onchain regardless of shown_filter.
+    totals_filter: 'real_onchain (always)',
+    unique_agents_real_onchain: uniqueAgentsRealOnchain,
+    total_revenue_stx_real_onchain: Math.round((realRevenuePlatform + realGrossProvider) * 1000) / 1000,
+    // Legacy fields kept for backward compatibility — always real_onchain values.
     total_queries: merged.length,
-    unique_agents: uniqueAgentsAll,
-    unique_agents_platform: uniqueAgentsPlatform,
-    unique_agents_provider: uniqueAgentsProvider,
-    total_revenue_stx: Math.round((totalRevenuePlatform + totalGrossProvider) * 1000) / 1000,
-    total_revenue_stx_platform: Math.round(totalRevenuePlatform * 1000) / 1000,
-    total_revenue_stx_provider: Math.round(totalGrossProvider * 1000) / 1000,
+    unique_agents: uniqueAgentsRealOnchain,
+    total_revenue_stx: Math.round((realRevenuePlatform + realGrossProvider) * 1000) / 1000,
+    note: 'Default view shows only real on-chain mainnet transactions with verifiable tx hashes. Use ?include=all to see simulation/demo entries (clearly tagged). Totals always reflect real_onchain only.',
+  });
+});
+
+// ── CSV export: real on-chain settlements only ──────────────────────────────
+// Intentionally public — all data is on-chain anyway. Provides a downloadable
+// evidence artifact for grant reviewers (e.g. Adam Haun / Stacks Labs).
+// Mount before the parameterized /activity/:id/data route to avoid conflicts.
+app.get('/admin/provider_query_log.csv', async (c) => {
+  const rows = await getRealOnchainSettlements(c.env.DB, c.env.NETWORK);
+
+  const header = 'timestamp_iso,buyer_wallet,feed,provider,price_microstx,price_stx,tx_hash,explorer_url,source_type';
+
+  const csvRows = rows.map((r) => {
+    // Escape any commas or quotes in string fields defensively.
+    const esc = (v: string) => (v.includes(',') || v.includes('"') ? `"${v.replace(/"/g, '""')}"` : v);
+    return [
+      esc(r.timestamp_iso),
+      esc(r.buyer_wallet),
+      esc(r.feed),
+      esc(r.provider),
+      String(r.price_microstx),
+      String(r.price_stx),
+      esc(r.tx_hash),
+      esc(r.explorer_url),
+      esc(r.source_type),
+    ].join(',');
+  });
+
+  // Summary footer.
+  const distinctWallets = new Set(rows.map((r) => r.buyer_wallet)).size;
+  const totalMicrostx = rows.reduce((sum, r) => sum + r.price_microstx, 0);
+  const firstSettle = rows.length > 0 ? rows[0].timestamp_iso : 'n/a';
+  const lastSettle = rows.length > 0 ? rows[rows.length - 1].timestamp_iso : 'n/a';
+
+  const footer = [
+    '# distinct_buyer_wallets,total_paid_microstx,first_settle_iso,last_settle_iso',
+    `# ${distinctWallets},${totalMicrostx},${firstSettle},${lastSettle}`,
+  ].join('\n');
+
+  const csv = [header, ...csvRows, footer].join('\n');
+
+  return new Response(csv, {
+    headers: {
+      'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition': 'attachment; filename="provider_query_log.csv"',
+    },
   });
 });
 
@@ -736,6 +796,8 @@ async function x402Handler(
     await env.CACHE.put(`agent-name:${payer}`, agentName, { expirationTtl: 86400 * 365 });
   }
 
+  // source_type: real_onchain when broadcast succeeded, simulation when txId is null
+  // (broadcast failed but we still served data). deriveSourceType handles this correctly.
   await recordQuery(env.DB, feedId, payer, txId ?? undefined, responseMs, data);
 
   // Return with payment-response header
@@ -897,7 +959,8 @@ app.post('/wallet/buy', async (c) => {
     }
 
     const responseMs = Date.now() - start;
-    await recordQuery(c.env.DB, feedId, senderAddress, txId, responseMs, data);
+    // SIWS wallet path: txId is always the broadcast result — real_onchain.
+    await recordQuery(c.env.DB, feedId, senderAddress, txId, responseMs, data, 'real_onchain');
 
     const responseBody: Record<string, unknown> = {
       feed: feedId,
@@ -940,7 +1003,7 @@ app.get('/demo/feeds/:feedId', async (c) => {
   const data = await generateFeedById(feedId, c.env.CACHE, c.env.NANSEN_API_KEY);
 
   const responseMs = Date.now() - start + Math.floor(Math.random() * 200);
-  await recordQuery(c.env.DB, feedId, payer, `demo_${Math.random().toString(36).slice(2, 14)}`, responseMs, data);
+  await recordQuery(c.env.DB, feedId, payer, `demo_${Math.random().toString(36).slice(2, 14)}`, responseMs, data, 'demo');
 
   return c.json({
     feed: feedId,
