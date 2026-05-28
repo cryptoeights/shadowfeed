@@ -41,9 +41,13 @@ export default function expressAdapter(sf: ShadowFeedProvider): Router {
     }
 
     try {
+      // Reconstruct the canonical path from the matched slug so the verifier
+      // sees the same string the signer used. Express's req.path is normally
+      // post-mount-prefix, but rebuilding explicitly makes the contract
+      // independent of how the user wired the router (e.g. nested mounts).
       const data = await sf.dispatch(slug, {
         method: req.method,
-        path: req.path,
+        path: `/feeds/${slug}`,
         headers,
         body: undefined, // GET requests have no body
       });

@@ -1,0 +1,3 @@
+name = "sf-sdk-verify"
+main = "examples/workers-example.ts"
+compatibility_date = "2025-01-01"

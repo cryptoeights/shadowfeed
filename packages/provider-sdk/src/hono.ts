@@ -35,9 +35,14 @@ export default function honoAdapter(sf: ShadowFeedProvider): Hono {
     });
 
     try {
+      // Reconstruct the canonical path independently of the mount prefix —
+      // the manifest publishes paths as /feeds/{slug} (no mount segment), and
+      // the CLI signs against that. Using `c.req.url`'s full pathname here
+      // would include the mount segment (e.g. /shadowfeed/feeds/{slug}) and
+      // produce a different canonical string than the signer used.
       const data = await sf.dispatch(slug, {
         method: c.req.method,
-        path: new URL(c.req.url).pathname,
+        path: `/feeds/${slug}`,
         headers,
         body: undefined, // GET requests have no body
       });
