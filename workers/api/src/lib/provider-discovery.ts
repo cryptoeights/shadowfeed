@@ -33,22 +33,27 @@ const COMMON_DISCOVERY_PATHS = [
 // Hyre is our flagship M2 partner; we ship a curated list so partners can
 // import in one click without standing up a `.well-known` file first.
 // Add more entries here as we onboard more APIs.
+// Each catalog entry must reference a STATIC GET path (no `{param}` segments)
+// on the partner's endpoint, because the proxy can't synthesize path params
+// for arbitrary buyers. Path-param routes (e.g. /traders/wallet/{address}/pnl)
+// are intentionally excluded — they belong in a future query-style feed model.
+//
+// Paths verified against Hyre's live OpenAPI spec at mpp.hyreagent.fun/openapi.json
+// on 2026-05-28. The previous `/v1/...` paths were a hand-rolled guess from an
+// early integration draft and never matched the deployed API — they would have
+// produced 404s on every proxy call (the same failure shape that bricked Xona).
 const KNOWN_CATALOGS: Record<string, DiscoveredFeed[]> = {
   'hyreagent.fun': [
-    { slug: 'pumpfun-launches',    name: 'PumpFun Launches',       description: 'New PumpFun token launches with sniper detection and bonding curve analysis.', category: 'discovery',      source_path: '/v1/trenches/new-tokens',       suggested_price_stx: 0.005 },
-    { slug: 'bonding-curve',       name: 'Bonding Curve State',    description: 'Bonding curve liquidity, market cap, and graduation probability for any PumpFun token.', category: 'on-chain', source_path: '/v1/trenches/bonding-curve', suggested_price_stx: 0.005 },
-    { slug: 'token-snipers',       name: 'Sniper Detection',       description: 'Wallets sniping launches in the first N blocks with PnL tracking.', category: 'on-chain',           source_path: '/v1/trenches/snipers',          suggested_price_stx: 0.005 },
-    { slug: 'token-verdict',       name: 'Token Verdict',          description: 'AI-interpreted go/no-go signal on a token with confidence scoring.', category: 'analytics',         source_path: '/v1/trenches/verdict',          suggested_price_stx: 0.008 },
-    { slug: 'wallet-pnl',          name: 'Wallet PnL',             description: 'Profit/loss tracking, position history, and realized/unrealized PnL for any wallet.', category: 'on-chain',     source_path: '/v1/traders/pnl',                suggested_price_stx: 0.01 },
-    { slug: 'top-traders',         name: 'Top Traders',            description: 'Best-performing wallets by chain, timeframe, and token.', category: 'on-chain',                              source_path: '/v1/traders/top',                suggested_price_stx: 0.01 },
-    { slug: 'whales',              name: 'Whale Tracker',          description: 'Large-position wallets and their recent activity.', category: 'on-chain',                                       source_path: '/v1/traders/whales',             suggested_price_stx: 0.01 },
-    { slug: 'ohlcv',               name: 'OHLCV Candles',          description: 'Open/high/low/close/volume candles for any tradeable token.', category: 'analytics',                            source_path: '/v1/traders/ohlcv',              suggested_price_stx: 0.003 },
-    { slug: 'meteora-pools',       name: 'Meteora DLMM Pools',     description: 'Active Meteora DLMM positions with utilization and fee data.', category: 'stacks-defi',                         source_path: '/v1/lp/meteora',                 suggested_price_stx: 0.008 },
-    { slug: 'lp-recommend',        name: 'LP Recommendations',     description: 'AI-recommended LP positions ranked by risk-adjusted yield.', category: 'analytics',                             source_path: '/v1/lp/recommend',               suggested_price_stx: 0.01 },
-    { slug: 'tvl-snapshot',        name: 'Cross-chain TVL',        description: 'TVL snapshot across protocols and chains.', category: 'analytics',                                              source_path: '/v1/defi/tvl',                   suggested_price_stx: 0.003 },
-    { slug: 'yield-opps',          name: 'Yield Opportunities',    description: 'Top yield farming opportunities sorted by APY and risk score.', category: 'analytics',                          source_path: '/v1/defi/yields',                suggested_price_stx: 0.005 },
-    { slug: 'smart-money-flows',   name: 'Smart Money Flows',      description: 'Net flows of Nansen smart money labels across tokens.', category: 'on-chain',                                   source_path: '/v1/smart-money/flows',          suggested_price_stx: 0.08 },
-    { slug: 'smart-money-screener',name: 'Smart Money Screener',   description: 'Token screener filtered by smart money concentration.', category: 'analytics',                                  source_path: '/v1/smart-money/screener',       suggested_price_stx: 0.05 },
+    { slug: 'pumpfun-launches',       name: 'PumpFun Launches',           description: 'Latest PumpFun token creations with AI snipe signal.',                              category: 'discovery', source_path: '/trenches/new-tokens',          suggested_price_stx: 0.04  },
+    { slug: 'pumpfun-graduating',     name: 'PumpFun Graduating',         description: 'PumpFun tokens close to graduating, with urgency scores.',                          category: 'discovery', source_path: '/trenches/graduating',          suggested_price_stx: 0.015 },
+    { slug: 'bags-launches',          name: 'Bags.fm Launches',           description: 'Bags.fm token launches with creator info and fee-share data.',                      category: 'discovery', source_path: '/trenches/bags/new-tokens',     suggested_price_stx: 0.04  },
+    { slug: 'top-wallets',            name: 'Top Solana Traders',         description: 'Wallet PnL leaderboard ranked by period.',                                          category: 'traders',   source_path: '/traders/top-wallets',          suggested_price_stx: 0.04  },
+    { slug: 'meteora-pools',          name: 'Meteora DLMM Pools',         description: 'Live Meteora DLMM pool list with TVL, volume, fees, APR.',                          category: 'lp',        source_path: '/lp/meteora/pools',             suggested_price_stx: 0.005 },
+    { slug: 'meteora-pool-recommend', name: 'Meteora Pool Recommendation',description: 'AI-recommended pool pick with add-liquidity / hold signal.',                        category: 'lp',        source_path: '/lp/meteora/pools/recommend',   suggested_price_stx: 0.04  },
+    { slug: 'meteora-pool-strategy',  name: 'Meteora Pool Strategy',      description: 'Best pool + range + expected APR for given capital input.',                         category: 'lp',        source_path: '/lp/meteora/pools/strategy',    suggested_price_stx: 0.05  },
+    { slug: 'defi-tvl',               name: 'DeFi TVL Rankings',          description: 'Chain TVL rankings with trend narrative across major chains.',                      category: 'defi',      source_path: '/defi/tvl',                     suggested_price_stx: 0.005 },
+    { slug: 'defi-yields',            name: 'DeFi Top Yields',            description: 'Top yield farming opportunities sorted by APY and risk score.',                     category: 'defi',      source_path: '/defi/yields',                  suggested_price_stx: 0.01  },
+    { slug: 'yield-migrate',          name: 'Cross-chain Yield Migrate',  description: 'Cross-chain yield migration paths with deBridge routing.',                          category: 'defi',      source_path: '/debridge/yield-migrate',       suggested_price_stx: 0.01  },
   ],
 };
 
