@@ -9,9 +9,15 @@ Common issues, what they mean, and how to fix them. If something isn't covered h
 
 ## HMAC errors
 
+<Note>
+  **Before debugging, run the handshake test.** Click **Test connection** in your provider dashboard (`POST /providers/id/:id/hmac/test`), or `npx shadowfeed verify --endpoint <url> --secret <secret>` if you use the SDK. It signs and probes your endpoint exactly like a real buyer and tells you the precise stage that failed — usually faster than reading logs.
+</Note>
+
 ### 401 invalid HMAC signature on every request
 
-**Most common cause:** secret mismatch between ShadowFeed and your server.
+**Two causes, equally common: secret mismatch, or path mismatch.** Check both.
+
+**Secret mismatch — same secret on both sides?**
 
 <Steps>
   <Step title="Check the env var name on your server">
@@ -25,7 +31,32 @@ Common issues, what they mean, and how to fix them. If something isn't covered h
   </Step>
 </Steps>
 
-If both sides have the same secret and it still fails, see the next section.
+**Path mismatch — does the PATH you verify equal the PATH ShadowFeed signed?**
+
+ShadowFeed signs the **registered `source_path`** (relative to `partner_endpoint`). If your verifier builds the canonical string from `new URL(req.url).pathname` and your app is mounted behind a prefix (common with x402 routers) or your `partner_endpoint` includes a path, the two PATHs differ and the signature can never match.
+
+- Confirm `partner_endpoint` is **origin-only** (`https://api.you.com`, no path, no trailing slash).
+- If your router is mounted under a prefix (`/api`, `/x402`, …), **strip it** before signing — see [HMAC Integration → Mounted behind a prefix](/providers/hmac-integration#mounted-behind-a-prefix-or-an-x402-router).
+- The SDK adapters handle this automatically.
+
+### ShadowFeed can't reach my route — 404 or "route exists?"
+
+**Cause:** ShadowFeed calls `partner_endpoint + source_path` literally. A 404 means that combined URL doesn't resolve to a real route on your server — your signature code never even runs. This is a silent killer: you're watching for 401s that never arrive while every call 404s.
+
+**Fix:**
+- Register `partner_endpoint` as origin-only and `source_path` as the **exact** path your server already serves (e.g. your existing x402 route).
+- A stale `/v1` or duplicated segment is the usual culprit — `partner_endpoint = https://api.you.com/v1` **and** `source_path = /v1/whales` produces `…/v1/v1/whales`.
+- Run **Test connection** — the response echoes `probed_path` and the upstream HTTP status so you can see exactly what ShadowFeed hit.
+
+### Buyers pay STX but I earn nothing (my logs show a 402 to ShadowFeed)
+
+**Cause:** you already gate this endpoint with x402 (Solana/EVM), and the HMAC bypass didn't fire — so the ShadowFeed call fell through to your paywall, which answered `402`. ShadowFeed treats any non-2xx upstream response as a failed delivery: **no revenue is credited and the agent gets an error**, even though they paid STX.
+
+**Fix:**
+- Mount the HMAC verifier **before** your x402 middleware, and set your `skipX402` flag on a valid signature.
+- The underlying reason the bypass failed is almost always a secret or path mismatch — fix that (sections above) and the 402s turn into 200s. See [Coexisting with your existing x402 paywall](/providers/hmac-integration#coexisting-with-your-existing-x402-paywall).
+
+If both sides have the same secret, the path matches, and it still fails, see the next section.
 
 ### Some calls succeed, some return 401
 

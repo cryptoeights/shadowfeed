@@ -51,10 +51,10 @@ This guide walks you through registering as a ShadowFeed data provider.
 
 <Tabs>
   <Tab title="Partner Bridge">
-    Pick this if you already have a production API.
-    
-    **Required:** partner endpoint URL (e.g. `https://api.yourcompany.com`). This is where ShadowFeed will send signed requests when an agent buys your feeds.
-    
+    Pick this if you already have a production API — including one you already gate with x402 on Solana, Base, or another EVM chain. You point ShadowFeed at the same endpoint; it bypasses your existing paywall with an HMAC signature (see [Coexisting with your existing x402 paywall](/providers/hmac-integration#coexisting-with-your-existing-x402-paywall)).
+
+    **Required:** partner endpoint URL — an **origin only**, e.g. `https://api.yourcompany.com`. No path, no trailing slash. The per-feed `source_path` (next step) is appended to this. Registering a path here (e.g. `…/v1`) is the most common cause of dead-on-arrival integrations.
+
     The wizard will generate an HMAC secret in step 4. **Save it immediately** — it's shown once.
   </Tab>
   <Tab title="Hosted Mirror">
@@ -72,7 +72,7 @@ This guide walks you through registering as a ShadowFeed data provider.
 | **Display name** | Yes | E.g. "Whale Alerts" |
 | **Description** | No | Helps agents discover your feed |
 | **Price (STX)** | Yes | Per-query cost. Suggested: 0.003 - 0.05 STX |
-| **Source path** | Partner Bridge | Relative path on your API, e.g. `/v1/whales` |
+| **Source path** | Partner Bridge | The **exact** route your server already serves, starting with `/` — e.g. `/whale-alerts`. ShadowFeed calls `partner_endpoint + source_path` and signs this path verbatim, so it must match a real route and must not repeat any segment already in `partner_endpoint`. |
 | **Source type** | Hosted Mirror | `github_raw`, `r2_url`, `webhook_push`, `manual_upload` |
 | **Source URL** | Hosted Mirror polling | HTTPS URL to fetch JSON from |
 | **Poll interval** | Hosted Mirror polling | 60s, 5min, 15min, or 1 hour |
@@ -162,14 +162,16 @@ Withdrawals can only go to this linked address. To change it later, sign a new l
 
 ## Step 8 — Verify end-to-end
 
-Once your verifier is deployed and the env var is set, trigger a paid request:
+**First, run the free handshake test — before spending any STX.** In the dashboard click **Test connection** (`POST /providers/id/:id/hmac/test`), or `npx shadowfeed verify --endpoint https://api.you.com --secret "$SHADOWFEED_PARTNER_SECRET"` if you use the SDK. It signs a request with your stored secret against your first feed's `source_path` and probes your endpoint exactly like a real buyer would — catching secret and path mismatches in seconds. Don't activate until this returns `ok`. Full breakdown: [HMAC Integration → Verify your wiring](/providers/hmac-integration#verify-your-wiring-before-going-live).
+
+Then confirm the unpaid path returns a 402 challenge:
 
 ```bash
 # Without payment — should return 402 with payment requirements
 curl -i https://api.shadowfeed.app/feeds/p/your-handle/feed-slug
 ```
 
-Use the [ShadowFeed Agent SDK](/sdk/installation) for the full pay-per-call test:
+Finally, run one real pay-per-call test with the [ShadowFeed Agent SDK](/sdk/installation):
 
 ```typescript
 import { ShadowFeed } from 'shadowfeed-agent';

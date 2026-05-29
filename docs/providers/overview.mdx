@@ -32,7 +32,7 @@ Pick one based on what you already have.
 
 <CardGroup cols={2}>
   <Card title="Partner Bridge (HMAC)" icon="link" href="/providers/hmac-integration">
-    You already have an HTTPS API. Add ~50 lines of HMAC verifier middleware. ShadowFeed signs requests with a shared secret; your endpoint serves data and bypasses x402.
+    You already have an HTTPS API — including one already gated by x402 on Solana, Base, or another EVM chain. Add ~50 lines of HMAC verifier middleware (or drop in `@shadowfeed/provider-sdk`). ShadowFeed signs requests with a shared secret; your endpoint serves data and bypasses your existing paywall for those calls. Your direct buyers are unaffected.
   </Card>
   <Card title="Hosted Mirror" icon="cloud-arrow-up" href="/providers/onboarding">
     You have data but no API server. Give ShadowFeed an R2/S3 URL, GitHub raw link, or webhook push target. We poll, cache, and serve.
@@ -49,6 +49,8 @@ Agent ──pay STX──▶ ShadowFeed ──HMAC-signed request──▶ Your 
                 Agent receives data
                 97% credited to your provider wallet
 ```
+
+ShadowFeed never pays your endpoint — it authenticates with an HMAC signature, so if your API is already behind an x402 paywall, your verifier **bypasses** the charge for ShadowFeed's calls while your direct Solana/EVM buyers keep paying normally. Get the canonical PATH right (it must equal your registered `source_path`) and run the free handshake test before going live — both covered in the [HMAC Integration Guide](/providers/hmac-integration).
 
 ### How Hosted Mirror works
 
