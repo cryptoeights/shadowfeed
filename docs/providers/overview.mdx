@@ -52,6 +52,10 @@ Agent ──pay STX──▶ ShadowFeed ──HMAC-signed request──▶ Your 
 
 ShadowFeed never pays your endpoint — it authenticates with an HMAC signature, so if your API is already behind an x402 paywall, your verifier **bypasses** the charge for ShadowFeed's calls while your direct Solana/EVM buyers keep paying normally. Get the canonical PATH right (it must equal your registered `source_path`) and run the free handshake test before going live — both covered in the [HMAC Integration Guide](/providers/hmac-integration).
 
+<Note>
+  Partner Bridge providers should also publish a `.well-known/shadowfeed-feeds.json` on their own domain so anyone — marketplaces, partners, grant reviewers — can independently verify you opted in. The SDK does this automatically; manual integrators add it in [Onboarding → Step 9](/providers/onboarding).
+</Note>
+
 ### How Hosted Mirror works
 
 ```

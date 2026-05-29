@@ -205,6 +205,70 @@ When the agent pays:
   </Step>
 </Steps>
 
+## Step 9 — Publish your discovery manifest
+
+Publish a `.well-known/shadowfeed-feeds.json` file **on your own domain**. This is how marketplaces, partners, and grant reviewers independently confirm — from infrastructure *you* control — that you opted into ShadowFeed. ShadowFeed's public verification endpoint (`/providers/your-handle/manifest`) fetches this file live and reports it under `independence_attestation.well_known_manifest_present`.
+
+<Note>
+  Using `@shadowfeed/provider-sdk`? This file is generated and served for you automatically from your registered feeds — skip straight to the verification commands below. The manual work here only applies to hand-rolled Partner Bridge integrations.
+</Note>
+
+Serve it at the root of the **same website domain** you registered in Step 2:
+
+```
+https://yourdomain.com/.well-known/shadowfeed-feeds.json
+```
+
+<Warning>
+  It must resolve at the exact domain you registered — watch apex-vs-`www` redirects. If `yourdomain.com` 307-redirects to `www.yourdomain.com` and the file only lives on one of them, the check returns `well_known_manifest_present: false`. Always test the registered URL while following redirects: `curl -IL https://yourdomain.com/.well-known/shadowfeed-feeds.json`.
+</Warning>
+
+Use this shape — the live [Hyre manifest](https://hyreagent.fun/.well-known/shadowfeed-feeds.json) is the reference implementation:
+
+```json
+{
+  "version": "1",
+  "provider": {
+    "name": "Your Company",
+    "handle": "your-handle",
+    "description": "One-sentence pitch.",
+    "website": "https://yourdomain.com",
+    "api": "https://api.yourdomain.com",
+    "twitter_handle": "@your_handle",
+    "contact_email": "you@yourdomain.com"
+  },
+  "partnerships": [
+    {
+      "marketplace": "shadowfeed",
+      "marketplace_url": "https://shadowfeed.app",
+      "marketplace_handle": "your-handle",
+      "marketplace_verification_url": "https://api.shadowfeed.app/providers/your-handle/manifest",
+      "integration_mode": "partner_bridge",
+      "partner_endpoint": "https://api.yourdomain.com"
+    }
+  ],
+  "feeds": [
+    { "slug": "signal", "name": "Crypto Signal", "category": "signals", "path": "/signal", "method": "GET", "suggested_price_stx": 0.005 }
+  ],
+  "supported_payments": [
+    { "scheme": "partner_bridge", "marketplace": "shadowfeed", "asset": "STX", "settlement_network": "stacks:mainnet" }
+  ]
+}
+```
+
+Each `feeds[].path` must match the `source_path` you registered in Step 4. If you cross-list on other marketplaces (x402scan, payai, etc.), add one entry per marketplace under `partnerships` so every partner can verify you from this single file.
+
+**Verify it's detected:**
+
+```bash
+# Your file resolves at the registered domain (follow redirects)
+curl -IL https://yourdomain.com/.well-known/shadowfeed-feeds.json    # expect: HTTP 200
+
+# ShadowFeed sees it
+curl -s https://api.shadowfeed.app/providers/your-handle/manifest \
+  | grep well_known_manifest_present                                  # expect: true
+```
+
 ## What's next
 
 <CardGroup cols={2}>
