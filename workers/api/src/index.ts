@@ -310,7 +310,9 @@ app.get('/health', (c) => {
 });
 
 app.get('/registry/feeds', async (c) => {
-  const registry = await getRegistry(c.env.DB, c.env.SERVER_ADDRESS);
+  const tierParam = c.req.query('tier');
+  const tier = tierParam === 'verified' || tierParam === 'community' ? tierParam : 'all';
+  const registry = await getRegistry(c.env.DB, c.env.SERVER_ADDRESS, tier);
   return c.json(registry);
 });
 

@@ -15,7 +15,18 @@ export interface FeedInfo {
     avg_response_ms: number;
     uptime_percent: number;
   };
+  // Source discrimination so discover() consumers can tell platform-native
+  // feeds from external provider feeds. Optional → platform feeds omit them.
+  source?: 'platform' | 'provider';
+  provider_handle?: string;
+  provider_name?: string;
+  provider_verified?: boolean;
+  // Trust tier for external feeds: 'verified' = vetted/trusted provider,
+  // 'community' = self-onboarded, not yet vetted. Platform feeds omit this.
+  provider_tier?: 'verified' | 'community';
 }
+
+export type RegistryTier = 'verified' | 'community' | 'all';
 
 const FEED_DEFINITIONS: Omit<FeedInfo, 'stats'>[] = [
   // --- Original feeds ---
@@ -234,11 +245,119 @@ const FEED_DEFINITIONS: Omit<FeedInfo, 'stats'>[] = [
   },
 ];
 
-export async function getRegistry(db: D1Database, providerAddress: string) {
-  const dbStats = await getFeedStats(db);
+/**
+ * Active external-provider feeds, mapped into the same FeedInfo contract the
+ * platform feeds use. These are the feeds the SDK's discover() must surface
+ * alongside the 21 built-ins. Buyer-facing endpoint is the proxy route
+ * `/feeds/p/{handle}/{slug}` (see provider-feed-proxy.ts).
+ *
+ * Only feeds whose provider is `active` AND whose feed row is `active = 1` are
+ * exposed — paused/banned providers and disabled feeds stay hidden.
+ *
+ * Resilient by design: any DB error returns [] so /registry/feeds still serves
+ * the platform catalog instead of failing the whole endpoint.
+ */
+async function getProviderFeedInfos(db: D1Database): Promise<FeedInfo[]> {
+  try {
+    const { results } = await db
+      .prepare(`
+        SELECT
+          p.handle AS provider_handle,
+          p.name AS provider_name,
+          p.verified AS provider_verified,
+          f.slug, f.name AS feed_name, f.description, f.category,
+          f.price_microstx, f.total_queries
+        FROM provider_feeds f
+        JOIN providers p ON p.id = f.provider_id
+        WHERE p.status = 'active' AND f.active = 1
+        ORDER BY p.handle ASC, f.slug ASC
+      `)
+      .all<{
+        provider_handle: string;
+        provider_name: string;
+        provider_verified: number;
+        slug: string;
+        feed_name: string;
+        description: string | null;
+        category: string | null;
+        price_microstx: number;
+        total_queries: number;
+      }>();
+
+    return (results ?? []).map((r): FeedInfo => {
+      const priceStx = r.price_microstx / 1_000_000;
+      const verified = r.provider_verified === 1;
+      return {
+        id: `${r.provider_handle}/${r.slug}`,
+        endpoint: `/feeds/p/${r.provider_handle}/${r.slug}`,
+        price_stx: priceStx,
+        price_display: `${priceStx} STX`,
+        description: r.description ?? r.feed_name,
+        category: r.category ?? 'external',
+        update_frequency: 'real-time',
+        response_format: 'application/json',
+        stats: {
+          total_queries: r.total_queries ?? 0,
+          avg_response_ms: 0,
+          uptime_percent: 99,
+        },
+        source: 'provider',
+        provider_handle: r.provider_handle,
+        provider_name: r.provider_name,
+        provider_verified: verified,
+        provider_tier: verified ? 'verified' : 'community',
+      };
+    });
+  } catch (err) {
+    console.error('getProviderFeedInfos failed; serving platform feeds only:', err);
+    return [];
+  }
+}
+
+interface ProviderDirectoryEntry {
+  handle: string;
+  name: string;
+  feed_count: number;
+}
+
+/** Group provider feeds into a verified/community directory for discover(). */
+function buildProviderDirectory(providerFeeds: FeedInfo[]) {
+  const byHandle = new Map<string, ProviderDirectoryEntry & { tier: 'verified' | 'community' }>();
+  for (const f of providerFeeds) {
+    const handle = f.provider_handle!;
+    const existing = byHandle.get(handle);
+    if (existing) {
+      existing.feed_count += 1;
+    } else {
+      byHandle.set(handle, {
+        handle,
+        name: f.provider_name ?? handle,
+        feed_count: 1,
+        tier: f.provider_tier ?? 'community',
+      });
+    }
+  }
+  const all = [...byHandle.values()];
+  const strip = (e: ProviderDirectoryEntry & { tier: string }): ProviderDirectoryEntry =>
+    ({ handle: e.handle, name: e.name, feed_count: e.feed_count });
+  return {
+    verified: all.filter((e) => e.tier === 'verified').map(strip),
+    community: all.filter((e) => e.tier === 'community').map(strip),
+  };
+}
+
+export async function getRegistry(
+  db: D1Database,
+  providerAddress: string,
+  tier: RegistryTier = 'all',
+) {
+  const [dbStats, allProviderFeeds] = await Promise.all([
+    getFeedStats(db),
+    getProviderFeedInfos(db),
+  ]);
   const statsMap = new Map(dbStats.map((s) => [s.feed_id, s]));
 
-  const feeds: FeedInfo[] = FEED_DEFINITIONS.map((def) => {
+  const platformFeeds: FeedInfo[] = FEED_DEFINITIONS.map((def) => {
     const stat = statsMap.get(def.id);
     return {
       ...def,
@@ -247,8 +366,21 @@ export async function getRegistry(db: D1Database, providerAddress: string) {
         avg_response_ms: Math.round(stat?.avg_response_ms ?? 0),
         uptime_percent: 99 + Math.random() * 0.9,
       },
+      source: 'platform' as const,
     };
   });
+
+  // Directory always reflects the full active set, independent of tier filter.
+  const providers = buildProviderDirectory(allProviderFeeds);
+
+  // ?tier=verified|community narrows the provider feeds in the `feeds` array.
+  // Platform feeds are first-party and always included.
+  const providerFeeds =
+    tier === 'all'
+      ? allProviderFeeds
+      : allProviderFeeds.filter((f) => f.provider_tier === tier);
+
+  const feeds: FeedInfo[] = [...platformFeeds, ...providerFeeds];
 
   return {
     protocol: 'shadowfeed',
@@ -257,6 +389,15 @@ export async function getRegistry(db: D1Database, providerAddress: string) {
     provider: providerAddress,
     payment_protocol: 'x402-stacks',
     settlement: 'STX on Stacks (Bitcoin L2)',
+    tier,
     feeds,
+    providers,
+    feed_counts: {
+      platform: platformFeeds.length,
+      provider_verified: allProviderFeeds.filter((f) => f.provider_tier === 'verified').length,
+      provider_community: allProviderFeeds.filter((f) => f.provider_tier === 'community').length,
+      provider_shown: providerFeeds.length,
+      total_shown: feeds.length,
+    },
   };
 }
